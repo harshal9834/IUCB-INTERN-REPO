@@ -173,7 +173,9 @@ export async function downloadCertificatePdf(data: CertificateData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(255, 255, 255);
-  doc.text(`Verify at iucb.org/verify  •  Certificate ID: ${data.id}`, W / 2, H - 38, { align: "center" });
+  doc.text(`Verify at iucb.org/verify  •  Certificate ID: ${data.id}`, W / 2, H - 38, {
+    align: "center",
+  });
 
   doc.save(`IUCB-Certificate-${data.id}.pdf`);
 }

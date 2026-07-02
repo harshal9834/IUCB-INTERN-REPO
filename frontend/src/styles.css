@@ -39,7 +39,7 @@
   --font-display: "Inter", "Public Sans", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Open Sans", "Roboto", ui-sans-serif, system-ui, sans-serif;
   --color-slate: #475569;
-  --color-slate-muted: #64748B;
+  --color-slate-muted: #64748b;
   --color-slate-deep: #334155;
 }
 
@@ -47,17 +47,17 @@
   --radius: 0.5rem;
 
   /* Brand palette (mapped to oklch) */
-  --background: oklch(1 0 0);                       /* #FFFFFF */
-  --foreground: oklch(0.18 0.04 260);               /* #0F172A navy */
+  --background: oklch(1 0 0); /* #FFFFFF */
+  --foreground: oklch(0.18 0.04 260); /* #0F172A navy */
   --navy: oklch(0.18 0.04 260);
-  --soft-gray: oklch(0.975 0.005 240);              /* #F5F7FA */
-  --light-blue: oklch(0.93 0.05 235);               /* #BFE3F7 */
+  --soft-gray: oklch(0.975 0.005 240); /* #F5F7FA */
+  --light-blue: oklch(0.93 0.05 235); /* #BFE3F7 */
 
-  --primary: oklch(0.40 0.10 240);                  /* #004B7A */
+  --primary: oklch(0.4 0.1 240); /* #004B7A */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.50 0.13 260);                /* #2F5FAF */
+  --secondary: oklch(0.5 0.13 260); /* #2F5FAF */
   --secondary-foreground: oklch(1 0 0);
-  --gold: oklch(0.76 0.13 85);                      /* #D4AF37 */
+  --gold: oklch(0.76 0.13 85); /* #D4AF37 */
   --gold-foreground: oklch(0.18 0.04 260);
 
   --card: oklch(1 0 0);
@@ -82,9 +82,9 @@
   --card-foreground: oklch(0.98 0.003 247);
   --popover: oklch(0.22 0.04 260);
   --popover-foreground: oklch(0.98 0.003 247);
-  --primary: oklch(0.50 0.13 260);
+  --primary: oklch(0.5 0.13 260);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.40 0.10 240);
+  --secondary: oklch(0.4 0.1 240);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.28 0.04 260);
   --muted-foreground: oklch(0.7 0.02 260);
@@ -112,20 +112,41 @@
     line-height: 1.65;
     font-feature-settings: "cv11", "ss01";
   }
-  h1, h2, h3, h4, h5, h6, nav, button {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  nav,
+  button {
     font-family: var(--font-sans);
     letter-spacing: -0.02em;
     font-weight: 600;
   }
-  p { color: #475569; }
+  p {
+    color: #475569;
+  }
 }
 
-@utility font-body { font-family: var(--font-body); }
-@utility text-slate-body { color: #475569; }
-@utility text-slate-muted { color: #64748B; }
-@utility text-slate-deep { color: #334155; }
-@utility text-navy-deep { color: #0F172A; }
-@utility text-primary-hex { color: #004B7A; }
+@utility font-body {
+  font-family: var(--font-body);
+}
+@utility text-slate-body {
+  color: #475569;
+}
+@utility text-slate-muted {
+  color: #64748b;
+}
+@utility text-slate-deep {
+  color: #334155;
+}
+@utility text-navy-deep {
+  color: #0f172a;
+}
+@utility text-primary-hex {
+  color: #004b7a;
+}
 
 @utility container-x {
   width: 100%;

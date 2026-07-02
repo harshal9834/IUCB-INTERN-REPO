@@ -1,15 +1,33 @@
 import { Router } from "express";
 import adminRoutes from "./admin.routes.js";
 import authRoutes from "./auth.routes.js";
+import dashboardRoutes from "./dashboard.routes.js";
+import organizationsRoutes from "./organizations.routes.js";
+import auditorsRoutes from "./auditors.routes.js";
+import credentialsRoutes from "./credentials.routes.js";
+import advisoryRoutes from "./advisory.routes.js";
+import { AdvisoryController } from "../controllers/advisory.controller.js";
 
 const rootRouter = Router();
+const advisoryCtrl = new AdvisoryController();
 
 // API Health Check
 rootRouter.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", timestamp: new Date() });
 });
 
+// Auth & Admin (existing)
 rootRouter.use("/v1/auth", authRoutes);
 rootRouter.use("/admins", adminRoutes);
+
+// Phase 4: Feature Module Routes (PRD-compliant)
+rootRouter.use("/v1/dashboard", dashboardRoutes);
+rootRouter.use("/v1/organizations", organizationsRoutes);
+rootRouter.use("/v1/auditors", auditorsRoutes);
+rootRouter.use("/v1/credentials", credentialsRoutes);
+rootRouter.use("/v1/advisory", advisoryRoutes);
+
+// PRD: GET /api/v1/public/advisors
+rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);
 
 export default rootRouter;

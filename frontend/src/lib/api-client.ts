@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -21,7 +21,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Interceptor for handling common error responses
@@ -33,5 +33,5 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("token");
     }
     return Promise.reject(error);
-  }
+  },
 );

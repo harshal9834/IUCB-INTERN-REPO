@@ -3,26 +3,34 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { apiClient } from "../lib/api-client";
+import { axiosInstance } from "../services/api/axios";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Lock, Eye, EyeOff, ShieldAlert, CheckCircle, ArrowLeft } from "lucide-react";
 
-const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Reset token is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Reset token is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-// Read token from search params automatically using TanStack Router search param schema
-export const Route = createFileRoute("/reset-password")({
+export const Route = createFileRoute("/admin/reset-password")({
   validateSearch: (search: Record<string, unknown>) => {
     return {
       token: (search.token as string) || "",
@@ -34,7 +42,7 @@ export const Route = createFileRoute("/reset-password")({
 function ResetPasswordComponent() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -57,13 +65,16 @@ function ResetPasswordComponent() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await apiClient.post("/v1/auth/reset-password", {
+      await axiosInstance.post("/auth/reset-password", {
         token: data.token,
         password: data.password,
       });
       setIsSuccess(true);
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || "Invalid or expired token. Please request another reset link.");
+      setErrorMessage(
+        error.response?.data?.message ||
+          "Invalid or expired token. Please request another reset link.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -93,11 +104,12 @@ function ResetPasswordComponent() {
             </div>
             <h3 className="text-lg font-semibold text-slate-900">Success!</h3>
             <p className="text-sm text-slate-600 font-medium">
-              Your password has been successfully updated. All other active sessions have been forced to log out for security.
+              Your password has been successfully updated. All other active sessions have been
+              forced to log out for security.
             </p>
             <div className="pt-4">
               <Button
-                onClick={() => navigate({ to: "/login" })}
+                onClick={() => navigate({ to: "/admin/login" })}
                 className="w-full bg-[#0F2942] text-white hover:bg-[#1a446c]"
               >
                 Go to Sign In
@@ -114,9 +126,10 @@ function ResetPasswordComponent() {
                 </div>
               )}
 
-              {/* Reset token input - filled from query params if present, or entered manually */}
               <div className="space-y-2">
-                <Label htmlFor="token" className="text-slate-700 font-medium">Reset Token</Label>
+                <Label htmlFor="token" className="text-slate-700 font-medium">
+                  Reset Token
+                </Label>
                 <Input
                   id="token"
                   placeholder="Paste secure token received"
@@ -130,7 +143,9 @@ function ResetPasswordComponent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700 font-medium">New Password</Label>
+                <Label htmlFor="password" className="text-slate-700 font-medium">
+                  New Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -154,7 +169,9 @@ function ResetPasswordComponent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">
+                  Confirm New Password
+                </Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -164,7 +181,9 @@ function ResetPasswordComponent() {
                   {...register("confirmPassword")}
                 />
                 {errors.confirmPassword && (
-                  <p className="text-xs text-red-600 font-medium">{errors.confirmPassword.message}</p>
+                  <p className="text-xs text-red-600 font-medium">
+                    {errors.confirmPassword.message}
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -179,7 +198,7 @@ function ResetPasswordComponent() {
               </Button>
               <div className="text-center">
                 <a
-                  href="/login"
+                  href="/admin/login"
                   className="inline-flex items-center gap-2 text-xs font-semibold text-[#0F2942] hover:text-[#D4AF37] transition-colors"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> Back to Login

@@ -24,13 +24,17 @@ export function PageHero({
       <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-secondary/40 blur-3xl" />
       <div className="container-x relative py-20 md:py-28">
         {eyebrow && (
-          <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold mb-4">{eyebrow}</div>
+          <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold mb-4">
+            {eyebrow}
+          </div>
         )}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold leading-[1.05] max-w-4xl">
           {title}
         </h1>
         {description && (
-          <p className="mt-6 max-w-2xl text-base md:text-lg text-white/80 leading-relaxed">{description}</p>
+          <p className="mt-6 max-w-2xl text-base md:text-lg text-white/80 leading-relaxed">
+            {description}
+          </p>
         )}
         {children && <div className="mt-8">{children}</div>}
       </div>

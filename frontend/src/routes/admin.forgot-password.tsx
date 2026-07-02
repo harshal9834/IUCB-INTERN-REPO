@@ -3,11 +3,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { apiClient } from "../lib/api-client";
+import { axiosInstance } from "../services/api/axios";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Mail, CheckCircle, ShieldAlert, ArrowLeft } from "lucide-react";
 
 const forgotPasswordSchema = z.object({
@@ -16,7 +23,7 @@ const forgotPasswordSchema = z.object({
 
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
-export const Route = createFileRoute("/forgot-password")({
+export const Route = createFileRoute("/admin/forgot-password")({
   component: ForgotPasswordComponent,
 });
 
@@ -38,12 +45,14 @@ function ForgotPasswordComponent() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await apiClient.post("/v1/auth/forgot-password", {
+      await axiosInstance.post("/auth/forgot-password", {
         email: data.email,
       });
       setIsSuccess(true);
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || "Failed to process request. Please try again.");
+      setErrorMessage(
+        error.response?.data?.message || "Failed to process request. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -73,11 +82,12 @@ function ForgotPasswordComponent() {
             </div>
             <h3 className="text-lg font-semibold text-slate-900">Request Received</h3>
             <p className="text-sm text-slate-600">
-              If the email address matches an active account, password recovery instructions will be dispatched.
+              If the email address matches an active account, password recovery instructions will be
+              dispatched.
             </p>
             <div className="pt-4">
               <a
-                href="/login"
+                href="/admin/login"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F2942] hover:text-[#D4AF37] transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Login
@@ -95,7 +105,9 @@ function ForgotPasswordComponent() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 font-medium">Email Address</Label>
+                <Label htmlFor="email" className="text-slate-700 font-medium">
+                  Email Address
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
@@ -123,7 +135,7 @@ function ForgotPasswordComponent() {
               </Button>
               <div className="text-center">
                 <a
-                  href="/login"
+                  href="/admin/login"
                   className="inline-flex items-center gap-2 text-xs font-semibold text-[#0F2942] hover:text-[#D4AF37] transition-colors"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> Back to Login

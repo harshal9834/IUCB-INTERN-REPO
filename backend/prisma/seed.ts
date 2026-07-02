@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Start seeding...");
 
-  // 1. Clean existing records
+  // 1. Clean existing records (except admins to make idempotent)
   await prisma.systemSettings.deleteMany({});
   await prisma.emailLog.deleteMany({});
   await prisma.auditLog.deleteMany({});
@@ -18,31 +18,70 @@ async function main() {
   await prisma.auditor.deleteMany({});
   await prisma.organization.deleteMany({});
   await prisma.refreshToken.deleteMany({});
-  await prisma.admin.deleteMany({});
+  // Don't delete admins - we'll upsert them instead for idempotency
 
-  // 2. Seed 1 Super Admin
-  const hashedPassword = await bcrypt.hash("SuperAdminPass123!", 10);
-  const superAdmin = await prisma.admin.create({
-    data: {
-      fullName: "IUCB Super Administrator",
-      email: "superadmin@iucb.org",
-      password: hashedPassword,
+  // 2. Upsert Default Development Admin (Idempotent)
+  const defaultPassword = "Admin@123";
+  const hashedDefaultPassword = await bcrypt.hash(defaultPassword, 10);
+
+  const defaultAdmin = await prisma.admin.upsert({
+    where: { email: "admin@iucb.local" },
+    update: {
+      fullName: "Super Admin",
+      password: hashedDefaultPassword,
+      role: AdminRole.SUPER_ADMIN,
+      status: "ACTIVE",
+    },
+    create: {
+      fullName: "Super Admin",
+      email: "admin@iucb.local",
+      password: hashedDefaultPassword,
       role: AdminRole.SUPER_ADMIN,
       status: "ACTIVE",
     },
   });
-  console.log("Seeded Super Admin:", superAdmin.email);
+  console.log("✅ Default Admin ensured:", defaultAdmin.email);
 
-  // Seed 1 normal Admin
-  const normalAdmin = await prisma.admin.create({
-    data: {
+  // 2b. Upsert Super Admin (Production-style)
+  const superAdminPassword = "SuperAdminPass123!";
+  const hashedSuperAdminPassword = await bcrypt.hash(superAdminPassword, 10);
+
+  const superAdmin = await prisma.admin.upsert({
+    where: { email: "superadmin@iucb.org" },
+    update: {
+      fullName: "IUCB Super Administrator",
+      password: hashedSuperAdminPassword,
+      role: AdminRole.SUPER_ADMIN,
+      status: "ACTIVE",
+    },
+    create: {
+      fullName: "IUCB Super Administrator",
+      email: "superadmin@iucb.org",
+      password: hashedSuperAdminPassword,
+      role: AdminRole.SUPER_ADMIN,
+      status: "ACTIVE",
+    },
+  });
+  console.log("✅ Super Admin ensured:", superAdmin.email);
+
+  // 2c. Upsert Normal Admin
+  const normalAdmin = await prisma.admin.upsert({
+    where: { email: "admin@iucb.org" },
+    update: {
+      fullName: "Accreditation Officer",
+      password: hashedSuperAdminPassword,
+      role: AdminRole.ADMIN,
+      status: "ACTIVE",
+    },
+    create: {
       fullName: "Accreditation Officer",
       email: "admin@iucb.org",
-      password: hashedPassword,
+      password: hashedSuperAdminPassword,
       role: AdminRole.ADMIN,
       status: "ACTIVE",
     },
   });
+  console.log("✅ Normal Admin ensured:", normalAdmin.email);
 
   // 3. Seed 5 Organizations
   const orgNames = [
@@ -71,7 +110,7 @@ async function main() {
     });
     organizations.push(org);
   }
-  console.log("Seeded 5 Organizations");
+  console.log("✅ Seeded 5 Organizations");
 
   // 4. Seed 10 Auditors (2 per Organization)
   const auditors = [];
@@ -94,14 +133,14 @@ async function main() {
     });
     auditors.push(auditor);
   }
-  console.log("Seeded 10 Auditors");
+  console.log("✅ Seeded 10 Auditors");
 
   // 5. Seed 20 Credentials (4 per Organization)
   const standards = ["ISO/IEC 27001:2022", "ISO 9001:2015", "ISO 14001:2015", "ISO 22301:2019", "ISO/IEC 27701:2019"];
   for (let i = 0; i < 20; i++) {
     const orgIndex = Math.floor(i / 4);
     const auditorIndex = (orgIndex * 2) + (i % 2); // Select one of the auditors mapped to this org
-    
+
     await prisma.credential.create({
       data: {
         credentialNumber: `IUCB-ISO-${100000 + i}`,
@@ -116,7 +155,7 @@ async function main() {
       },
     });
   }
-  console.log("Seeded 20 Credentials");
+  console.log("✅ Seeded 20 Credentials");
 
   // 6. Seed 5 Advisory Applications (3 Approved, 1 Pending, 1 Rejected)
   const appStatusOptions = [
@@ -141,13 +180,13 @@ async function main() {
         statementOfMerit: "I want to help govern global standards and accreditation parameters within IUCB guidelines.",
         resumeUrl: `https://iucb.org/resumes/candidate-${i + 1}.pdf`,
         applicationStatus: appStatusOptions[i],
-        reviewedById: appStatusOptions[i] !== ApplicationStatus.PENDING ? normalAdmin.id : null,
+        reviewedById: appStatusOptions[i] !== ApplicationStatus.PENDING ? superAdmin.id : null,
         reviewedAt: appStatusOptions[i] !== ApplicationStatus.PENDING ? new Date() : null,
       },
     });
     applications.push(app);
   }
-  console.log("Seeded 5 Advisory Applications");
+  console.log("✅ Seeded 5 Advisory Applications");
 
   // 7. Seed 3 Advisors (Linking to the 3 Approved Advisory Applications)
   for (let i = 0; i < 3; i++) {
@@ -165,7 +204,7 @@ async function main() {
       },
     });
   }
-  console.log("Seeded 3 Advisors");
+  console.log("✅ Seeded 3 Advisors");
 
   // 8. Seed 5 News articles
   for (let i = 0; i < 5; i++) {
@@ -180,7 +219,7 @@ async function main() {
       },
     });
   }
-  console.log("Seeded 5 News Articles");
+  console.log("✅ Seeded 5 News Articles");
 
   // 9. Seed 5 Resources
   const categories = ["ISO Standards", "Accreditation Policies", "Auditor Toolkits"];
@@ -194,7 +233,7 @@ async function main() {
       },
     });
   }
-  console.log("Seeded 5 Resources");
+  console.log("✅ Seeded 5 Resources");
 
   // 10. Seed System Settings
   await prisma.systemSettings.createMany({
@@ -203,9 +242,15 @@ async function main() {
       { key: "allow_public_advisor_applications", value: "true" },
     ],
   });
-  console.log("Seeded System Settings");
+  console.log("✅ Seeded System Settings");
 
-  console.log("Seeding completed successfully!");
+  console.log("\n===========================================");
+  console.log("✅ Seeding completed successfully!");
+  console.log("===========================================");
+  console.log("\n📝 DEFAULT ADMIN CREDENTIALS (DEVELOPMENT):");
+  console.log("   Email: admin@iucb.local");
+  console.log("   Password: Admin@123");
+  console.log("===========================================\n");
 }
 
 main()

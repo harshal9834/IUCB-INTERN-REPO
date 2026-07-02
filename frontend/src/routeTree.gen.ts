@@ -9,26 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as ServicesRouteImport } from './routes/services'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProcessRouteImport } from './routes/process'
 import { Route as NotFoundRouteImport } from './routes/not-found'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as GovernanceRouteImport } from './routes/governance'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminResetPasswordRouteImport } from './routes/admin.reset-password'
+import { Route as AdminProfileRouteImport } from './routes/admin.profile'
+import { Route as AdminOrganizationsRouteImport } from './routes/admin.organizations'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminForgotPasswordRouteImport } from './routes/admin.forgot-password'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminCredentialsRouteImport } from './routes/admin.credentials'
+import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminAuditorsRouteImport } from './routes/admin.auditors'
+import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
-const VerifyRoute = VerifyRouteImport.update({
-  id: '/verify',
-  path: '/verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
@@ -37,11 +41,6 @@ const UnauthorizedRoute = UnauthorizedRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProcessRoute = ProcessRouteImport.update({
@@ -54,19 +53,9 @@ const NotFoundRoute = NotFoundRouteImport.update({
   path: '/not-found',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GovernanceRoute = GovernanceRouteImport.update({
   id: '/governance',
   path: '/governance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentationRoute = DocumentationRouteImport.update({
@@ -94,6 +83,71 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminResetPasswordRoute = AdminResetPasswordRouteImport.update({
+  id: '/admin/reset-password',
+  path: '/admin/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/admin/profile',
+  path: '/admin/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
+  id: '/admin/organizations',
+  path: '/admin/organizations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminForgotPasswordRoute = AdminForgotPasswordRouteImport.update({
+  id: '/admin/forgot-password',
+  path: '/admin/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCredentialsRoute = AdminCredentialsRouteImport.update({
+  id: '/admin/credentials',
+  path: '/admin/credentials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminContentRoute = AdminContentRouteImport.update({
+  id: '/admin/content',
+  path: '/admin/content',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditorsRoute = AdminAuditorsRouteImport.update({
+  id: '/admin/auditors',
+  path: '/admin/auditors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
+  id: '/admin/audit-logs',
+  path: '/admin/audit-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
+  id: '/admin/applications',
+  path: '/admin/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/admin/analytics',
+  path: '/admin/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,15 +155,24 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/governance': typeof GovernanceRoute
-  '/login': typeof LoginRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
-  '/verify': typeof VerifyRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/credentials': typeof AdminCredentialsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/settings': typeof AdminSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -117,15 +180,24 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/governance': typeof GovernanceRoute
-  '/login': typeof LoginRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
-  '/verify': typeof VerifyRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/credentials': typeof AdminCredentialsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/settings': typeof AdminSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,15 +206,24 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/governance': typeof GovernanceRoute
-  '/login': typeof LoginRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
-  '/verify': typeof VerifyRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/credentials': typeof AdminCredentialsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/settings': typeof AdminSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -152,15 +233,24 @@ export interface FileRouteTypes {
     | '/contact'
     | '/directory'
     | '/documentation'
-    | '/forgot-password'
     | '/governance'
-    | '/login'
     | '/not-found'
     | '/process'
-    | '/reset-password'
     | '/services'
     | '/unauthorized'
-    | '/verify'
+    | '/admin/analytics'
+    | '/admin/applications'
+    | '/admin/audit-logs'
+    | '/admin/auditors'
+    | '/admin/content'
+    | '/admin/credentials'
+    | '/admin/dashboard'
+    | '/admin/forgot-password'
+    | '/admin/login'
+    | '/admin/organizations'
+    | '/admin/profile'
+    | '/admin/reset-password'
+    | '/admin/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -168,15 +258,24 @@ export interface FileRouteTypes {
     | '/contact'
     | '/directory'
     | '/documentation'
-    | '/forgot-password'
     | '/governance'
-    | '/login'
     | '/not-found'
     | '/process'
-    | '/reset-password'
     | '/services'
     | '/unauthorized'
-    | '/verify'
+    | '/admin/analytics'
+    | '/admin/applications'
+    | '/admin/audit-logs'
+    | '/admin/auditors'
+    | '/admin/content'
+    | '/admin/credentials'
+    | '/admin/dashboard'
+    | '/admin/forgot-password'
+    | '/admin/login'
+    | '/admin/organizations'
+    | '/admin/profile'
+    | '/admin/reset-password'
+    | '/admin/settings'
   id:
     | '__root__'
     | '/'
@@ -184,15 +283,24 @@ export interface FileRouteTypes {
     | '/contact'
     | '/directory'
     | '/documentation'
-    | '/forgot-password'
     | '/governance'
-    | '/login'
     | '/not-found'
     | '/process'
-    | '/reset-password'
     | '/services'
     | '/unauthorized'
-    | '/verify'
+    | '/admin/analytics'
+    | '/admin/applications'
+    | '/admin/audit-logs'
+    | '/admin/auditors'
+    | '/admin/content'
+    | '/admin/credentials'
+    | '/admin/dashboard'
+    | '/admin/forgot-password'
+    | '/admin/login'
+    | '/admin/organizations'
+    | '/admin/profile'
+    | '/admin/reset-password'
+    | '/admin/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -201,26 +309,28 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DirectoryRoute: typeof DirectoryRoute
   DocumentationRoute: typeof DocumentationRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
   GovernanceRoute: typeof GovernanceRoute
-  LoginRoute: typeof LoginRoute
   NotFoundRoute: typeof NotFoundRoute
   ProcessRoute: typeof ProcessRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   ServicesRoute: typeof ServicesRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
-  VerifyRoute: typeof VerifyRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminApplicationsRoute: typeof AdminApplicationsRoute
+  AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminAuditorsRoute: typeof AdminAuditorsRoute
+  AdminContentRoute: typeof AdminContentRoute
+  AdminCredentialsRoute: typeof AdminCredentialsRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminForgotPasswordRoute: typeof AdminForgotPasswordRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminOrganizationsRoute: typeof AdminOrganizationsRoute
+  AdminProfileRoute: typeof AdminProfileRoute
+  AdminResetPasswordRoute: typeof AdminResetPasswordRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/verify': {
-      id: '/verify'
-      path: '/verify'
-      fullPath: '/verify'
-      preLoaderRoute: typeof VerifyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/unauthorized': {
       id: '/unauthorized'
       path: '/unauthorized'
@@ -233,13 +343,6 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/process': {
@@ -256,25 +359,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotFoundRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/governance': {
       id: '/governance'
       path: '/governance'
       fullPath: '/governance'
       preLoaderRoute: typeof GovernanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documentation': {
@@ -312,6 +401,97 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reset-password': {
+      id: '/admin/reset-password'
+      path: '/admin/reset-password'
+      fullPath: '/admin/reset-password'
+      preLoaderRoute: typeof AdminResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/admin/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/organizations': {
+      id: '/admin/organizations'
+      path: '/admin/organizations'
+      fullPath: '/admin/organizations'
+      preLoaderRoute: typeof AdminOrganizationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/forgot-password': {
+      id: '/admin/forgot-password'
+      path: '/admin/forgot-password'
+      fullPath: '/admin/forgot-password'
+      preLoaderRoute: typeof AdminForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/credentials': {
+      id: '/admin/credentials'
+      path: '/admin/credentials'
+      fullPath: '/admin/credentials'
+      preLoaderRoute: typeof AdminCredentialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/content': {
+      id: '/admin/content'
+      path: '/admin/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/auditors': {
+      id: '/admin/auditors'
+      path: '/admin/auditors'
+      fullPath: '/admin/auditors'
+      preLoaderRoute: typeof AdminAuditorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/audit-logs': {
+      id: '/admin/audit-logs'
+      path: '/admin/audit-logs'
+      fullPath: '/admin/audit-logs'
+      preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/applications': {
+      id: '/admin/applications'
+      path: '/admin/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/admin/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -321,15 +501,24 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DirectoryRoute: DirectoryRoute,
   DocumentationRoute: DocumentationRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
   GovernanceRoute: GovernanceRoute,
-  LoginRoute: LoginRoute,
   NotFoundRoute: NotFoundRoute,
   ProcessRoute: ProcessRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   ServicesRoute: ServicesRoute,
   UnauthorizedRoute: UnauthorizedRoute,
-  VerifyRoute: VerifyRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminApplicationsRoute: AdminApplicationsRoute,
+  AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminAuditorsRoute: AdminAuditorsRoute,
+  AdminContentRoute: AdminContentRoute,
+  AdminCredentialsRoute: AdminCredentialsRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminForgotPasswordRoute: AdminForgotPasswordRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminOrganizationsRoute: AdminOrganizationsRoute,
+  AdminProfileRoute: AdminProfileRoute,
+  AdminResetPasswordRoute: AdminResetPasswordRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

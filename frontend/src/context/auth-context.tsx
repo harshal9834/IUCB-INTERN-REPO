@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
+import { setAccessToken, axiosInstance } from "../services/api/axios";
 
-export type UserRole = "ADMIN" | "AUDITOR" | "COMMITTEE" | "VIEWER";
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "AUDITOR" | "COMMITTEE" | "VIEWER";
 
 export interface User {
   id: string;
-  name: string;
+  name: string; // mapped from fullName on login
   email: string;
   role: UserRole;
+  status?: string;
 }
 
 interface AuthContextType {
@@ -19,35 +22,68 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token and user profile on mount
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-    
-    if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+    // On mount: try to restore session via refresh token (httpOnly cookie)
+    const restoreSession = async () => {
+      // Only attempt if we had a previous session flag
+      const hadSession = localStorage.getItem("has_session");
+      if (!hadSession) {
+        setIsLoading(false);
+        return;
       }
-    }
-    setIsLoading(false);
+
+      try {
+        // Step 1: Get a fresh access token using the refresh token cookie
+        const refreshRes = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        );
+        const { accessToken } = refreshRes.data.data;
+        setAccessToken(accessToken);
+
+        // Step 2: Load current user profile
+        const meRes = await axiosInstance.get("/auth/me");
+        const admin = meRes.data.data.admin;
+
+        setUser({
+          id: admin.id,
+          name: admin.fullName,
+          email: admin.email,
+          role: admin.role,
+          status: admin.status,
+        });
+      } catch {
+        // Session expired or no valid cookie — clear flag and proceed as unauthenticated
+        localStorage.removeItem("has_session");
+        setAccessToken(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    restoreSession();
   }, []);
 
   const login = (token: string, userData: User) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("has_session", "true");
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await axiosInstance.post("/auth/logout");
+    } catch {
+      // ignore logout errors
+    }
+    localStorage.removeItem("has_session");
+    setAccessToken(null);
     setUser(null);
   };
 

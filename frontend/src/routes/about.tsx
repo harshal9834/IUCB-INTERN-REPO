@@ -6,17 +6,37 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About IUCB — Global Authority for Accreditation" },
-      { name: "description", content: "Founded in 2019 and headquartered in Tallinn, IUCB sets the global standard for trust and excellence in accreditation and certification." },
+      {
+        name: "description",
+        content:
+          "Founded in 2019 and headquartered in Tallinn, IUCB sets the global standard for trust and excellence in accreditation and certification.",
+      },
     ],
   }),
   component: About,
 });
 
 const milestones = [
-  { year: "2019", title: "Founded in Tallinn", desc: "IUCB established as an independent accreditation authority." },
-  { year: "2021", title: "ISO/IEC 17011 Alignment", desc: "Operations formally aligned with international accreditation standards." },
-  { year: "2023", title: "100+ Countries Served", desc: "Mutual recognition expanded across regulated industries." },
-  { year: "2026", title: "Digital Trust Framework", desc: "Launched tamper-evident, QR-verifiable digital credentials." },
+  {
+    year: "2019",
+    title: "Founded in Tallinn",
+    desc: "IUCB established as an independent accreditation authority.",
+  },
+  {
+    year: "2021",
+    title: "ISO/IEC 17011 Alignment",
+    desc: "Operations formally aligned with international accreditation standards.",
+  },
+  {
+    year: "2023",
+    title: "100+ Countries Served",
+    desc: "Mutual recognition expanded across regulated industries.",
+  },
+  {
+    year: "2026",
+    title: "Digital Trust Framework",
+    desc: "Launched tamper-evident, QR-verifiable digital credentials.",
+  },
 ];
 
 function About() {
@@ -24,7 +44,12 @@ function About() {
     <>
       <PageHero
         eyebrow="About IUCB"
-        title={<>Setting the Global Standard for <span className="text-gold">Trust</span> & <span className="text-gold">Excellence</span></>}
+        title={
+          <>
+            Setting the Global Standard for <span className="text-gold">Trust</span> &{" "}
+            <span className="text-gold">Excellence</span>
+          </>
+        }
         description="Founded in 2019, the International Union for Certification & Benchmarking (IUCB) bridges the gap between rigid traditional accreditation and the dynamic needs of the modern digital economy."
       />
 
@@ -47,9 +72,21 @@ function About() {
       <section className="py-20 md:py-24 bg-white">
         <div className="container-x grid lg:grid-cols-3 gap-8">
           {[
-            { icon: Target, title: "Our Mission", desc: "To advance trust in global commerce by accrediting competent, impartial, and consistent certification across industries and borders." },
-            { icon: Eye, title: "Our Vision", desc: "A world where every certification carries verified meaning — recognized by regulators, enterprises, and the public alike." },
-            { icon: Compass, title: "Our Values", desc: "Integrity, transparency, independence, and continuous excellence in every assessment we deliver." },
+            {
+              icon: Target,
+              title: "Our Mission",
+              desc: "To advance trust in global commerce by accrediting competent, impartial, and consistent certification across industries and borders.",
+            },
+            {
+              icon: Eye,
+              title: "Our Vision",
+              desc: "A world where every certification carries verified meaning — recognized by regulators, enterprises, and the public alike.",
+            },
+            {
+              icon: Compass,
+              title: "Our Values",
+              desc: "Integrity, transparency, independence, and continuous excellence in every assessment we deliver.",
+            },
           ].map((c) => (
             <div key={c.title} className="rounded-xl border border-border p-8 bg-card">
               <div className="h-12 w-12 rounded-lg bg-light-blue text-primary grid place-items-center">
@@ -66,7 +103,9 @@ function About() {
         <div className="container-x">
           <div className="max-w-2xl">
             <div className="eyebrow">Our Journey</div>
-            <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-navy">Beyond Traditional Accreditation</h2>
+            <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-navy">
+              Beyond Traditional Accreditation
+            </h2>
           </div>
           <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {milestones.map((m) => (
@@ -86,7 +125,8 @@ function About() {
             <div className="eyebrow">Headquarters</div>
             <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-navy">Tallinn, Estonia</h2>
             <p className="mt-5 text-muted-foreground leading-relaxed">
-              IUCB operates from one of Europe's most advanced digital governance hubs, supported by regional delivery teams across EMEA, APAC, and the Americas.
+              IUCB operates from one of Europe's most advanced digital governance hubs, supported by
+              regional delivery teams across EMEA, APAC, and the Americas.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-4 max-w-md">
               <Stat icon={Users} label="Global Staff" value="120+" />
@@ -94,7 +134,10 @@ function About() {
               <Stat icon={Globe2} label="Regional Hubs" value="5" />
               <Stat icon={Award} label="MRA Partners" value="22" />
             </div>
-            <Link to="/contact" className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-secondary transition">
+            <Link
+              to="/contact"
+              className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-secondary transition"
+            >
               Contact our team
             </Link>
           </div>

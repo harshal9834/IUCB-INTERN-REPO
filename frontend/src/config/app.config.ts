@@ -2,7 +2,8 @@
 export const appConfig = {
   name: "IUCB",
   title: "IUCB — The Global Authority for Accreditation & Certification",
-  description: "IUCB accredits Certification Bodies, Auditors, and Training Providers against ISO, Cybersecurity & Privacy standards across 80+ countries.",
+  description:
+    "IUCB accredits Certification Bodies, Auditors, and Training Providers against ISO, Cybersecurity & Privacy standards across 80+ countries.",
   author: "IUCB",
 };
 

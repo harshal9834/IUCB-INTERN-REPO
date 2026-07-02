@@ -4,12 +4,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "../context/auth-context";
-import { apiClient } from "../lib/api-client";
+import { axiosInstance, setAccessToken } from "../services/api/axios";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Checkbox } from "../components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Eye, EyeOff, ShieldAlert, Lock, Mail } from "lucide-react";
 
 const loginSchema = z.object({
@@ -20,7 +27,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/admin/login")({
   component: LoginComponent,
 });
 
@@ -48,44 +55,101 @@ function LoginComponent() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const response = await apiClient.post("/v1/auth/login", {
+      const response = await axiosInstance.post("/auth/login", {
         email: data.email,
         password: data.password,
       });
 
       const { accessToken, admin } = response.data.data;
-      
-      // Store in auth context
-      login(accessToken, admin);
 
-      // Redirect to main page
-      navigate({ to: "/" });
+      // Save Access Token in memory
+      setAccessToken(accessToken);
+
+      // Map API admin shape → User context shape (fullName → name)
+      login(accessToken, {
+        id: admin.id,
+        name: admin.fullName,
+        email: admin.email,
+        role: admin.role,
+        status: admin.status,
+      });
+
+      // Redirect to main dashboard page
+      navigate({ to: "/admin/dashboard" });
     } catch (error: any) {
-      const msg = error.response?.data?.message || "Invalid credentials. Please try again.";
+      let msg = "Something went wrong. Please try again.";
+      if (error.response) {
+        if (error.response.status === 404) {
+          msg = `API endpoint not found (404) at ${error.config?.url || "/api"}. Please verify server routes.`;
+        } else if (error.response.status === 401) {
+          msg = error.response.data?.message || "Invalid credentials.";
+        } else if (error.response.status === 403) {
+          msg = "Access Denied (403). Unauthorized role.";
+        } else if (error.response.status >= 500) {
+          msg = "Internal Server Error (500). Please try again later.";
+        } else {
+          msg = error.response.data?.message || msg;
+        }
+      } else if (error.request) {
+        msg = "No response from server. Please verify backend is running on port 5000.";
+      }
       setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const isDevelopment = import.meta.env.DEV;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+      {isDevelopment && (
+        <div className="absolute top-4 right-4">
+          <Card className="w-72 border-amber-200 bg-amber-50 shadow-md">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-sm font-semibold text-amber-900">
+                  Development Only
+                </CardTitle>
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                  Dev
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs text-amber-900">
+              <div>
+                <p className="font-medium text-amber-900">Test Credentials:</p>
+                <div className="mt-2 space-y-1.5 font-mono text-amber-800 bg-white bg-opacity-50 p-2 rounded border border-amber-200">
+                  <p>
+                    <span className="font-semibold">Email:</span> admin@iucb.local
+                  </p>
+                  <p>
+                    <span className="font-semibold">Password:</span> Admin@123
+                  </p>
+                </div>
+              </div>
+              <p className="text-amber-700 text-xs italic">
+                This card is hidden in production builds.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       <Card className="w-full max-w-md border-slate-200 shadow-xl">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center">
-            {/* Navy & Gold Branding Logo area */}
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0F2942]">
               <Lock className="h-6 w-6 text-[#D4AF37]" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight text-[#0F2942]">
-            IUCB Portal Login
+            IUCB Admin Portal
           </CardTitle>
           <CardDescription className="text-slate-500">
             Sign in to access your administrative dashboard
           </CardDescription>
         </CardHeader>
-        
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {errorMessage && (
@@ -96,7 +160,9 @@ function LoginComponent() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 font-medium">Email Address</Label>
+              <Label htmlFor="email" className="text-slate-700 font-medium">
+                Email Address
+              </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <Input
@@ -115,9 +181,11 @@ function LoginComponent() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
+                <Label htmlFor="password" className="text-slate-700 font-medium">
+                  Password
+                </Label>
                 <a
-                  href="/forgot-password"
+                  href="/admin/forgot-password"
                   className="text-xs font-semibold text-[#0F2942] hover:text-[#D4AF37] transition-colors"
                 >
                   Forgot password?

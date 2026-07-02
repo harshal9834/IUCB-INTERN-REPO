@@ -7,23 +7,83 @@ export const Route = createFileRoute("/documentation")({
   head: () => ({
     meta: [
       { title: "Documentation — IUCB" },
-      { name: "description", content: "Access IUCB manuals, governance policies, procedures, templates, and corporate materials." },
+      {
+        name: "description",
+        content:
+          "Access IUCB manuals, governance policies, procedures, templates, and corporate materials.",
+      },
     ],
   }),
   component: Documentation,
 });
 
-const categories = ["All Documents", "Manuals", "Policies", "Procedures", "Guidance", "Templates", "Forms"];
+const categories = [
+  "All Documents",
+  "Manuals",
+  "Policies",
+  "Procedures",
+  "Guidance",
+  "Templates",
+  "Forms",
+];
 
 const docs = [
-  { title: "Accreditation Manual", desc: "Comprehensive guide to all accreditation requirements and assessment criteria.", version: "v5.2 · Jan 2025", size: "PDF · 4.8 MB", cat: "Manuals" },
-  { title: "Impartiality Policy", desc: "IUCB framework safeguarding independence and impartiality.", version: "v4.0 · Jan 2025", size: "PDF · 1.2 MB", cat: "Policies" },
-  { title: "Assessment Procedure", desc: "Step-by-step assessment workflow for IUCB technical assessors.", version: "v3.4 · Dec 2024", size: "PDF · 2.6 MB", cat: "Procedures" },
-  { title: "Accreditation Application Guide", desc: "Guidance for first-time applicants and re-accreditation candidates.", version: "v2.1 · Nov 2024", size: "PDF · 3.8 MB", cat: "Guidance" },
-  { title: "Cybersecurity Certification Roadmap", desc: "Recommended pathway for cybersecurity scheme accreditation.", version: "v1.5 · Oct 2024", size: "PDF · 1.9 MB", cat: "Guidance" },
-  { title: "Accreditation Application Form", desc: "Official application template for all accreditation programs.", version: "v6.0 · Jan 2025", size: "DOCX · 320 KB", cat: "Forms" },
-  { title: "Audit Report Template", desc: "Standardized audit reporting template used across schemes.", version: "v4.2 · Jan 2025", size: "DOCX · 410 KB", cat: "Templates" },
-  { title: "Complaints & Appeals Procedure", desc: "Formal channels for stakeholders to raise concerns.", version: "v2.5 · Dec 2024", size: "PDF · 1.1 MB", cat: "Procedures" },
+  {
+    title: "Accreditation Manual",
+    desc: "Comprehensive guide to all accreditation requirements and assessment criteria.",
+    version: "v5.2 · Jan 2025",
+    size: "PDF · 4.8 MB",
+    cat: "Manuals",
+  },
+  {
+    title: "Impartiality Policy",
+    desc: "IUCB framework safeguarding independence and impartiality.",
+    version: "v4.0 · Jan 2025",
+    size: "PDF · 1.2 MB",
+    cat: "Policies",
+  },
+  {
+    title: "Assessment Procedure",
+    desc: "Step-by-step assessment workflow for IUCB technical assessors.",
+    version: "v3.4 · Dec 2024",
+    size: "PDF · 2.6 MB",
+    cat: "Procedures",
+  },
+  {
+    title: "Accreditation Application Guide",
+    desc: "Guidance for first-time applicants and re-accreditation candidates.",
+    version: "v2.1 · Nov 2024",
+    size: "PDF · 3.8 MB",
+    cat: "Guidance",
+  },
+  {
+    title: "Cybersecurity Certification Roadmap",
+    desc: "Recommended pathway for cybersecurity scheme accreditation.",
+    version: "v1.5 · Oct 2024",
+    size: "PDF · 1.9 MB",
+    cat: "Guidance",
+  },
+  {
+    title: "Accreditation Application Form",
+    desc: "Official application template for all accreditation programs.",
+    version: "v6.0 · Jan 2025",
+    size: "DOCX · 320 KB",
+    cat: "Forms",
+  },
+  {
+    title: "Audit Report Template",
+    desc: "Standardized audit reporting template used across schemes.",
+    version: "v4.2 · Jan 2025",
+    size: "DOCX · 410 KB",
+    cat: "Templates",
+  },
+  {
+    title: "Complaints & Appeals Procedure",
+    desc: "Formal channels for stakeholders to raise concerns.",
+    version: "v2.5 · Dec 2024",
+    size: "PDF · 1.1 MB",
+    cat: "Procedures",
+  },
 ];
 
 function Documentation() {
@@ -32,7 +92,10 @@ function Documentation() {
 
   const filtered = docs.filter((d) => {
     const matchesCat = cat === "All Documents" || d.cat === cat;
-    const matchesQ = !q || d.title.toLowerCase().includes(q.toLowerCase()) || d.desc.toLowerCase().includes(q.toLowerCase());
+    const matchesQ =
+      !q ||
+      d.title.toLowerCase().includes(q.toLowerCase()) ||
+      d.desc.toLowerCase().includes(q.toLowerCase());
     return matchesCat && matchesQ;
   });
 
@@ -40,7 +103,11 @@ function Documentation() {
     <>
       <PageHero
         eyebrow="Official Documentation"
-        title={<>Manuals, Policies & <span className="text-gold">Resources</span></>}
+        title={
+          <>
+            Manuals, Policies & <span className="text-gold">Resources</span>
+          </>
+        }
         description="Access IUCB manuals, governance policies, procedures, and corporate materials — the foundation of our trust framework."
       />
 
@@ -82,7 +149,9 @@ function Documentation() {
                   key={c}
                   onClick={() => setCat(c)}
                   className={`px-3.5 py-2 rounded-md text-xs font-semibold transition ${
-                    cat === c ? "bg-primary text-primary-foreground" : "bg-white border border-border text-navy hover:border-secondary"
+                    cat === c
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-white border border-border text-navy hover:border-secondary"
                   }`}
                 >
                   {c}
@@ -93,17 +162,24 @@ function Documentation() {
 
           <div className="mt-8 grid md:grid-cols-2 gap-5">
             {filtered.map((d) => (
-              <article key={d.title} className="rounded-xl border border-border bg-white p-6 hover:border-secondary hover:shadow-lg transition group">
+              <article
+                key={d.title}
+                className="rounded-xl border border-border bg-white p-6 hover:border-secondary hover:shadow-lg transition group"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="h-11 w-11 rounded-md bg-light-blue text-primary grid place-items-center flex-shrink-0">
                     <FileCheck2 className="h-5 w-5" />
                   </div>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-secondary bg-light-blue/40 px-2 py-1 rounded">{d.cat}</span>
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-secondary bg-light-blue/40 px-2 py-1 rounded">
+                    {d.cat}
+                  </span>
                 </div>
                 <h3 className="mt-4 font-semibold text-navy">{d.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d.desc}</p>
                 <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
-                  <div className="text-[11px] font-mono text-muted-foreground">{d.version} · {d.size}</div>
+                  <div className="text-[11px] font-mono text-muted-foreground">
+                    {d.version} · {d.size}
+                  </div>
                   <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary group-hover:text-primary">
                     <Download className="h-3.5 w-3.5" /> Download
                   </button>

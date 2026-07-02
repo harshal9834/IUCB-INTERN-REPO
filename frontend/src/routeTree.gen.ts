@@ -17,10 +17,8 @@ import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin.reset-password'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
@@ -75,11 +73,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -88,11 +81,6 @@ const AboutRoute = AboutRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
-  id: '/dashboard/analytics',
-  path: '/dashboard/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -164,7 +152,6 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
@@ -186,12 +173,10 @@ export interface FileRoutesByFullPath {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/dashboard/analytics': typeof DashboardAnalyticsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
@@ -213,13 +198,11 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/dashboard/analytics': typeof DashboardAnalyticsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
@@ -241,14 +224,12 @@ export interface FileRoutesById {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/dashboard/analytics': typeof DashboardAnalyticsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
-    | '/analytics'
     | '/contact'
     | '/directory'
     | '/documentation'
@@ -270,12 +251,10 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reset-password'
     | '/admin/settings'
-    | '/dashboard/analytics'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/analytics'
     | '/contact'
     | '/directory'
     | '/documentation'
@@ -297,12 +276,10 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reset-password'
     | '/admin/settings'
-    | '/dashboard/analytics'
   id:
     | '__root__'
     | '/'
     | '/about'
-    | '/analytics'
     | '/contact'
     | '/directory'
     | '/documentation'
@@ -324,13 +301,11 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reset-password'
     | '/admin/settings'
-    | '/dashboard/analytics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AnalyticsRoute: typeof AnalyticsRoute
   ContactRoute: typeof ContactRoute
   DirectoryRoute: typeof DirectoryRoute
   DocumentationRoute: typeof DocumentationRoute
@@ -352,7 +327,6 @@ export interface RootRouteChildren {
   AdminProfileRoute: typeof AdminProfileRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
-  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -413,13 +387,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -432,13 +399,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/analytics': {
-      id: '/dashboard/analytics'
-      path: '/dashboard/analytics'
-      fullPath: '/dashboard/analytics'
-      preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/settings': {
@@ -538,7 +498,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AnalyticsRoute: AnalyticsRoute,
   ContactRoute: ContactRoute,
   DirectoryRoute: DirectoryRoute,
   DocumentationRoute: DocumentationRoute,
@@ -560,7 +519,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProfileRoute: AdminProfileRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminSettingsRoute: AdminSettingsRoute,
-  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

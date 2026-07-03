@@ -20,9 +20,11 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin.reset-password'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin.organizations'
+import { Route as AdminNewsRouteImport } from './routes/admin.news'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminForgotPasswordRouteImport } from './routes/admin.forgot-password'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
@@ -32,6 +34,7 @@ import { Route as AdminAuditorsRouteImport } from './routes/admin.auditors'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAdvisorsRouteImport } from './routes/admin.advisors'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
@@ -88,6 +91,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminResourcesRoute = AdminResourcesRouteImport.update({
+  id: '/admin/resources',
+  path: '/admin/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminResetPasswordRoute = AdminResetPasswordRouteImport.update({
   id: '/admin/reset-password',
   path: '/admin/reset-password',
@@ -101,6 +109,11 @@ const AdminProfileRoute = AdminProfileRouteImport.update({
 const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
   id: '/admin/organizations',
   path: '/admin/organizations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminNewsRoute = AdminNewsRouteImport.update({
+  id: '/admin/news',
+  path: '/admin/news',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -148,6 +161,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/admin/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAdvisorsRoute = AdminAdvisorsRouteImport.update({
+  id: '/admin/advisors',
+  path: '/admin/advisors',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/admin/advisors': typeof AdminAdvisorsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -169,9 +188,11 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/resources': typeof AdminResourcesRoute
   '/admin/settings': typeof AdminSettingsRoute
 }
 export interface FileRoutesByTo {
@@ -185,6 +206,7 @@ export interface FileRoutesByTo {
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/admin/advisors': typeof AdminAdvisorsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -194,9 +216,11 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/resources': typeof AdminResourcesRoute
   '/admin/settings': typeof AdminSettingsRoute
 }
 export interface FileRoutesById {
@@ -211,6 +235,7 @@ export interface FileRoutesById {
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/admin/advisors': typeof AdminAdvisorsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
@@ -220,9 +245,11 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/resources': typeof AdminResourcesRoute
   '/admin/settings': typeof AdminSettingsRoute
 }
 export interface FileRouteTypes {
@@ -238,6 +265,7 @@ export interface FileRouteTypes {
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/admin/advisors'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
@@ -247,9 +275,11 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/forgot-password'
     | '/admin/login'
+    | '/admin/news'
     | '/admin/organizations'
     | '/admin/profile'
     | '/admin/reset-password'
+    | '/admin/resources'
     | '/admin/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -263,6 +293,7 @@ export interface FileRouteTypes {
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/admin/advisors'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
@@ -272,9 +303,11 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/forgot-password'
     | '/admin/login'
+    | '/admin/news'
     | '/admin/organizations'
     | '/admin/profile'
     | '/admin/reset-password'
+    | '/admin/resources'
     | '/admin/settings'
   id:
     | '__root__'
@@ -288,6 +321,7 @@ export interface FileRouteTypes {
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/admin/advisors'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
@@ -297,9 +331,11 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/forgot-password'
     | '/admin/login'
+    | '/admin/news'
     | '/admin/organizations'
     | '/admin/profile'
     | '/admin/reset-password'
+    | '/admin/resources'
     | '/admin/settings'
   fileRoutesById: FileRoutesById
 }
@@ -314,6 +350,7 @@ export interface RootRouteChildren {
   ProcessRoute: typeof ProcessRoute
   ServicesRoute: typeof ServicesRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
+  AdminAdvisorsRoute: typeof AdminAdvisorsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
@@ -323,9 +360,11 @@ export interface RootRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminForgotPasswordRoute: typeof AdminForgotPasswordRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminNewsRoute: typeof AdminNewsRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminProfileRoute: typeof AdminProfileRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
+  AdminResourcesRoute: typeof AdminResourcesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
 }
 
@@ -408,6 +447,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/resources': {
+      id: '/admin/resources'
+      path: '/admin/resources'
+      fullPath: '/admin/resources'
+      preLoaderRoute: typeof AdminResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/reset-password': {
       id: '/admin/reset-password'
       path: '/admin/reset-password'
@@ -427,6 +473,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/organizations'
       fullPath: '/admin/organizations'
       preLoaderRoute: typeof AdminOrganizationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/news': {
+      id: '/admin/news'
+      path: '/admin/news'
+      fullPath: '/admin/news'
+      preLoaderRoute: typeof AdminNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/login': {
@@ -492,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/advisors': {
+      id: '/admin/advisors'
+      path: '/admin/advisors'
+      fullPath: '/admin/advisors'
+      preLoaderRoute: typeof AdminAdvisorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -506,6 +566,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProcessRoute: ProcessRoute,
   ServicesRoute: ServicesRoute,
   UnauthorizedRoute: UnauthorizedRoute,
+  AdminAdvisorsRoute: AdminAdvisorsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminAuditLogsRoute: AdminAuditLogsRoute,
@@ -515,9 +576,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminForgotPasswordRoute: AdminForgotPasswordRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminNewsRoute: AdminNewsRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminProfileRoute: AdminProfileRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
+  AdminResourcesRoute: AdminResourcesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
 }
 export const routeTree = rootRouteImport

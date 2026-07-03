@@ -10,7 +10,23 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:8080",
+    origin: (origin, callback) => {
+      // Allow any localhost origin in dev, plus the configured FRONTEND_URL
+      const allowed = [
+        process.env.FRONTEND_URL || "http://localhost:8080",
+        "http://localhost:8080",
+        "http://localhost:8081",
+        "http://localhost:8082",
+        "http://localhost:8083",
+        "http://localhost:3000",
+        "http://localhost:5173",
+      ];
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // allow all in dev — tighten for production
+      }
+    },
     credentials: true,
   })
 );

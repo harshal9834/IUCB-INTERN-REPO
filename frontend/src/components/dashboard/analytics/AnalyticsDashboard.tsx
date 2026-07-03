@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import useAnalytics from '../../../hooks/useAnalytics'
 import AnalyticsHeader from './AnalyticsHeader'
 import Filters from './Filters'
@@ -11,97 +11,184 @@ import StandardsProgress from './charts/StandardsProgress'
 import AdvisorDonutChart from './charts/AdvisorDonutChart'
 import ReportTable from './ReportTable'
 
-export default function AnalyticsDashboard() {
-  const { metrics, organizationGrowth, auditorTier, credentialStatus, applicationTrend, standards, advisorStats, reports, loading, error, refresh } = useAnalytics()
+// Assign colors to credential status values
+const CREDENTIAL_STATUS_COLORS: Record<string, string> = {
+  VALID: '#10B981',
+  EXPIRED: '#F59E0B',
+  REVOKED: '#EF4444',
+}
 
-  if (error) return (
-    <div className="p-6">
-      <div className="bg-white p-6 rounded-2xl text-center">
-        <h3 className="text-lg font-semibold">Failed to load analytics</h3>
-        <p className="text-sm text-slate-500">{error}</p>
-        <button onClick={refresh} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">Retry</button>
-      </div>
-    </div>
+// Assign colors to auditor tier values
+const AUDITOR_TIER_COLORS: Record<string, string> = {
+  LEAD: '#0F3D91',
+  SENIOR: '#2563EB',
+  ASSOCIATE: '#D4AF37',
+}
+
+const STANDARDS_COLORS = ['#0F3D91', '#2563EB', '#D4AF37', '#10B981', '#F59E0B', '#8B5CF6']
+
+export default function AnalyticsDashboard() {
+  const {
+    metrics,
+    organizationGrowth,
+    auditorTier,
+    credentialStatus,
+    applicationTrend,
+    standards,
+    advisorStats,
+    reports,
+    filters,
+    loading,
+    error,
+    refresh,
+    applyFilters,
+    resetFilters,
+    queryParams,
+  } = useAnalytics()
+
+  // Enrich credentialStatus with proper colors
+  const credentialStatusColored = useMemo(
+    () =>
+      credentialStatus
+        ? credentialStatus.map((item) => ({
+            ...item,
+            color: CREDENTIAL_STATUS_COLORS[item.name] ?? '#6B7280',
+          }))
+        : null,
+    [credentialStatus],
   )
 
-  return (
-    <div className="p-6 bg-[#F8FAFC] min-h-screen">
-      <AnalyticsHeader onRefresh={refresh} />
-      <div className="mt-6 space-y-4">
-        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-          <Filters />
-          <div className="flex items-center gap-3">
-            <ExportButton />
-            <button onClick={refresh} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 transition">Refresh Data</button>
-          </div>
-        </div>
+  // Enrich auditorTier with proper colors
+  const auditorTierColored = useMemo(
+    () =>
+      auditorTier
+        ? auditorTier.map((item) => ({
+            ...item,
+            color: AUDITOR_TIER_COLORS[item.name] ?? item.color ?? '#6B7280',
+          }))
+        : null,
+    [auditorTier],
+  )
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {loading && Array.from({ length: 6 }).map((_, i) => (
+  // Enrich standards with colors
+  const standardsColored = useMemo(
+    () =>
+      standards
+        ? standards.map((item, idx) => ({
+            ...item,
+            color: item.color ?? STANDARDS_COLORS[idx % STANDARDS_COLORS.length],
+          }))
+        : null,
+    [standards],
+  )
+
+  if (error)
+    return (
+      <div className="p-6">
+        <div className="bg-white p-8 rounded-2xl text-center">
+          <h3 className="text-lg font-semibold text-slate-800">Failed to load analytics</h3>
+          <p className="text-sm text-slate-500 mt-1">{error}</p>
+          <button
+            onClick={refresh}
+            className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+
+  return (
+    <div className="p-6 bg-[#F8FAFC] min-h-screen space-y-6">
+      {/* Header */}
+      <AnalyticsHeader onRefresh={refresh} />
+
+      {/* Filters + Actions row */}
+      <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
+        <div className="flex-1">
+          <Filters
+            filters={filters}
+            values={queryParams}
+            onApply={applyFilters}
+            onReset={resetFilters}
+          />
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <ExportButton params={queryParams} />
+          <button
+            onClick={refresh}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 transition"
+          >
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+      {/* Row 1 — Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {loading &&
+          Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-28 bg-white rounded-[16px] border border-slate-200 animate-pulse" />
           ))}
-          {metrics && metrics.map(m => (
-            <MetricCard key={m.id} metric={m} />
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-md font-semibold">Organization Growth Over Time</h4>
-              <button className="text-sm text-slate-500 hover:text-slate-700">Monthly</button>
-            </div>
-            {organizationGrowth && <VerticalBarChart data={organizationGrowth} />}
-          </div>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-md font-semibold">Auditor Tier Distribution</h4>
-                <span className="text-sm text-slate-500">Updated: Jun 18, 2026</span>
-              </div>
-              {auditorTier && <PieChart data={auditorTier} inner={56} />}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-md font-semibold">Credential Status</h4>
-                <span className="text-sm text-slate-500">Updated: Jun 18, 2026</span>
-              </div>
-              {credentialStatus && <PieChart data={credentialStatus} inner={56} />}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-md font-semibold">Applications Trend</h4>
-              <div className="flex items-center gap-3 text-sm text-slate-500">
-                <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-violet-500" /> Submitted</span>
-                <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-blue-600" /> Approved</span>
-              </div>
-            </div>
-            {applicationTrend && <AreaChart data={applicationTrend} />}
-          </div>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-md font-semibold">Top Standards by Adoption</h4>
-                <span className="text-sm text-slate-500">Ranked</span>
-              </div>
-              {standards && <StandardsProgress data={standards} />}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-md font-semibold">Advisor Statistics</h4>
-                <span className="text-sm text-slate-500">Key Profiles</span>
-              </div>
-              {advisorStats && <AdvisorDonutChart stats={advisorStats} />}
-            </div>
-          </div>
-        </div>
-
-        <ReportTable rows={reports || []} />
+        {!loading && metrics && metrics.map((m) => <MetricCard key={m.id} metric={m} />)}
       </div>
+
+      {/* Row 2 — Organization Growth (full width) */}
+      <div className="space-y-2">
+        <h4 className="text-base font-semibold text-slate-800">Organization Growth Over Time</h4>
+        {organizationGrowth && <VerticalBarChart data={organizationGrowth} />}
+      </div>
+
+      {/* Row 3 — Auditor Tier (50%) + Top Standards (50%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <h4 className="text-base font-semibold text-slate-800">Auditor Tier Distribution</h4>
+          {auditorTierColored && <PieChart data={auditorTierColored} inner={65} />}
+        </div>
+        <div className="space-y-2">
+          <h4 className="text-base font-semibold text-slate-800">Top Standards by Adoption</h4>
+          {standardsColored && standardsColored.length > 0 ? (
+            <StandardsProgress data={standardsColored} />
+          ) : (
+            <div className="bg-white rounded-2xl p-5 border text-center text-slate-400 text-sm">
+              No standards data available
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 4 — Credential Status (left) + Advisor Statistics (right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <h4 className="text-base font-semibold text-slate-800">Credential Status</h4>
+          {credentialStatusColored && <PieChart data={credentialStatusColored} inner={65} />}
+        </div>
+        <div className="space-y-2">
+          <h4 className="text-base font-semibold text-slate-800">Advisor Statistics</h4>
+          {advisorStats && <AdvisorDonutChart stats={advisorStats} />}
+        </div>
+      </div>
+
+      {/* Row 5 — Applications Trend (full width) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-base font-semibold text-slate-800">Applications Trend</h4>
+          <div className="flex items-center gap-4 text-sm text-slate-500">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+              Submitted
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+              Approved
+            </span>
+          </div>
+        </div>
+        {applicationTrend && <AreaChart data={applicationTrend} />}
+      </div>
+
+      {/* Row 6 — Recent Activity Table */}
+      <ReportTable rows={reports ?? []} queryParams={queryParams} />
     </div>
   )
 }

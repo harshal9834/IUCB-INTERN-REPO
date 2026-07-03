@@ -1,33 +1,35 @@
 import React from 'react'
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  LabelList,
-  Cell,
-} from 'recharts'
+
+const COLORS = ['#0F3D91', '#2563EB', '#D4AF37', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
 
 export default function StandardsProgress({ data }: { data: { name: string; percent: number; color?: string }[] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-5 border flex items-center justify-center" style={{ minHeight: 200 }}>
+        <p className="text-sm text-slate-400">No standards data available</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-white rounded-2xl p-4 border h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart layout="vertical" data={data} margin={{ top: 8, right: 12, left: 12, bottom: 8 }}>
-          <CartesianGrid stroke="#F1F5F9" vertical={false} />
-          <XAxis type="number" domain={[0, 100]} hide />
-          <YAxis type="category" dataKey="name" width={160} tick={{ fill: '#475569', fontSize: 13 }} />
-          <Tooltip formatter={(v: number) => `${v}%`} />
-          <Bar dataKey="percent" barSize={14} radius={[8, 8, 8, 8]}>
-            {data.map((entry, idx) => (
-              <Cell key={`cell-${idx}`} fill={entry.color || '#2563EB'} />
-            ))}
-            <LabelList dataKey="percent" position="right" formatter={(v: any) => `${v}%`} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="bg-white rounded-2xl p-5 border space-y-4">
+      {data.map((item, idx) => (
+        <div key={item.name}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm font-medium text-slate-700">{item.name}</span>
+            <span className="text-sm font-semibold text-slate-600">{item.percent}%</span>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2.5">
+            <div
+              className="h-2.5 rounded-full transition-all duration-700"
+              style={{
+                width: `${Math.min(item.percent, 100)}%`,
+                backgroundColor: item.color || COLORS[idx % COLORS.length],
+              }}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

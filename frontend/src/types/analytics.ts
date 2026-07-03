@@ -53,3 +53,29 @@ export interface ReportRow {
   details: string
   ip: string
 }
+
+export interface AnalyticsDashboardData {
+  metrics: Metric[]
+  organizationGrowth: OrganizationPoint[]
+  auditorTier: AuditorTier[]
+  credentialStatus: CredentialStatusItem[]
+  applicationTrend: ApplicationPoint[]
+  advisorStats: AdvisorStat
+  standards: StandardAdoption[]
+  reports: ReportRow[]
+}
+
+export interface AnalyticsFilters {
+  organizations: Array<{ id: string; name: string }>
+  standards: string[]
+  reportTypes: string[]
+}
+
+export interface AnalyticsQueryParams {
+  dateRange?: "LAST_7_DAYS" | "LAST_MONTH" | "LAST_YEAR" | "CUSTOM"
+  startDate?: string
+  endDate?: string
+  organizationId?: string
+  standard?: string
+  reportType?: string
+}

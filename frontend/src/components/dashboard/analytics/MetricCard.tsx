@@ -1,6 +1,6 @@
 import React from 'react'
 import { User, FileText, Users, Clipboard } from 'lucide-react'
-import type { Metric } from '../../types/analytics'
+import type { Metric } from '../../../types/analytics'
 
 const iconMap: Record<string, React.ReactNode> = {
   orgs: <Users className="text-2xl" />,

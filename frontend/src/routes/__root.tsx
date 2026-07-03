@@ -159,6 +159,9 @@ function RootLayoutWrapper() {
     "/admin/audit-logs",
     "/admin/settings",
     "/admin/profile",
+    "/admin/advisors",
+    "/admin/resources",
+    "/admin/news",
   ];
 
   const isProtectedRoute = protectedRoutes.some(

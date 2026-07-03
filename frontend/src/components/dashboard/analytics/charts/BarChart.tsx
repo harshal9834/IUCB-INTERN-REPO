@@ -1,5 +1,5 @@
 import React from 'react'
-import { ResponsiveContainer, BarChart as ReBarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import { ResponsiveContainer, BarChart as ReBarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts'
 
 export default function BarChart({ data, dataKey = 'percent' }: { data: any[]; dataKey?: string }) {
   return (

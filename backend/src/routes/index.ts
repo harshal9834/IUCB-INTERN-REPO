@@ -7,6 +7,7 @@ import auditorsRoutes from "./auditors.routes.js";
 import credentialsRoutes from "./credentials.routes.js";
 import advisoryRoutes from "./advisory.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
+import auditRoutes from "./audit.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
 
 const rootRouter = Router();
@@ -28,6 +29,7 @@ rootRouter.use("/v1/auditors", auditorsRoutes);
 rootRouter.use("/v1/credentials", credentialsRoutes);
 rootRouter.use("/v1/advisory", advisoryRoutes);
 rootRouter.use("/v1/analytics", analyticsRoutes);
+rootRouter.use("/v1/audit-logs", auditRoutes);
 
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);

@@ -15,7 +15,7 @@ export const updateAuditorSchema = createAuditorSchema.partial();
 
 export const auditorQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  limit: z.coerce.number().int().min(1).max(500).optional().default(20),
   organizationId: z.string().uuid().optional(),
   tier: z.enum(["ASSOCIATE", "SENIOR", "LEAD"]).optional(),
   status: z.string().optional(),

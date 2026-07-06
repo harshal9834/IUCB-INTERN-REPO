@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, MoreHorizontal, Pencil, Trash2, ToggleLeft } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, ToggleLeft, Eye, Building2, Globe, Phone, Mail, FileText, CheckCircle, Clock, XCircle, Filter } from "lucide-react";
 import { PageHeader } from "../components/reusable-components";
 import { DataTable, DataTableColumn } from "../components/data-table";
 import { StatusBadge } from "../components/status-badge";
@@ -30,7 +30,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "../components/ui/sheet";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Skeleton } from "../components/ui/skeleton";
 import organizationsApi from "../services/api/organizations.api";
+import dashboardApi from "../services/api/dashboard.api";
 
 export const Route = createFileRoute("/admin/organizations")({
   component: OrganizationsComponent,
@@ -41,6 +51,7 @@ interface Organization {
   organizationName: string;
   registrationNumber: string;
   country: string;
+  address: string;
   email: string;
   phone: string;
   website?: string | null;
@@ -48,6 +59,8 @@ interface Organization {
   accreditationDate: string;
   expiryDate: string;
   createdAt: string;
+  auditors?: any[];
+  credentials?: any[];
 }
 
 interface OrgForm {
@@ -55,6 +68,8 @@ interface OrgForm {
   registrationNumber: string;
   country: string;
   address: string;
+  city: string;
+  state: string;
   email: string;
   phone: string;
   website: string;
@@ -68,6 +83,8 @@ const defaultForm: OrgForm = {
   registrationNumber: "",
   country: "",
   address: "",
+  city: "",
+  state: "",
   email: "",
   phone: "",
   website: "",
@@ -79,57 +96,73 @@ const defaultForm: OrgForm = {
 function OrganizationsComponent() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [countryFilter, setCountryFilter] = useState<string>("ALL");
+  
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Organization | null>(null);
+  
+  const [viewTarget, setViewTarget] = useState<Organization | null>(null);
+  
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null);
-  const [statusTarget, setStatusTarget] = useState<{ org: Organization; newStatus: string } | null>(
-    null,
-  );
+  const [statusTarget, setStatusTarget] = useState<{ org: Organization; newStatus: string } | null>(null);
+  
   const [form, setForm] = useState(defaultForm);
   const [formError, setFormError] = useState("");
 
-  const queryKey = ["organizations", page, search, statusFilter];
+  const queryKey = ["organizations", page, limit, search, statusFilter, countryFilter];
 
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const params: any = { page, limit: 15 };
+      const params: any = { page, limit };
       if (search) params.search = search;
       if (statusFilter !== "ALL") params.status = statusFilter;
+      // Note: countryFilter needs to be handled by search or custom backend implementation if supported.
+      if (countryFilter !== "ALL") params.search = (params.search ? params.search + " " : "") + countryFilter;
       const res = await organizationsApi.getOrganizations(params);
       return res.data.data;
     },
     staleTime: 10_000,
   });
 
+  const { data: metricsData, isLoading: isLoadingMetrics } = useQuery({
+    queryKey: ["dashboard-metrics"],
+    queryFn: async () => {
+      const res = await dashboardApi.getMetrics();
+      return res.data.data;
+    },
+    staleTime: 60_000,
+  });
+
   const createMutation = useMutation({
     mutationFn: (payload: any) => organizationsApi.createOrganization(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
       closeModal();
     },
-    onError: (err: any) =>
-      setFormError(err?.response?.data?.message ?? "Failed to create organization"),
+    onError: (err: any) => setFormError(err?.response?.data?.message ?? "Failed to create organization"),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) =>
-      organizationsApi.updateOrganization(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: any }) => organizationsApi.updateOrganization(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      if (viewTarget) fetchOrganizationDetails(viewTarget.id);
       closeModal();
     },
-    onError: (err: any) =>
-      setFormError(err?.response?.data?.message ?? "Failed to update organization"),
+    onError: (err: any) => setFormError(err?.response?.data?.message ?? "Failed to update organization"),
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      organizationsApi.updateOrganizationStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: string }) => organizationsApi.updateOrganizationStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
+      if (viewTarget) fetchOrganizationDetails(viewTarget.id);
       setStatusTarget(null);
     },
   });
@@ -138,9 +171,25 @@ function OrganizationsComponent() {
     mutationFn: (id: string) => organizationsApi.deleteOrganization(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
       setDeleteTarget(null);
+      setViewTarget(null);
     },
   });
+
+  const fetchOrganizationDetails = async (id: string) => {
+    try {
+      const res = await organizationsApi.getOrganizationById(id);
+      setViewTarget(res.data.data.organization);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const openView = (org: Organization) => {
+    setViewTarget(org);
+    fetchOrganizationDetails(org.id);
+  };
 
   const openCreate = () => {
     setEditTarget(null);
@@ -148,13 +197,30 @@ function OrganizationsComponent() {
     setFormError("");
     setModalOpen(true);
   };
+
   const openEdit = (org: Organization) => {
     setEditTarget(org);
+    // Attempt to parse city and state if they were concatenated
+    let parsedAddress = org.address;
+    let parsedCity = "";
+    let parsedState = "";
+    
+    if (org.address.includes(",")) {
+        const parts = org.address.split(",").map(p => p.trim());
+        if (parts.length >= 3) {
+            parsedState = parts.pop() || "";
+            parsedCity = parts.pop() || "";
+            parsedAddress = parts.join(", ");
+        }
+    }
+
     setForm({
       organizationName: org.organizationName,
       registrationNumber: org.registrationNumber,
       country: org.country,
-      address: "",
+      address: parsedAddress,
+      city: parsedCity,
+      state: parsedState,
       email: org.email,
       phone: org.phone,
       website: org.website ?? "",
@@ -165,6 +231,7 @@ function OrganizationsComponent() {
     setFormError("");
     setModalOpen(true);
   };
+
   const closeModal = () => {
     setModalOpen(false);
     setEditTarget(null);
@@ -174,7 +241,23 @@ function OrganizationsComponent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
-    const payload = { ...form, website: form.website || null };
+    
+    // Concatenate address for schema compatibility
+    const fullAddress = [form.address, form.city, form.state].filter(Boolean).join(", ");
+    
+    const payload = { 
+      organizationName: form.organizationName,
+      registrationNumber: form.registrationNumber,
+      country: form.country,
+      email: form.email,
+      phone: form.phone,
+      website: form.website || null,
+      address: fullAddress,
+      accreditationStatus: form.accreditationStatus,
+      accreditationDate: form.accreditationDate,
+      expiryDate: form.expiryDate,
+    };
+
     if (editTarget) {
       updateMutation.mutate({ id: editTarget.id, payload });
     } else {
@@ -197,17 +280,13 @@ function OrganizationsComponent() {
     { header: "Status", accessor: (r) => <StatusBadge status={r.accreditationStatus} /> },
     {
       header: "Accreditation Date",
-      accessor: (r) => (
-        <span className="text-xs">{new Date(r.accreditationDate).toLocaleDateString()}</span>
-      ),
+      accessor: (r) => <span className="text-xs">{new Date(r.accreditationDate).toLocaleDateString()}</span>,
       className: "hidden xl:table-cell",
     },
     {
       header: "Expiry",
       accessor: (r) => (
-        <span
-          className={`text-xs ${new Date(r.expiryDate) < new Date() ? "text-red-600 font-semibold" : "text-slate-600"}`}
-        >
+        <span className={`text-xs ${new Date(r.expiryDate) < new Date() ? "text-red-600 font-semibold" : "text-slate-600"}`}>
           {new Date(r.expiryDate).toLocaleDateString()}
         </span>
       ),
@@ -217,6 +296,11 @@ function OrganizationsComponent() {
 
   const organizations: Organization[] = data?.organizations ?? [];
   const pagination = data?.pagination;
+
+  // KPIs
+  const orgTotal = metricsData?.organizations?.total ?? 0;
+  const orgActive = metricsData?.organizations?.active ?? 0;
+  const orgSuspended = orgTotal - orgActive; // Fallback math if specific counts aren't in metrics
 
   return (
     <div className="space-y-6">
@@ -230,15 +314,51 @@ function OrganizationsComponent() {
         }
       />
 
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingMetrics ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{orgTotal}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingMetrics ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{orgActive}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Suspended</CardTitle>
+            <Clock className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingMetrics ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{orgSuspended > 0 ? orgSuspended : 0}</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revoked / Archived</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            {isLoadingMetrics ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">0</div>}
+          </CardContent>
+        </Card>
+      </div>
+
       <DataTable
         data={organizations}
         columns={columns}
         isLoading={isLoading}
         searchValue={search}
-        onSearchChange={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
         searchPlaceholder="Search by name, registration no., country…"
         page={page}
         totalPages={pagination?.totalPages ?? 1}
@@ -247,23 +367,32 @@ function OrganizationsComponent() {
         emptyTitle="No organizations found"
         emptyDescription="Add your first accredited certification body to get started."
         headerSlot={
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-36 text-xs h-9 bg-white border-slate-200">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="SUSPENDED">Suspended</SelectItem>
-              <SelectItem value="REVOKED">Revoked</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-[140px] text-xs h-9 bg-white border-slate-200">
+                <Filter className="w-3 h-3 mr-2" />
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                <SelectItem value="REVOKED">Revoked</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={limit.toString()} onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}>
+              <SelectTrigger className="w-[80px] text-xs h-9 bg-white border-slate-200">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 / page</SelectItem>
+                <SelectItem value="25">25 / page</SelectItem>
+                <SelectItem value="50">50 / page</SelectItem>
+                <SelectItem value="100">100 / page</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         }
         actions={(org) => (
           <DropdownMenu>
@@ -273,25 +402,20 @@ function OrganizationsComponent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={() => openView(org)}>
+                <Eye className="mr-2 h-3.5 w-3.5" /> View Details
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openEdit(org)}>
                 <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
-                  setStatusTarget({
-                    org,
-                    newStatus: org.accreditationStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE",
-                  })
-                }
+                onClick={() => setStatusTarget({ org, newStatus: org.accreditationStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE" })}
               >
                 <ToggleLeft className="mr-2 h-3.5 w-3.5" />
                 {org.accreditationStatus === "ACTIVE" ? "Suspend" : "Activate"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setDeleteTarget(org)}
-                className="text-red-600 focus:text-red-600 focus:bg-red-50"
-              >
+              <DropdownMenuItem onClick={() => setDeleteTarget(org)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
                 <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -314,98 +438,55 @@ function OrganizationsComponent() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="orgName">Organization Name *</Label>
-                <Input
-                  id="orgName"
-                  value={form.organizationName}
-                  onChange={(e) => setForm((f) => ({ ...f, organizationName: e.target.value }))}
-                  required
-                />
+                <Input id="orgName" value={form.organizationName} onChange={(e) => setForm((f) => ({ ...f, organizationName: e.target.value }))} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="regNum">Registration Number *</Label>
-                <Input
-                  id="regNum"
-                  value={form.registrationNumber}
-                  onChange={(e) => setForm((f) => ({ ...f, registrationNumber: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="country">Country *</Label>
-                <Input
-                  id="country"
-                  value={form.country}
-                  onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                  required
-                />
+                <Input id="regNum" value={form.registrationNumber} onChange={(e) => setForm((f) => ({ ...f, registrationNumber: e.target.value }))} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  required
-                />
+                <Input id="email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone *</Label>
-                <Input
-                  id="phone"
-                  value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  value={form.website}
-                  onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
-                  placeholder="https://"
-                />
+                <Input id="phone" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} required />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="address">Address *</Label>
-                <Input
-                  id="address"
-                  value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                  required
-                />
+                <Label htmlFor="website">Website</Label>
+                <Input id="website" type="url" value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="https://" />
+              </div>
+              
+              {/* Address Fields */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="address">Street Address *</Label>
+                <Input id="address" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} required />
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="city">City *</Label>
+                <Input id="city" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="state">State / Province *</Label>
+                <Input id="state" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} required />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="country">Country *</Label>
+                <Input id="country" value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} required />
+              </div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="accDate">Accreditation Date *</Label>
-                <Input
-                  id="accDate"
-                  type="date"
-                  value={form.accreditationDate}
-                  onChange={(e) => setForm((f) => ({ ...f, accreditationDate: e.target.value }))}
-                  required
-                />
+                <Input id="accDate" type="date" value={form.accreditationDate} onChange={(e) => setForm((f) => ({ ...f, accreditationDate: e.target.value }))} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="expDate">Expiry Date *</Label>
-                <Input
-                  id="expDate"
-                  type="date"
-                  value={form.expiryDate}
-                  onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))}
-                  required
-                />
+                <Input id="expDate" type="date" value={form.expiryDate} onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))} required />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label>Accreditation Status</Label>
-                <Select
-                  value={form.accreditationStatus}
-                  onValueChange={(v: any) => setForm((f) => ({ ...f, accreditationStatus: v }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                <Select value={form.accreditationStatus} onValueChange={(v: any) => setForm((f) => ({ ...f, accreditationStatus: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ACTIVE">Active</SelectItem>
                     <SelectItem value="SUSPENDED">Suspended</SelectItem>
@@ -415,24 +496,105 @@ function OrganizationsComponent() {
               </div>
             </div>
             <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={closeModal}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#0F2942] hover:bg-[#1a446c] text-white"
-                disabled={createMutation.isPending || updateMutation.isPending}
-              >
-                {createMutation.isPending || updateMutation.isPending
-                  ? "Saving…"
-                  : editTarget
-                    ? "Save Changes"
-                    : "Create Organization"}
+              <Button type="button" variant="outline" onClick={closeModal}>Cancel</Button>
+              <Button type="submit" className="bg-[#0F2942] hover:bg-[#1a446c] text-white" disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving…" : editTarget ? "Save Changes" : "Create Organization"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* View Drawer */}
+      <Sheet open={!!viewTarget} onOpenChange={(open) => !open && setViewTarget(null)}>
+        <SheetContent className="sm:max-w-md md:max-w-lg w-full overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Organization Details</SheetTitle>
+            <SheetDescription>View complete accreditation profile and status.</SheetDescription>
+          </SheetHeader>
+          
+          {viewTarget && (
+            <div className="mt-6 space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-[#0F2942]">{viewTarget.organizationName}</h3>
+                  <p className="text-sm text-slate-500">Reg: {viewTarget.registrationNumber}</p>
+                </div>
+                <StatusBadge status={viewTarget.accreditationStatus} />
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-900 border-b pb-2">Contact Information</h4>
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Globe className="h-4 w-4" /> {viewTarget.website || "N/A"}
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Mail className="h-4 w-4" /> {viewTarget.email}
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Phone className="h-4 w-4" /> {viewTarget.phone}
+                  </div>
+                  <div className="flex items-start gap-2 text-slate-600">
+                    <Building2 className="h-4 w-4 mt-0.5" /> 
+                    <span>
+                      {viewTarget.address}<br/>
+                      {viewTarget.country}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-900 border-b pb-2">Accreditation Details</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-slate-500 mb-1">Issue Date</p>
+                    <p className="font-medium">{new Date(viewTarget.accreditationDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 mb-1">Expiry Date</p>
+                    <p className={`font-medium ${new Date(viewTarget.expiryDate) < new Date() ? "text-red-600" : ""}`}>
+                      {new Date(viewTarget.expiryDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-900 border-b pb-2">Assigned Auditors ({viewTarget.auditors?.length || 0})</h4>
+                {viewTarget.auditors && viewTarget.auditors.length > 0 ? (
+                  <ul className="space-y-2">
+                    {viewTarget.auditors.map((auditor: any) => (
+                      <li key={auditor.id} className="text-sm flex justify-between items-center bg-slate-50 p-2 rounded">
+                        <span>{auditor.fullName} ({auditor.tier})</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{auditor.status}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500">No auditors assigned.</p>
+                )}
+              </div>
+
+              <div className="pt-4 flex gap-2">
+                <Button className="flex-1 bg-[#0F2942] hover:bg-[#1a446c]" onClick={() => openEdit(viewTarget)}>
+                  <Pencil className="mr-2 h-4 w-4" /> Edit Profile
+                </Button>
+                {viewTarget.accreditationStatus === "ACTIVE" ? (
+                  <Button variant="outline" className="flex-1 text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => { setViewTarget(null); setStatusTarget({ org: viewTarget, newStatus: "SUSPENDED" }); }}>
+                    <Clock className="mr-2 h-4 w-4" /> Suspend
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="flex-1 text-green-600 border-green-200 hover:bg-green-50" onClick={() => { setViewTarget(null); setStatusTarget({ org: viewTarget, newStatus: "ACTIVE" }); }}>
+                    <CheckCircle className="mr-2 h-4 w-4" /> Activate
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Status Change Confirm */}
       <ConfirmDialog
@@ -442,10 +604,7 @@ function OrganizationsComponent() {
         description={`Are you sure you want to ${statusTarget?.newStatus === "SUSPENDED" ? "suspend" : "activate"} "${statusTarget?.org.organizationName}"?`}
         confirmLabel={statusTarget?.newStatus === "SUSPENDED" ? "Suspend" : "Activate"}
         variant={statusTarget?.newStatus === "SUSPENDED" ? "destructive" : "default"}
-        onConfirm={() =>
-          statusTarget &&
-          statusMutation.mutate({ id: statusTarget.org.id, status: statusTarget.newStatus })
-        }
+        onConfirm={() => statusTarget && statusMutation.mutate({ id: statusTarget.org.id, status: statusTarget.newStatus })}
         isLoading={statusMutation.isPending}
       />
 

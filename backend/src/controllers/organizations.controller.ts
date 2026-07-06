@@ -78,7 +78,7 @@ export class OrganizationsController {
       where: { id, deletedAt: null },
       include: {
         auditors: { where: { deletedAt: null }, select: { id: true, fullName: true, tier: true, status: true } },
-        credentials: { where: { deletedAt: null }, select: { id: true, credentialNumber: true, standard: true, status: true } },
+        credentials: { where: { deletedAt: null }, select: { id: true, credentialId: true, standard: true, status: true } },
       },
     });
     if (!organization) throw new ApiError(404, "Organization not found");
@@ -98,6 +98,15 @@ export class OrganizationsController {
       data: { accreditationStatus: body.status },
     });
 
+    await prisma.emailLog.create({
+      data: {
+        recipient: organization.email,
+        subject: `IUCB Accreditation Status Updated to ${organization.accreditationStatus}`,
+        template: "ORGANIZATION_STATUS_UPDATE",
+        status: "SENT",
+      },
+    });
+
     res.status(200).json(new ApiResponse(200, { organization }, "Organization status updated successfully"));
   });
 
@@ -110,6 +119,7 @@ export class OrganizationsController {
     if (!existing) throw new ApiError(404, "Organization not found");
 
     const organization = await prisma.organization.update({ where: { id }, data: body });
+
     res.status(200).json(new ApiResponse(200, { organization }, "Organization updated successfully"));
   });
 
@@ -120,6 +130,7 @@ export class OrganizationsController {
     if (!existing) throw new ApiError(404, "Organization not found");
 
     await prisma.organization.update({ where: { id }, data: { deletedAt: new Date() } });
+
     res.status(200).json(new ApiResponse(200, null, "Organization deleted successfully"));
   });
 }

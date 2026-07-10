@@ -26,6 +26,7 @@ interface DataTableProps<T> {
   emptyTitle?: string;
   emptyDescription?: string;
   headerSlot?: React.ReactNode;
+  onRowClick?: (row: T) => void;
 }
 
 function SkeletonRows({ columns, rows = 6 }: { columns: number; rows?: number }) {
@@ -59,6 +60,7 @@ export function DataTable<T extends { id?: string }>({
   emptyTitle = "No records found",
   emptyDescription = "There are no records to display at this time.",
   headerSlot,
+  onRowClick,
 }: DataTableProps<T>) {
   const allColumns = actions
     ? [...columns, { header: "Actions", accessor: "_actions" as keyof T }]
@@ -119,7 +121,8 @@ export function DataTable<T extends { id?: string }>({
               data.map((row, rowIdx) => (
                 <TableRow
                   key={(row as any).id ?? rowIdx}
-                  className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors"
+                  className={`border-b border-slate-100 hover:bg-slate-50/70 transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
+                  onClick={() => onRowClick?.(row)}
                 >
                   {columns.map((col) => (
                     <TableCell

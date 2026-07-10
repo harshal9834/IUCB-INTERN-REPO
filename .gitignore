@@ -78,6 +78,11 @@ prisma/dev.db-journal
 **/prisma/dev.db
 **/prisma/dev.db-journal
 
-# Runtime Uploads & Assets
-backend/uploads/*
-!backend/uploads/.gitkeep
+# Runtime Uploads & Assets - Local Storage (Development Mode)
+backend/storage/uploads/*
+backend/storage/templates/*
+backend/storage/certificates/*
+!backend/storage/.gitkeep
+!backend/storage/uploads/.gitkeep
+!backend/storage/templates/.gitkeep
+!backend/storage/certificates/.gitkeep

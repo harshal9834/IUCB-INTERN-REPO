@@ -1,0 +1,274 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+enum AuditorTier {
+  ASSOCIATE
+  SENIOR
+  LEAD
+}
+
+enum CredentialStatus {
+  VALID
+  REVOKED
+  EXPIRED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AdvisorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+model Admin {
+  id        String    @id @default(uuid()) @db.Uuid
+  fullName  String
+  email     String    @unique
+  password  String
+  role      AdminRole @default(ADMIN)
+  status    String    @default("ACTIVE")
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  auditLogs           AuditLog[]
+  reviewedApplications AdvisoryApplication[] @relation("ReviewedByAdmin")
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  adminId   String   @db.Uuid
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+}
+
+model Organization {
+  id                 String             @id @default(uuid()) @db.Uuid
+  organizationName   String
+  registrationNumber String             @unique
+  country            String
+  address            String
+  email              String
+  phone              String
+  website            String?
+  accreditationStatus OrganizationStatus @default(ACTIVE)
+  accreditationDate  DateTime
+  expiryDate         DateTime
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  // Relations
+  auditors    Auditor[]
+  credentials Credential[]
+
+  @@index([organizationName])
+  @@index([registrationNumber])
+  @@index([accreditationStatus])
+  @@index([createdAt])
+}
+
+model Auditor {
+  id              String      @id @default(uuid()) @db.Uuid
+  fullName        String
+  email           String      @unique
+  phone           String
+  organizationId  String      @db.Uuid
+  tier            AuditorTier @default(ASSOCIATE)
+  specialization  String
+  experienceYears Int
+  status          String      @default("ACTIVE")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  credentials  Credential[]
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Credential {
+  id               String           @id @default(uuid()) @db.Uuid
+  credentialNumber String           @unique
+  standard         String
+  issueDate        DateTime
+  expiryDate       DateTime
+  status           CredentialStatus @default(VALID)
+  organizationId   String           @db.Uuid
+  auditorId        String           @db.Uuid
+  qrCode           String?
+  verificationUrl  String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auditor      Auditor      @relation(fields: [auditorId], references: [id], onDelete: Cascade)
+
+  @@index([credentialNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AdvisoryApplication {
+  id               String            @id @default(uuid()) @db.Uuid
+  fullName         String
+  email            String            @unique
+  linkedinUrl      String?
+  company          String
+  designation      String
+  expertiseArea    String
+  experienceYears  Int
+  statementOfMerit String
+  resumeUrl        String?
+  applicationStatus ApplicationStatus @default(PENDING)
+  reviewedById     String?           @db.Uuid
+  reviewedAt       DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+
+  // Relations
+  reviewedBy Admin?   @relation("ReviewedByAdmin", fields: [reviewedById], references: [id], onDelete: SetNull)
+  advisor    Advisor?
+
+  @@index([email])
+  @@index([applicationStatus])
+  @@index([createdAt])
+}
+
+model Advisor {
+  id                    String                @id @default(uuid()) @db.Uuid
+  advisoryApplicationId String                @unique @db.Uuid
+  fullName              String
+  linkedinUrl           String?
+  organization          String
+  designation           String
+  expertiseArea         String
+  experienceYears       Int
+  profilePhoto          String?
+  bio                   String?
+  status                AdvisorStatus         @default(ACTIVE)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  deletedAt             DateTime?
+
+  // Relations
+  advisoryApplication AdvisoryApplication @relation(fields: [advisoryApplicationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model News {
+  id            String    @id @default(uuid()) @db.Uuid
+  title         String
+  slug          String    @unique
+  content       String
+  featuredImage String?
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([createdAt])
+}
+
+model Resource {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  fileUrl     String
+  category    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([category])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  adminId    String?  @db.Uuid
+  entityType String
+  entityId   String
+  action     String
+  oldData    Json?
+  newData    Json?
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+
+  // Relations
+  admin Admin? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([adminId])
+  @@index([entityType])
+  @@index([timestamp])
+}
+
+model EmailLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  recipient  String
+  subject    String
+  template   String
+  status     String   @default("SENT") // SENT, FAILED
+  errorMessage String?
+  sentAt     DateTime @default(now())
+
+  @@index([recipient])
+  @@index([sentAt])
+}
+
+model SystemSettings {
+  id    String @id @default(uuid()) @db.Uuid
+  key   String @unique
+  value String
+}

@@ -81,7 +81,7 @@ export function SiteFooter() {
             <ul className="space-y-2.5">
               {c.links.map((l) => (
                 <li key={l.label}>
-                  <Link to={l.to as never} className="text-sm text-white/80 hover:text-white">
+                  <Link to={l.to as any} className="text-sm text-white/80 hover:text-white">
                     {l.label}
                   </Link>
                 </li>
@@ -106,7 +106,7 @@ export function SiteFooter() {
             </li>
           </ul>
           <Link
-            to="/verify"
+            to={"/verify" as any}
             className="inline-flex mt-5 px-3 py-2 text-xs font-semibold rounded-md bg-gold text-gold-foreground"
           >
             Verify Credentials

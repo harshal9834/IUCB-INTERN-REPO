@@ -127,7 +127,7 @@ function Process() {
                 to="/services"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-secondary transition"
               >
-                Apply for Accreditation <ArrowRight className="h-4 w-4" />
+                Apply for Auditor <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 to="/contact"

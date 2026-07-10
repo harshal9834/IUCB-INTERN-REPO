@@ -17,8 +17,15 @@ import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApplyTrainingInstituteRouteImport } from './routes/apply.training-institute'
+import { Route as ApplySuccessRouteImport } from './routes/apply.success'
+import { Route as ApplyAuditorRouteImport } from './routes/apply.auditor'
+import { Route as ApplyAdvisoryRouteImport } from './routes/apply.advisory'
+import { Route as ApplyAccreditationRouteImport } from './routes/apply.accreditation'
+import { Route as AdminTrainingInstitutesRouteImport } from './routes/admin.training-institutes'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin.reset-password'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
@@ -28,10 +35,21 @@ import { Route as AdminForgotPasswordRouteImport } from './routes/admin.forgot-p
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminCredentialsRouteImport } from './routes/admin.credentials'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminCertificatesRouteImport } from './routes/admin.certificates'
 import { Route as AdminAuditorsRouteImport } from './routes/admin.auditors'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAdvisoryRouteImport } from './routes/admin.advisory'
+import { Route as AdminTrainingInstitutesIndexRouteImport } from './routes/admin.training-institutes.index'
+import { Route as AdminTrainingInstitutesBulkEmailRouteImport } from './routes/admin.training-institutes.bulk-email'
+import { Route as AdminTrainingInstitutesIdRouteImport } from './routes/admin.training-institutes.$id'
+import { Route as AdminCredentialsIdRouteImport } from './routes/admin.credentials_.$id'
+import { Route as AdminCredentialsPendingRouteImport } from './routes/admin.credentials.pending'
+import { Route as AdminCredentialsGeneratedRouteImport } from './routes/admin.credentials.generated'
+import { Route as AdminApplicationsIdRouteImport } from './routes/admin.applications_.$id'
+import { Route as AdminAdvisoryIdRouteImport } from './routes/admin.advisory_.$id'
+import { Route as AdminCredentialsGenerateApplicationIdRouteImport } from './routes/admin.credentials.generate.$applicationId'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
@@ -73,6 +91,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyRoute = ApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -81,6 +104,36 @@ const AboutRoute = AboutRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyTrainingInstituteRoute = ApplyTrainingInstituteRouteImport.update({
+  id: '/training-institute',
+  path: '/training-institute',
+  getParentRoute: () => ApplyRoute,
+} as any)
+const ApplySuccessRoute = ApplySuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => ApplyRoute,
+} as any)
+const ApplyAuditorRoute = ApplyAuditorRouteImport.update({
+  id: '/auditor',
+  path: '/auditor',
+  getParentRoute: () => ApplyRoute,
+} as any)
+const ApplyAdvisoryRoute = ApplyAdvisoryRouteImport.update({
+  id: '/advisory',
+  path: '/advisory',
+  getParentRoute: () => ApplyRoute,
+} as any)
+const ApplyAccreditationRoute = ApplyAccreditationRouteImport.update({
+  id: '/accreditation',
+  path: '/accreditation',
+  getParentRoute: () => ApplyRoute,
+} as any)
+const AdminTrainingInstitutesRoute = AdminTrainingInstitutesRouteImport.update({
+  id: '/admin/training-institutes',
+  path: '/admin/training-institutes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -128,6 +181,11 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/admin/content',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCertificatesRoute = AdminCertificatesRouteImport.update({
+  id: '/admin/certificates',
+  path: '/admin/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAuditorsRoute = AdminAuditorsRouteImport.update({
   id: '/admin/auditors',
   path: '/admin/auditors',
@@ -148,10 +206,66 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/admin/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAdvisoryRoute = AdminAdvisoryRouteImport.update({
+  id: '/admin/advisory',
+  path: '/admin/advisory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTrainingInstitutesIndexRoute =
+  AdminTrainingInstitutesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AdminTrainingInstitutesRoute,
+  } as any)
+const AdminTrainingInstitutesBulkEmailRoute =
+  AdminTrainingInstitutesBulkEmailRouteImport.update({
+    id: '/bulk-email',
+    path: '/bulk-email',
+    getParentRoute: () => AdminTrainingInstitutesRoute,
+  } as any)
+const AdminTrainingInstitutesIdRoute =
+  AdminTrainingInstitutesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AdminTrainingInstitutesRoute,
+  } as any)
+const AdminCredentialsIdRoute = AdminCredentialsIdRouteImport.update({
+  id: '/admin/credentials_/$id',
+  path: '/admin/credentials/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCredentialsPendingRoute = AdminCredentialsPendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
+  getParentRoute: () => AdminCredentialsRoute,
+} as any)
+const AdminCredentialsGeneratedRoute =
+  AdminCredentialsGeneratedRouteImport.update({
+    id: '/generated',
+    path: '/generated',
+    getParentRoute: () => AdminCredentialsRoute,
+  } as any)
+const AdminApplicationsIdRoute = AdminApplicationsIdRouteImport.update({
+  id: '/admin/applications_/$id',
+  path: '/admin/applications/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAdvisoryIdRoute = AdminAdvisoryIdRouteImport.update({
+  id: '/admin/advisory_/$id',
+  path: '/admin/advisory/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCredentialsGenerateApplicationIdRoute =
+  AdminCredentialsGenerateApplicationIdRouteImport.update({
+    id: '/generate/$applicationId',
+    path: '/generate/$applicationId',
+    getParentRoute: () => AdminCredentialsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
@@ -160,12 +274,14 @@ export interface FileRoutesByFullPath {
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/admin/advisory': typeof AdminAdvisoryRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
-  '/admin/credentials': typeof AdminCredentialsRoute
+  '/admin/credentials': typeof AdminCredentialsRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
@@ -173,10 +289,26 @@ export interface FileRoutesByFullPath {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/training-institutes': typeof AdminTrainingInstitutesRouteWithChildren
+  '/apply/accreditation': typeof ApplyAccreditationRoute
+  '/apply/advisory': typeof ApplyAdvisoryRoute
+  '/apply/auditor': typeof ApplyAuditorRoute
+  '/apply/success': typeof ApplySuccessRoute
+  '/apply/training-institute': typeof ApplyTrainingInstituteRoute
+  '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
+  '/admin/applications/$id': typeof AdminApplicationsIdRoute
+  '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
+  '/admin/credentials/pending': typeof AdminCredentialsPendingRoute
+  '/admin/credentials/$id': typeof AdminCredentialsIdRoute
+  '/admin/training-institutes/$id': typeof AdminTrainingInstitutesIdRoute
+  '/admin/training-institutes/bulk-email': typeof AdminTrainingInstitutesBulkEmailRoute
+  '/admin/training-institutes/': typeof AdminTrainingInstitutesIndexRoute
+  '/admin/credentials/generate/$applicationId': typeof AdminCredentialsGenerateApplicationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
@@ -185,12 +317,14 @@ export interface FileRoutesByTo {
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/admin/advisory': typeof AdminAdvisoryRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
-  '/admin/credentials': typeof AdminCredentialsRoute
+  '/admin/credentials': typeof AdminCredentialsRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
@@ -198,11 +332,26 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/apply/accreditation': typeof ApplyAccreditationRoute
+  '/apply/advisory': typeof ApplyAdvisoryRoute
+  '/apply/auditor': typeof ApplyAuditorRoute
+  '/apply/success': typeof ApplySuccessRoute
+  '/apply/training-institute': typeof ApplyTrainingInstituteRoute
+  '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
+  '/admin/applications/$id': typeof AdminApplicationsIdRoute
+  '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
+  '/admin/credentials/pending': typeof AdminCredentialsPendingRoute
+  '/admin/credentials/$id': typeof AdminCredentialsIdRoute
+  '/admin/training-institutes/$id': typeof AdminTrainingInstitutesIdRoute
+  '/admin/training-institutes/bulk-email': typeof AdminTrainingInstitutesBulkEmailRoute
+  '/admin/training-institutes': typeof AdminTrainingInstitutesIndexRoute
+  '/admin/credentials/generate/$applicationId': typeof AdminCredentialsGenerateApplicationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
   '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
@@ -211,12 +360,14 @@ export interface FileRoutesById {
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/admin/advisory': typeof AdminAdvisoryRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
-  '/admin/credentials': typeof AdminCredentialsRoute
+  '/admin/credentials': typeof AdminCredentialsRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
@@ -224,12 +375,28 @@ export interface FileRoutesById {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/training-institutes': typeof AdminTrainingInstitutesRouteWithChildren
+  '/apply/accreditation': typeof ApplyAccreditationRoute
+  '/apply/advisory': typeof ApplyAdvisoryRoute
+  '/apply/auditor': typeof ApplyAuditorRoute
+  '/apply/success': typeof ApplySuccessRoute
+  '/apply/training-institute': typeof ApplyTrainingInstituteRoute
+  '/admin/advisory_/$id': typeof AdminAdvisoryIdRoute
+  '/admin/applications_/$id': typeof AdminApplicationsIdRoute
+  '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
+  '/admin/credentials/pending': typeof AdminCredentialsPendingRoute
+  '/admin/credentials_/$id': typeof AdminCredentialsIdRoute
+  '/admin/training-institutes/$id': typeof AdminTrainingInstitutesIdRoute
+  '/admin/training-institutes/bulk-email': typeof AdminTrainingInstitutesBulkEmailRoute
+  '/admin/training-institutes/': typeof AdminTrainingInstitutesIndexRoute
+  '/admin/credentials/generate/$applicationId': typeof AdminCredentialsGenerateApplicationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/apply'
     | '/contact'
     | '/directory'
     | '/documentation'
@@ -238,10 +405,12 @@ export interface FileRouteTypes {
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/admin/advisory'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/auditors'
+    | '/admin/certificates'
     | '/admin/content'
     | '/admin/credentials'
     | '/admin/dashboard'
@@ -251,10 +420,26 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reset-password'
     | '/admin/settings'
+    | '/admin/training-institutes'
+    | '/apply/accreditation'
+    | '/apply/advisory'
+    | '/apply/auditor'
+    | '/apply/success'
+    | '/apply/training-institute'
+    | '/admin/advisory/$id'
+    | '/admin/applications/$id'
+    | '/admin/credentials/generated'
+    | '/admin/credentials/pending'
+    | '/admin/credentials/$id'
+    | '/admin/training-institutes/$id'
+    | '/admin/training-institutes/bulk-email'
+    | '/admin/training-institutes/'
+    | '/admin/credentials/generate/$applicationId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/apply'
     | '/contact'
     | '/directory'
     | '/documentation'
@@ -263,10 +448,12 @@ export interface FileRouteTypes {
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/admin/advisory'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/auditors'
+    | '/admin/certificates'
     | '/admin/content'
     | '/admin/credentials'
     | '/admin/dashboard'
@@ -276,10 +463,25 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reset-password'
     | '/admin/settings'
+    | '/apply/accreditation'
+    | '/apply/advisory'
+    | '/apply/auditor'
+    | '/apply/success'
+    | '/apply/training-institute'
+    | '/admin/advisory/$id'
+    | '/admin/applications/$id'
+    | '/admin/credentials/generated'
+    | '/admin/credentials/pending'
+    | '/admin/credentials/$id'
+    | '/admin/training-institutes/$id'
+    | '/admin/training-institutes/bulk-email'
+    | '/admin/training-institutes'
+    | '/admin/credentials/generate/$applicationId'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/apply'
     | '/contact'
     | '/directory'
     | '/documentation'
@@ -288,10 +490,12 @@ export interface FileRouteTypes {
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/admin/advisory'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/auditors'
+    | '/admin/certificates'
     | '/admin/content'
     | '/admin/credentials'
     | '/admin/dashboard'
@@ -301,11 +505,27 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reset-password'
     | '/admin/settings'
+    | '/admin/training-institutes'
+    | '/apply/accreditation'
+    | '/apply/advisory'
+    | '/apply/auditor'
+    | '/apply/success'
+    | '/apply/training-institute'
+    | '/admin/advisory_/$id'
+    | '/admin/applications_/$id'
+    | '/admin/credentials/generated'
+    | '/admin/credentials/pending'
+    | '/admin/credentials_/$id'
+    | '/admin/training-institutes/$id'
+    | '/admin/training-institutes/bulk-email'
+    | '/admin/training-institutes/'
+    | '/admin/credentials/generate/$applicationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ApplyRoute: typeof ApplyRouteWithChildren
   ContactRoute: typeof ContactRoute
   DirectoryRoute: typeof DirectoryRoute
   DocumentationRoute: typeof DocumentationRoute
@@ -314,12 +534,14 @@ export interface RootRouteChildren {
   ProcessRoute: typeof ProcessRoute
   ServicesRoute: typeof ServicesRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
+  AdminAdvisoryRoute: typeof AdminAdvisoryRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
   AdminAuditorsRoute: typeof AdminAuditorsRoute
+  AdminCertificatesRoute: typeof AdminCertificatesRoute
   AdminContentRoute: typeof AdminContentRoute
-  AdminCredentialsRoute: typeof AdminCredentialsRoute
+  AdminCredentialsRoute: typeof AdminCredentialsRouteWithChildren
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminForgotPasswordRoute: typeof AdminForgotPasswordRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -327,6 +549,10 @@ export interface RootRouteChildren {
   AdminProfileRoute: typeof AdminProfileRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTrainingInstitutesRoute: typeof AdminTrainingInstitutesRouteWithChildren
+  AdminAdvisoryIdRoute: typeof AdminAdvisoryIdRoute
+  AdminApplicationsIdRoute: typeof AdminApplicationsIdRoute
+  AdminCredentialsIdRoute: typeof AdminCredentialsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -387,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply': {
+      id: '/apply'
+      path: '/apply'
+      fullPath: '/apply'
+      preLoaderRoute: typeof ApplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -399,6 +632,48 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/training-institute': {
+      id: '/apply/training-institute'
+      path: '/training-institute'
+      fullPath: '/apply/training-institute'
+      preLoaderRoute: typeof ApplyTrainingInstituteRouteImport
+      parentRoute: typeof ApplyRoute
+    }
+    '/apply/success': {
+      id: '/apply/success'
+      path: '/success'
+      fullPath: '/apply/success'
+      preLoaderRoute: typeof ApplySuccessRouteImport
+      parentRoute: typeof ApplyRoute
+    }
+    '/apply/auditor': {
+      id: '/apply/auditor'
+      path: '/auditor'
+      fullPath: '/apply/auditor'
+      preLoaderRoute: typeof ApplyAuditorRouteImport
+      parentRoute: typeof ApplyRoute
+    }
+    '/apply/advisory': {
+      id: '/apply/advisory'
+      path: '/advisory'
+      fullPath: '/apply/advisory'
+      preLoaderRoute: typeof ApplyAdvisoryRouteImport
+      parentRoute: typeof ApplyRoute
+    }
+    '/apply/accreditation': {
+      id: '/apply/accreditation'
+      path: '/accreditation'
+      fullPath: '/apply/accreditation'
+      preLoaderRoute: typeof ApplyAccreditationRouteImport
+      parentRoute: typeof ApplyRoute
+    }
+    '/admin/training-institutes': {
+      id: '/admin/training-institutes'
+      path: '/admin/training-institutes'
+      fullPath: '/admin/training-institutes'
+      preLoaderRoute: typeof AdminTrainingInstitutesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/settings': {
@@ -464,6 +739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/certificates': {
+      id: '/admin/certificates'
+      path: '/admin/certificates'
+      fullPath: '/admin/certificates'
+      preLoaderRoute: typeof AdminCertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/auditors': {
       id: '/admin/auditors'
       path: '/admin/auditors'
@@ -492,12 +774,136 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/advisory': {
+      id: '/admin/advisory'
+      path: '/admin/advisory'
+      fullPath: '/admin/advisory'
+      preLoaderRoute: typeof AdminAdvisoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/training-institutes/': {
+      id: '/admin/training-institutes/'
+      path: '/'
+      fullPath: '/admin/training-institutes/'
+      preLoaderRoute: typeof AdminTrainingInstitutesIndexRouteImport
+      parentRoute: typeof AdminTrainingInstitutesRoute
+    }
+    '/admin/training-institutes/bulk-email': {
+      id: '/admin/training-institutes/bulk-email'
+      path: '/bulk-email'
+      fullPath: '/admin/training-institutes/bulk-email'
+      preLoaderRoute: typeof AdminTrainingInstitutesBulkEmailRouteImport
+      parentRoute: typeof AdminTrainingInstitutesRoute
+    }
+    '/admin/training-institutes/$id': {
+      id: '/admin/training-institutes/$id'
+      path: '/$id'
+      fullPath: '/admin/training-institutes/$id'
+      preLoaderRoute: typeof AdminTrainingInstitutesIdRouteImport
+      parentRoute: typeof AdminTrainingInstitutesRoute
+    }
+    '/admin/credentials_/$id': {
+      id: '/admin/credentials_/$id'
+      path: '/admin/credentials/$id'
+      fullPath: '/admin/credentials/$id'
+      preLoaderRoute: typeof AdminCredentialsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/credentials/pending': {
+      id: '/admin/credentials/pending'
+      path: '/pending'
+      fullPath: '/admin/credentials/pending'
+      preLoaderRoute: typeof AdminCredentialsPendingRouteImport
+      parentRoute: typeof AdminCredentialsRoute
+    }
+    '/admin/credentials/generated': {
+      id: '/admin/credentials/generated'
+      path: '/generated'
+      fullPath: '/admin/credentials/generated'
+      preLoaderRoute: typeof AdminCredentialsGeneratedRouteImport
+      parentRoute: typeof AdminCredentialsRoute
+    }
+    '/admin/applications_/$id': {
+      id: '/admin/applications_/$id'
+      path: '/admin/applications/$id'
+      fullPath: '/admin/applications/$id'
+      preLoaderRoute: typeof AdminApplicationsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/advisory_/$id': {
+      id: '/admin/advisory_/$id'
+      path: '/admin/advisory/$id'
+      fullPath: '/admin/advisory/$id'
+      preLoaderRoute: typeof AdminAdvisoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/credentials/generate/$applicationId': {
+      id: '/admin/credentials/generate/$applicationId'
+      path: '/generate/$applicationId'
+      fullPath: '/admin/credentials/generate/$applicationId'
+      preLoaderRoute: typeof AdminCredentialsGenerateApplicationIdRouteImport
+      parentRoute: typeof AdminCredentialsRoute
+    }
   }
 }
+
+interface ApplyRouteChildren {
+  ApplyAccreditationRoute: typeof ApplyAccreditationRoute
+  ApplyAdvisoryRoute: typeof ApplyAdvisoryRoute
+  ApplyAuditorRoute: typeof ApplyAuditorRoute
+  ApplySuccessRoute: typeof ApplySuccessRoute
+  ApplyTrainingInstituteRoute: typeof ApplyTrainingInstituteRoute
+}
+
+const ApplyRouteChildren: ApplyRouteChildren = {
+  ApplyAccreditationRoute: ApplyAccreditationRoute,
+  ApplyAdvisoryRoute: ApplyAdvisoryRoute,
+  ApplyAuditorRoute: ApplyAuditorRoute,
+  ApplySuccessRoute: ApplySuccessRoute,
+  ApplyTrainingInstituteRoute: ApplyTrainingInstituteRoute,
+}
+
+const ApplyRouteWithChildren = ApplyRoute._addFileChildren(ApplyRouteChildren)
+
+interface AdminCredentialsRouteChildren {
+  AdminCredentialsGeneratedRoute: typeof AdminCredentialsGeneratedRoute
+  AdminCredentialsPendingRoute: typeof AdminCredentialsPendingRoute
+  AdminCredentialsGenerateApplicationIdRoute: typeof AdminCredentialsGenerateApplicationIdRoute
+}
+
+const AdminCredentialsRouteChildren: AdminCredentialsRouteChildren = {
+  AdminCredentialsGeneratedRoute: AdminCredentialsGeneratedRoute,
+  AdminCredentialsPendingRoute: AdminCredentialsPendingRoute,
+  AdminCredentialsGenerateApplicationIdRoute:
+    AdminCredentialsGenerateApplicationIdRoute,
+}
+
+const AdminCredentialsRouteWithChildren =
+  AdminCredentialsRoute._addFileChildren(AdminCredentialsRouteChildren)
+
+interface AdminTrainingInstitutesRouteChildren {
+  AdminTrainingInstitutesIdRoute: typeof AdminTrainingInstitutesIdRoute
+  AdminTrainingInstitutesBulkEmailRoute: typeof AdminTrainingInstitutesBulkEmailRoute
+  AdminTrainingInstitutesIndexRoute: typeof AdminTrainingInstitutesIndexRoute
+}
+
+const AdminTrainingInstitutesRouteChildren: AdminTrainingInstitutesRouteChildren =
+  {
+    AdminTrainingInstitutesIdRoute: AdminTrainingInstitutesIdRoute,
+    AdminTrainingInstitutesBulkEmailRoute:
+      AdminTrainingInstitutesBulkEmailRoute,
+    AdminTrainingInstitutesIndexRoute: AdminTrainingInstitutesIndexRoute,
+  }
+
+const AdminTrainingInstitutesRouteWithChildren =
+  AdminTrainingInstitutesRoute._addFileChildren(
+    AdminTrainingInstitutesRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ApplyRoute: ApplyRouteWithChildren,
   ContactRoute: ContactRoute,
   DirectoryRoute: DirectoryRoute,
   DocumentationRoute: DocumentationRoute,
@@ -506,12 +912,14 @@ const rootRouteChildren: RootRouteChildren = {
   ProcessRoute: ProcessRoute,
   ServicesRoute: ServicesRoute,
   UnauthorizedRoute: UnauthorizedRoute,
+  AdminAdvisoryRoute: AdminAdvisoryRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminAuditLogsRoute: AdminAuditLogsRoute,
   AdminAuditorsRoute: AdminAuditorsRoute,
+  AdminCertificatesRoute: AdminCertificatesRoute,
   AdminContentRoute: AdminContentRoute,
-  AdminCredentialsRoute: AdminCredentialsRoute,
+  AdminCredentialsRoute: AdminCredentialsRouteWithChildren,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminForgotPasswordRoute: AdminForgotPasswordRoute,
   AdminLoginRoute: AdminLoginRoute,
@@ -519,6 +927,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProfileRoute: AdminProfileRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminTrainingInstitutesRoute: AdminTrainingInstitutesRouteWithChildren,
+  AdminAdvisoryIdRoute: AdminAdvisoryIdRoute,
+  AdminApplicationsIdRoute: AdminApplicationsIdRoute,
+  AdminCredentialsIdRoute: AdminCredentialsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

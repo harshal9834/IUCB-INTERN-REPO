@@ -35,7 +35,7 @@ export const createAuditorSchema = z.object({
 
 // Credential validations
 export const createCredentialSchema = z.object({
-  credentialNumber: z.string().min(5, "Credential number required"),
+  credentialId: z.string().min(5, "Credential ID required"),
   standard: z.string().min(2, "Standard ISO required"),
   issueDate: z.coerce.date(),
   expiryDate: z.coerce.date(),

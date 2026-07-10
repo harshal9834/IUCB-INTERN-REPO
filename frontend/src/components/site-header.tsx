@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck, Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 type NavItem = { to: string; label: string; hasMenu?: "programs" | "resources" };
@@ -68,22 +68,24 @@ export function SiteHeader() {
       {/* Zone B — Branding row */}
       <div className="bg-white border-b border-border">
         <div className="container-x flex h-[68px] items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="relative h-11 w-11 rounded-full bg-primary grid place-items-center ring-2 ring-gold/70 ring-offset-2">
-              <ShieldCheck className="h-5 w-5 text-gold" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-[15px] font-bold tracking-tight text-primary">IUCB</div>
-              <div className="text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground">
-                International Union of Certification Bodies
+          <Link to="/" className="flex items-center gap-4">
+            <img 
+              src="/logos/FINAL_LOGO_DESIGN.jpeg" 
+              alt="IUCB Logo" 
+              className="h-16 w-16 flex-shrink-0"
+            />
+            <div className="leading-tight hidden sm:block">
+              <div className="text-base font-bold tracking-tight text-primary">IUCB</div>
+              <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap">
+                INTERNATIONAL UNION FOR CERTIFICATION & BENCHMARKING
               </div>
             </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-3">
             <Link
-              to="/documentation"
-              className="h-9 px-5 inline-flex items-center text-xs font-semibold rounded-full border border-gold/40 text-primary hover:border-gold hover:bg-gold/5 transition"
+              to="/apply/advisory"
+              className="h-9 px-9 inline-flex items-center text-xs font-semibold rounded-full border border-gold/40 text-primary hover:border-gold hover:bg-gold/5 transition"
             >
               Advisory
             </Link>
@@ -188,13 +190,6 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="flex gap-2 mt-3">
-              <Link
-                to="/verify"
-                onClick={() => setOpen(false)}
-                className="flex-1 text-center px-4 py-2 text-sm rounded-md border border-white/30"
-              >
-                Verify
-              </Link>
               <Link
                 to="/services"
                 onClick={() => setOpen(false)}

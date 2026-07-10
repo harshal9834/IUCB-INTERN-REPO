@@ -1,15 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Building2,
   Users,
   GraduationCap,
+  Briefcase,
   CheckCircle2,
-  ArrowRight,
   FileText,
   Award,
-  Download,
 } from "lucide-react";
+import { AccreditationCTA } from "../components/AccreditationCTA";
 
 export const Route = createFileRoute("/services")({
   head: () => ({
@@ -29,6 +29,7 @@ const tabs = [
   { id: "cb", label: "Certification Bodies", icon: Building2 },
   { id: "auditors", label: "Auditors", icon: Users },
   { id: "training", label: "Training Providers", icon: GraduationCap },
+  { id: "advisory", label: "Advisory", icon: Briefcase },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -110,6 +111,25 @@ const content: Record<
       "Adequate learning facilities (physical or virtual)",
     ],
     standards: ["ISO 21001", "ISO 29993", "IUCB Training Spec v3.0"],
+  },
+  advisory: {
+    badge: "Advisory Program",
+    title: "Advisory Board Membership",
+    intro:
+      "Join IUCB's Advisory Board to shape global accreditation standards, provide strategic guidance, and influence policy direction. Share your expertise and contribute to international best practices.",
+    benefits: [
+      "Strategic influence on accreditation standards development",
+      "Peer networking with global accreditation leaders",
+      "Recognition as IUCB Advisory Board Member",
+      "Early access to emerging standards and initiatives",
+    ],
+    eligibility: [
+      "Recognized expertise in audit, management systems, or compliance",
+      "Senior leadership experience in accreditation or certification",
+      "Demonstrated commitment to quality and integrity",
+      "Ability to participate in quarterly board meetings",
+    ],
+    standards: ["ISO/IEC 17021", "ISO 19011", "IUCB Advisory Charter v2.0"],
   },
 };
 
@@ -232,35 +252,8 @@ function Services() {
             </div>
 
             <aside className="lg:col-span-4">
-              <div className="sticky top-28 rounded-2xl bg-primary text-primary-foreground p-8 relative overflow-hidden">
-                <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gold/20 blur-2xl" />
-                <div className="relative">
-                  <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold">
-                    Ready to Apply?
-                  </div>
-                  <h3 className="mt-3 text-xl font-semibold">
-                    Start your journey toward global recognition today.
-                  </h3>
-                  <p className="mt-3 text-sm text-white/75">
-                    Download the application kit or contact our team. Response time: 2–3 business
-                    days.
-                  </p>
-                  <div className="mt-6 space-y-3">
-                    <Link
-                      to="/contact"
-                      className="flex items-center justify-center gap-2 px-5 py-3 bg-gold text-gold-foreground rounded-md font-semibold text-sm hover:brightness-105 transition"
-                    >
-                      Apply for Accreditation <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      to="/documentation"
-                      className="flex items-center justify-center gap-2 px-5 py-3 border border-white/30 rounded-md text-sm font-semibold hover:bg-white/10 transition"
-                    >
-                      <Download className="h-4 w-4" /> Application Kit
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              {/* Dynamic CTA — driven entirely by accreditation-cta.config.ts */}
+              <AccreditationCTA activeTab={active} />
 
               <div className="mt-6 rounded-xl border border-border p-6 bg-light-blue/40">
                 <div className="text-xs font-semibold uppercase tracking-wider text-primary">

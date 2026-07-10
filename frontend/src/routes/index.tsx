@@ -547,27 +547,7 @@ function InstitutionalOverview() {
         </div>
       </div>
 
-      {/* underlay performance banner */}
-      <div className="container-x mt-16">
-        <div className="rounded-2xl bg-primary text-white p-6 md:p-8 grid md:grid-cols-3 gap-6 md:gap-10 relative overflow-hidden">
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gold/15 blur-3xl" />
-          {[
-            { k: "500+", v: "Accredited Organizations" },
-            { k: "80+", v: "Active Signatory Nations" },
-            { k: "2,000+", v: "Certified Industry Auditors" },
-          ].map((m) => (
-            <div
-              key={m.v}
-              className="relative flex items-baseline gap-4 border-l-2 border-gold pl-4"
-            >
-              <div className="text-4xl md:text-5xl font-semibold text-gold tracking-tight">
-                {m.k}
-              </div>
-              <div className="text-sm text-white/80">{m.v}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+
     </section>
   );
 }

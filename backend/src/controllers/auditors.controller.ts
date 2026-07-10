@@ -87,7 +87,7 @@ export class AuditorsController {
       where: { id, deletedAt: null },
       include: {
         organization: { select: { id: true, organizationName: true } },
-        credentials: { where: { deletedAt: null }, select: { id: true, credentialNumber: true, standard: true, status: true } },
+        credentials: { where: { deletedAt: null }, select: { id: true, credentialId: true, standard: true, status: true } },
       },
     });
     if (!auditor) throw new ApiError(404, "Auditor not found");

@@ -99,42 +99,8 @@ function LoginComponent() {
     }
   };
 
-  const isDevelopment = import.meta.env.DEV;
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-      {isDevelopment && (
-        <div className="absolute top-4 right-4">
-          <Card className="w-72 border-amber-200 bg-amber-50 shadow-md">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between gap-2">
-                <CardTitle className="text-sm font-semibold text-amber-900">
-                  Development Only
-                </CardTitle>
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
-                  Dev
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2 text-xs text-amber-900">
-              <div>
-                <p className="font-medium text-amber-900">Test Credentials:</p>
-                <div className="mt-2 space-y-1.5 font-mono text-amber-800 bg-white bg-opacity-50 p-2 rounded border border-amber-200">
-                  <p>
-                    <span className="font-semibold">Email:</span> admin@iucb.local
-                  </p>
-                  <p>
-                    <span className="font-semibold">Password:</span> Admin@123
-                  </p>
-                </div>
-              </div>
-              <p className="text-amber-700 text-xs italic">
-                This card is hidden in production builds.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
       <Card className="w-full max-w-md border-slate-200 shadow-xl">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center">

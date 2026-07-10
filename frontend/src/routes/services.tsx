@@ -1,15 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Building2,
   Users,
   GraduationCap,
+  Briefcase,
   CheckCircle2,
-  ArrowRight,
   FileText,
   Award,
-  Download,
 } from "lucide-react";
+import { AccreditationCTA } from "../components/AccreditationCTA";
 
 export const Route = createFileRoute("/services")({
   head: () => ({
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/services")({
       {
         name: "description",
         content:
-          "Formal recognition of competence for Certification Bodies, Auditors, and Training Providers.",
+          "Explore IUCB accreditation services for Certification Bodies, Individual Auditors, and Training Providers through internationally recognized accreditation programs.",
       },
     ],
   }),
@@ -29,6 +29,7 @@ const tabs = [
   { id: "cb", label: "Certification Bodies", icon: Building2 },
   { id: "auditors", label: "Auditors", icon: Users },
   { id: "training", label: "Training Providers", icon: GraduationCap },
+  { id: "advisory", label: "Advisory", icon: Briefcase },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -46,70 +47,134 @@ const content: Record<
   }
 > = {
   cb: {
-    badge: "ACB Program",
-    title: "Certification Body Accreditation (ACB)",
+    badge: "Certification Body Accreditation",
+    title: "Certification Bodies",
     intro:
-      "The ACB program is designed for organizations that provide audit and certification services. Accreditation by IUCB demonstrates your competence, impartiality, and performance capability — aligned with ISO/IEC 17021 and IAF guidance.",
+      "IUCB accredits Certification Bodies that demonstrate competence, impartiality, and consistency in auditing and certifying organizations against internationally recognized standards. Accreditation strengthens market confidence, regulatory acceptance, and global recognition.",
+
     benefits: [
-      "International recognition across 85+ countries",
-      "Mutual recognition with leading accreditation bodies",
-      "Enhanced credibility with regulators and clients",
-      "Inclusion in the public IUCB Accredited Directory",
+      "Internationally recognized accreditation framework",
+      "Enhanced credibility with regulators, clients, and stakeholders",
+      "Listing in the official IUCB Accredited Directory",
+      "Greater confidence through independent third-party assessment",
     ],
+
     eligibility: [
-      "Legal entity with documented management system",
-      "Demonstrated impartiality and independence",
-      "Qualified technical assessors and lead auditors",
-      "Operational history of at least 12 months",
+      "Legally established Certification Body",
+      "Documented management system and operational procedures",
+      "Competent and qualified audit personnel",
+      "Demonstrated impartiality, independence, and compliance with IUCB requirements",
     ],
-    standards: ["ISO/IEC 17021-1", "ISO/IEC 27006", "ISO/IEC 17065", "ISO/IEC 17024"],
+
+    standards: [
+      "ISO/IEC 17021-1",
+      "ISO/IEC 17065",
+      "ISO/IEC 17024",
+      "ISO/IEC 17020",
+    ],
   },
   auditors: {
-    badge: "AAP Program",
-    title: "Auditor Accreditation (AAP)",
+    badge: "Individual Auditor Accreditation",
+
+    title: "Individual Auditors",
+
     intro:
-      "Individual accreditation pathway for management system, cybersecurity, and privacy auditors. Validate your competence and progress through clearly defined tiers.",
+      "IUCB recognizes competent auditing professionals through internationally accredited certification pathways. Auditor accreditation validates technical expertise, practical experience, and professional competence while supporting career progression across globally recognized standards.",
+
     benefits: [
-      "Globally portable credential with QR verification",
-      "Listed in the IUCB Professional Directory",
-      "Structured progression from Associate to Principal",
-      "Recognition by IUCB-accredited certification bodies",
+      "Globally recognized professional credential",
+      "Listing in the official IUCB Auditor Directory",
+      "Structured career progression through accreditation levels",
+      "Enhanced professional credibility and international recognition",
     ],
+
     eligibility: [
-      "Recognized degree or equivalent experience",
-      "Completed IUCB-approved auditor training",
-      "Documented audit experience portfolio",
-      "Successful examination performance",
+      "Relevant education or equivalent professional experience",
+      "Completion of approved auditor training",
+      "Demonstrated audit knowledge and practical experience",
+      "Successful completion of the required competency assessment",
     ],
-    standards: ["ISO 19011", "ISO/IEC 27001 LA", "ISO 9001 LA", "ISO 14001 LA"],
+
+    standards: [
+      "ISO 19011",
+      "ISO 9001 Lead Auditor",
+      "ISO/IEC 27001 Lead Auditor",
+      "ISO 14001 Lead Auditor",
+    ],
+
     extra: {
-      heading: "Auditor Tiers",
+      heading: "Auditor Accreditation Levels",
+
       rows: [
-        { tier: "Associate", experience: "0–2 Years", req: "Approved training + exam" },
-        { tier: "Auditor", experience: "2–5 Years", req: "10+ audits witnessed" },
-        { tier: "Lead Auditor", experience: "5+ Years", req: "15+ audits (Lead)" },
-        { tier: "Principal", experience: "10+ Years", req: "Subject Matter Expert" },
+        {
+          tier: "Associate Auditor",
+          experience: "Entry Level",
+          req: "Approved Training + Competency Assessment",
+        },
+        {
+          tier: "Internal Auditor",
+          experience: "Basic Experience",
+          req: "Training + Practical Audit Experience",
+        },
+        {
+          tier: "Lead Auditor",
+          experience: "Professional",
+          req: "Lead Audit Experience + Competency Validation",
+        },
+        {
+          tier: "Principal Auditor",
+          experience: "Senior Expert",
+          req: "Extensive Audit Leadership & Professional Excellence",
+        },
       ],
     },
   },
   training: {
-    badge: "ATPP Program",
-    title: "Training Provider Accreditation (ATPP)",
+    badge: "Training Provider Accreditation",
+
+    title: "Training Providers",
+
     intro:
-      "Recognition for training organizations delivering compliance, audit, and management systems education. Accreditation validates your curriculum, instructors, and examination integrity.",
+      "IUCB accredits Training Providers that deliver high-quality education, professional development, and competency-based learning. Accreditation confirms that training programs, instructors, and assessment processes meet internationally recognized quality standards.",
+
     benefits: [
-      "Approved course listing in IUCB directory",
-      "Authority to issue IUCB-recognized certificates",
-      "Examination scheme co-branding",
-      "Continuous professional development credits",
+      "International recognition for accredited training programs",
+      "Official listing in the IUCB Training Provider Directory",
+      "Authority to deliver IUCB-recognized training programs",
+      "Enhanced credibility for learners, organizations, and industry partners",
+    ],
+
+    eligibility: [
+      "Documented training curriculum aligned with international standards",
+      "Qualified instructors with relevant industry expertise",
+      "Transparent examination and assessment methodology",
+      "Appropriate physical or online learning infrastructure",
+    ],
+
+    standards: [
+      "ISO 21001",
+      "ISO 29993",
+      "IUCB Training Requirements",
+    ],
+  },
+  advisory: {
+    badge: "Advisory Program",
+    title: "Advisory Board Membership",
+    intro:
+      "Join IUCB's Advisory Board to shape global accreditation standards, provide strategic guidance, and influence policy direction. Share your expertise and contribute to international best practices.",
+    benefits: [
+      "Strategic influence on accreditation standards development",
+      "Peer networking with global accreditation leaders",
+      "Recognition as IUCB Advisory Board Member",
+      "Early access to emerging standards and initiatives",
     ],
     eligibility: [
-      "Documented curriculum mapped to IUCB schemes",
-      "Qualified instructors with audit experience",
-      "Robust examination and grading methodology",
-      "Adequate learning facilities (physical or virtual)",
+      "Recognized expertise in audit, management systems, or compliance",
+      "Senior leadership experience in accreditation or certification",
+      "Demonstrated commitment to quality and integrity",
+      "Ability to participate in quarterly board meetings",
     ],
-    standards: ["ISO 21001", "ISO 29993", "IUCB Training Spec v3.0"],
+    standards: ["ISO/IEC 17021", "ISO 19011", "IUCB Advisory Charter v2.0"],
   },
 };
 
@@ -141,11 +206,10 @@ function Services() {
               <button
                 key={t.id}
                 onClick={() => setActive(t.id)}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition ${
-                  active === t.id
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition ${active === t.id
                     ? "bg-primary text-primary-foreground shadow"
                     : "text-navy hover:bg-white"
-                }`}
+                  }`}
               >
                 <t.icon className="h-4 w-4" />
                 {t.label}
@@ -232,35 +296,8 @@ function Services() {
             </div>
 
             <aside className="lg:col-span-4">
-              <div className="sticky top-28 rounded-2xl bg-primary text-primary-foreground p-8 relative overflow-hidden">
-                <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gold/20 blur-2xl" />
-                <div className="relative">
-                  <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold">
-                    Ready to Apply?
-                  </div>
-                  <h3 className="mt-3 text-xl font-semibold">
-                    Start your journey toward global recognition today.
-                  </h3>
-                  <p className="mt-3 text-sm text-white/75">
-                    Download the application kit or contact our team. Response time: 2–3 business
-                    days.
-                  </p>
-                  <div className="mt-6 space-y-3">
-                    <Link
-                      to="/contact"
-                      className="flex items-center justify-center gap-2 px-5 py-3 bg-gold text-gold-foreground rounded-md font-semibold text-sm hover:brightness-105 transition"
-                    >
-                      Apply for Accreditation <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      to="/documentation"
-                      className="flex items-center justify-center gap-2 px-5 py-3 border border-white/30 rounded-md text-sm font-semibold hover:bg-white/10 transition"
-                    >
-                      <Download className="h-4 w-4" /> Application Kit
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              {/* Dynamic CTA — driven entirely by accreditation-cta.config.ts */}
+              <AccreditationCTA activeTab={active} />
 
               <div className="mt-6 rounded-xl border border-border p-6 bg-light-blue/40">
                 <div className="text-xs font-semibold uppercase tracking-wider text-primary">

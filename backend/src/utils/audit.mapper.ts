@@ -78,7 +78,7 @@ export function mapAuditor(auditor: RawAuditor, adminName: string, adminId: stri
 
 export function mapCredential(cred: RawCredential, adminName: string, adminId: string): AuditLogDTO {
   const newData: Record<string, unknown> = {
-    credentialNumber: cred.credentialNumber,
+    credentialId: cred.credentialId,
     standard: cred.standard,
     status: cred.status,
   };
@@ -87,9 +87,9 @@ export function mapCredential(cred: RawCredential, adminName: string, adminId: s
     timestamp: cred.createdAt.toISOString(),
     action: 'ISSUED',
     entityType: 'Credential',
-    entityName: cred.credentialNumber,
+    entityName: cred.credentialId,
     entityId: cred.id,
-    details: `Credential ${cred.credentialNumber} issued for ${cred.standard}`,
+    details: `Credential ${cred.credentialId} issued for ${cred.standard}`,
     adminName,
     adminId,
     ipAddress: generateDummyIp(),

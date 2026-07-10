@@ -22,15 +22,11 @@ build/
 
 # Environment Variables & Secrets
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 **/.env
-**/.env.local
-**/.env.development.local
-**/.env.test.local
-**/.env.production.local
+**/.env.*
+!**/.env.example
 
 # Logs
 logs/
@@ -53,8 +49,11 @@ coverage/
 **/.cache/
 .parcel-cache/
 **/.parcel-cache/
+.eslintcache
+*.tsbuildinfo
 
 # IDEs and Editors
+.vscode/
 .vscode/settings.json
 .vscode/tasks.json
 .vscode/launch.json
@@ -77,6 +76,13 @@ prisma/dev.db
 prisma/dev.db-journal
 **/prisma/dev.db
 **/prisma/dev.db-journal
+
+# Vite
+vite.config.ts.timestamp-*
+
+# Temporary files
+temp/
+tmp/
 
 # Runtime Uploads & Assets
 backend/uploads/*

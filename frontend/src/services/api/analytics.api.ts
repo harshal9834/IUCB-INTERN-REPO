@@ -1,4 +1,4 @@
-import { axiosInstance } from "./axios.js";
+import { axiosInstance } from "./axios";
 
 export interface AnalyticsDashboardData {
   metrics: Array<{ id: string; title: string; value: number; delta: number; trend: string }>;

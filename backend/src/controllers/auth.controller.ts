@@ -117,7 +117,7 @@ export class AuthController {
 
     if (!storedToken || storedToken.expiresAt < new Date()) {
       if (storedToken) {
-        await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+        await prisma.refreshToken.deleteMany({ where: { id: storedToken.id } });
       }
       res.clearCookie("refreshToken", COOKIE_OPTIONS);
       throw new ApiError(401, "Refresh token is invalid or expired");
@@ -135,8 +135,8 @@ export class AuthController {
     const newAccessToken = authService.generateAccessToken(admin);
     const newRefreshToken = await authService.generateRefreshToken(admin.id);
 
-    // Remove old token
-    await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+    // Remove old token (deleteMany avoids P2025 if already rotated/deleted)
+    await prisma.refreshToken.deleteMany({ where: { id: storedToken.id } });
 
     // Set new token in cookie
     res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);

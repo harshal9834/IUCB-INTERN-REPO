@@ -52,7 +52,7 @@ class AuditRepository {
         where: { deletedAt: null },
         select: {
           id: true,
-          credentialNumber: true,
+          credentialId: true,
           standard: true,
           status: true,
           createdAt: true,
@@ -60,7 +60,7 @@ class AuditRepository {
         orderBy: { createdAt: 'desc' },
       }),
 
-      prisma.advisoryApplication.findMany({
+      prisma.application.findMany({
         where: { deletedAt: null },
         select: {
           id: true,

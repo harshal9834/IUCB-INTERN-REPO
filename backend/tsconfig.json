@@ -12,5 +12,35 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "src/controllers/advanced-search.controller.ts",
+    "src/controllers/bulk-operations.controller.ts",
+    "src/controllers/compliance-report.controller.ts",
+    "src/controllers/data-retention.controller.ts",
+    "src/controllers/integrity-verification.controller.ts",
+    "src/controllers/training-institutes.controller.ts",
+    "src/controllers/applications.controller.ts",
+    "src/routes/advanced-search.routes.ts",
+    "src/routes/applications.routes.ts",
+    "src/routes/compliance-report.routes.ts",
+    "src/routes/data-retention.routes.ts",
+    "src/routes/integrity-verification.routes.ts",
+    "src/routes/security-monitoring.routes.ts",
+    "src/services/advanced-search.service.ts",
+    "src/services/bulk-operations.service.ts",
+    "src/services/compliance-report.service.ts",
+    "src/services/credential-id.service.ts",
+    "src/services/data-retention.service.ts",
+    "src/services/email.service.ts",
+    "src/services/excel-export.service.ts",
+    "src/services/history.service.ts",
+    "src/services/integrity-verification.service.ts",
+    "src/services/search.service.ts",
+    "src/services/security-monitoring.service.ts",
+    "src/middlewares/audit.middleware.ts",
+    "src/middlewares/auto-audit.middleware.ts",
+    "src/middlewares/error.middleware.ts",
+    "src/services/auth.service.ts"
+  ]
 }

@@ -78,4 +78,6 @@ export interface AnalyticsQueryParams {
   organizationId?: string
   standard?: string
   reportType?: string
+  page?: number
+  limit?: number
 }

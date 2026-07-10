@@ -114,7 +114,7 @@ export interface RawAuditor {
 
 export interface RawCredential {
   id: string;
-  credentialNumber: string;
+  credentialId: string;
   standard: string;
   status: string;
   createdAt: Date;

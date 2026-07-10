@@ -162,3 +162,14 @@
   text-transform: uppercase;
   color: var(--color-secondary);
 }
+
+/* ── Hide scrollbar in sidebar nav ─────────────────────────── */
+.sidebar-nav::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.sidebar-nav {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE 10+ */
+}

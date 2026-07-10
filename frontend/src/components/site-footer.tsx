@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck, Mail, ArrowUp, Linkedin, Twitter, Globe } from "lucide-react";
+import { ShieldCheck, Mail, ArrowUp } from "lucide-react";
 
 const cols = [
   {
@@ -51,27 +51,8 @@ export function SiteFooter() {
             The global authority for accreditation of certification bodies, auditors, and training
             providers — recognized in 80+ countries.
           </p>
-          <div className="mt-6 flex items-center gap-3">
-            <a
-              href="#"
-              className="h-9 w-9 grid place-items-center rounded-md bg-white/10 hover:bg-white/20"
-            >
-              <Linkedin className="h-4 w-4" />
-            </a>
-            <a
-              href="#"
-              className="h-9 w-9 grid place-items-center rounded-md bg-white/10 hover:bg-white/20"
-            >
-              <Twitter className="h-4 w-4" />
-            </a>
-            <a
-              href="#"
-              className="h-9 w-9 grid place-items-center rounded-md bg-white/10 hover:bg-white/20"
-            >
-              <Globe className="h-4 w-4" />
-            </a>
-          </div>
         </div>
+
 
         {cols.map((c) => (
           <div key={c.title} className="lg:col-span-2">
@@ -81,7 +62,7 @@ export function SiteFooter() {
             <ul className="space-y-2.5">
               {c.links.map((l) => (
                 <li key={l.label}>
-                  <Link to={l.to as never} className="text-sm text-white/80 hover:text-white">
+                  <Link to={l.to as any} className="text-sm text-white/80 hover:text-white">
                     {l.label}
                   </Link>
                 </li>
@@ -96,17 +77,35 @@ export function SiteFooter() {
           </div>
           <ul className="space-y-2.5 text-sm text-white/80">
             <li className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5" /> info@iucb.org
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <a
+                href="mailto:info@iucb.org"
+                className="hover:text-white transition-colors"
+              >
+                info@iucb.org
+              </a>
             </li>
             <li className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5" /> accreditations@iucb.org
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <a
+                href="mailto:accreditations@iucb.org"
+                className="hover:text-white transition-colors"
+              >
+                accreditations@iucb.org
+              </a>
             </li>
             <li className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5" /> connect@iucb.org
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <a
+                href="mailto:connect@iucb.org"
+                className="hover:text-white transition-colors"
+              >
+                connect@iucb.org
+              </a>
             </li>
           </ul>
           <Link
-            to="/verify"
+            to={"/verify" as any}
             className="inline-flex mt-5 px-3 py-2 text-xs font-semibold rounded-md bg-gold text-gold-foreground"
           >
             Verify Credentials

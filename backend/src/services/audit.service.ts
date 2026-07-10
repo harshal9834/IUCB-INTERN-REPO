@@ -30,6 +30,24 @@ import type {
   AuditStatisticsDTO,
 } from '../types/audit.types.js';
 
+// Exported for compatibility with feature-branch middlewares/services
+export interface AuditContext {
+  adminId?: string;
+  adminName?: string;
+  adminRole?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  sessionId?: string;
+  requestId?: string;
+}
+
+export interface EntityChange {
+  entityId: string;
+  entityType: string;
+  oldData?: any;
+  newData?: any;
+}
+
 class AuditService {
   // ----------------------------------------------------------
   // Build the merged & sorted master log list
@@ -130,6 +148,37 @@ class AuditService {
   public async getChartData() {
     const { logs } = await this.buildAllLogs();
     return buildChartData(logs, 6);
+  }
+
+  // ----------------------------------------------------------
+  // Compatibility stubs for feature-branch middlewares/services
+  // These are no-ops until the full audit pipeline is wired up
+  // ----------------------------------------------------------
+  public async logAudit(
+    _context: AuditContext,
+    _entityType: string,
+    _entityId: string,
+    _action: any,
+    _module: string,
+    _description: string,
+    _oldData?: any,
+    _newData?: any,
+    _metadata?: any,
+    _severity?: any,
+  ): Promise<void> {
+    // No-op stub — full implementation pending
+  }
+
+  public async logBulkAudit(
+    _context: AuditContext,
+    _entityType: string,
+    _changes: EntityChange[],
+    _action: any,
+    _module: string,
+    _description: string,
+    _severity?: any,
+  ): Promise<void> {
+    // No-op stub — full implementation pending
   }
 }
 

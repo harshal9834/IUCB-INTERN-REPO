@@ -1,48 +1,36 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Building2,
   Users,
   Award,
   FileCheck,
-  Plus,
-  User,
-  FileText,
+  Briefcase,
+  GraduationCap,
   Bell,
-  Database,
-  Globe,
-  Lock,
-  Mail,
-  HardDrive,
-  RefreshCw,
+  ArrowRight,
+  Clock,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { PageHeader } from "../components/reusable-components";
-import {
-  useDashboardMetrics,
-  useDashboardActivity,
-  useSystemHealth,
-  usePendingApplications,
-  useDashboardNotifications,
-} from "../hooks/use-dashboard";
-import { MetricCard } from "../components/dashboard/metric-card";
+import { useDashboardOverview } from "../hooks/use-dashboard";
 import { DashboardWelcome } from "../components/dashboard/dashboard-welcome";
-import { QuickActionCard } from "../components/dashboard/quick-action-card";
-import { ActivityTimeline } from "../components/dashboard/activity-timeline";
-import { SystemHealth } from "../components/dashboard/system-health";
-import { PendingApplicationsWidget } from "../components/dashboard/pending-applications-widget";
-import { NotificationCard } from "../components/dashboard/notification-card";
 import { Skeleton } from "../components/ui/skeleton";
+import { StatusBadge } from "../components/status-badge";
+import { Button } from "../components/ui/button";
 
 export const Route = createFileRoute("/admin/dashboard")({
   component: DashboardComponent,
 });
 
-function MetricCardSkeleton() {
+function KPICardSkeleton() {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between">
-        <div className="space-y-2 flex-1">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-8 w-16" />
+        <div className="space-y-3 flex-1">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-3 w-40" />
           <Skeleton className="h-3 w-32" />
         </div>
         <Skeleton className="h-10 w-10 rounded-lg" />
@@ -52,195 +40,369 @@ function MetricCardSkeleton() {
 }
 
 function DashboardComponent() {
-  // Fetch all dashboard data
-  const metricsQuery = useDashboardMetrics();
-  const activityQuery = useDashboardActivity();
-  const healthQuery = useSystemHealth();
-  const applicationsQuery = usePendingApplications();
-  const notificationsQuery = useDashboardNotifications();
-
-  const metrics = metricsQuery.data;
-  const activities = activityQuery.data || [];
-  const healthIndicators = healthQuery.data || [];
-  const pendingApps = applicationsQuery.data || [];
-  const notifications = notificationsQuery.data || [];
-
-  const isLoading =
-    metricsQuery.isLoading ||
-    activityQuery.isLoading ||
-    healthQuery.isLoading ||
-    applicationsQuery.isLoading ||
-    notificationsQuery.isLoading;
-
-  const isError =
-    metricsQuery.isError ||
-    activityQuery.isError ||
-    healthQuery.isError ||
-    applicationsQuery.isError ||
-    notificationsQuery.isError;
+  const navigate = useNavigate();
+  const { data: overview, isLoading, isError } = useDashboardOverview();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-8 pb-12">
       <PageHeader
         title="Dashboard"
         description="Real-time overview of the IUCB Administration Authority"
       />
 
-      {/* Welcome Section */}
       <DashboardWelcome adminName="Administrator" />
 
-      {/* Error State */}
       {isError && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          <Bell className="h-5 w-5 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-semibold">Some data couldn't be loaded</p>
+            <p className="font-semibold">Failed to load dashboard data</p>
             <p className="text-xs mt-1 opacity-75">
-              Showing cached data. Please refresh the page if you continue to see this message.
+              Please check your database connection or try again later.
             </p>
           </div>
         </div>
       )}
 
-      {/* Section 1: Key Metrics */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-4 uppercase tracking-wider">
-          Key Metrics
-        </h3>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {metricsQuery.isLoading ? (
-            <>
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-            </>
-          ) : (
-            <>
-              <MetricCard
-                title="Organizations"
-                value={metrics?.organizations.total ?? 0}
-                subValue={`${metrics?.organizations.active ?? 0} active`}
-                description="Accredited bodies"
-                icon={<Building2 className="h-5 w-5 text-blue-600" />}
-                iconBg="bg-blue-50"
-                trendLabel="+12 this month"
-                trendPositive
-              />
-              <MetricCard
-                title="Auditors"
-                value={metrics?.auditors.total ?? 0}
-                subValue={`${metrics?.auditors.active ?? 0} active`}
-                description="Registered auditors"
-                icon={<Users className="h-5 w-5 text-violet-600" />}
-                iconBg="bg-violet-50"
-                trendLabel="+8 this month"
-                trendPositive
-              />
-              <MetricCard
-                title="Credentials"
-                value={metrics?.credentials.total ?? 0}
-                subValue={`${metrics?.credentials.valid ?? 0} valid`}
-                description="Issued credentials"
-                icon={<Award className="h-5 w-5 text-emerald-600" />}
-                iconBg="bg-emerald-50"
-                trendLabel="+156 this month"
-                trendPositive
-              />
-              <MetricCard
-                title="Applications"
-                value={metrics?.applications.pending ?? 0}
-                subValue={`${metrics?.applications.approved ?? 0} approved`}
-                description="Pending review"
-                icon={<FileCheck className="h-5 w-5 text-amber-600" />}
-                iconBg="bg-amber-50"
-                trendLabel="23 need review"
-                trendPositive={false}
-              />
-            </>
-          )}
-        </div>
+      {/* KPI Cards Grid */}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        {isLoading ? (
+          <>
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+            <KPICardSkeleton />
+          </>
+        ) : overview ? (
+          <>
+            {/* Organizations */}
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Organizations</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-1">{overview.organizations.total}</h3>
+                </div>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Building2 className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Active</span>
+                  <span className="font-medium text-emerald-600">{overview.organizations.active}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Inactive</span>
+                  <span className="font-medium text-red-600">{overview.organizations.inactive}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-100 pt-1.5 mt-1.5">
+                  <span className="text-slate-500">Pending</span>
+                  <span className="font-medium text-amber-600">{overview.organizations.pending}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Applications */}
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Applications</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-1">{overview.applications.total}</h3>
+                </div>
+                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                  <FileCheck className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Pending</span>
+                  <span className="font-medium text-amber-600">{overview.applications.pending}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Approved</span>
+                  <span className="font-medium text-emerald-600">{overview.applications.approved}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-100 pt-1.5 mt-1.5">
+                  <span className="text-slate-500">Rejected</span>
+                  <span className="font-medium text-red-600">{overview.applications.rejected}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Auditors */}
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Auditors</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-1">{overview.auditors.total}</h3>
+                </div>
+                <div className="p-2 bg-violet-50 text-violet-600 rounded-lg">
+                  <Users className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Active</span>
+                  <span className="font-medium text-emerald-600">{overview.auditors.active}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Suspended</span>
+                  <span className="font-medium text-amber-600">{overview.auditors.suspended}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-100 pt-1.5 mt-1.5">
+                  <span className="text-slate-500">Inactive</span>
+                  <span className="font-medium text-slate-400">{overview.auditors.inactive}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Training Institutes */}
+            <div 
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm cursor-pointer hover:border-[#D4AF37] transition-all"
+              onClick={() => navigate({ to: '/admin/training-institutes' })}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Training Institutes</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-1">{overview.trainingInstitutes.total}</h3>
+                </div>
+                <div className="p-2 bg-pink-50 text-pink-600 rounded-lg">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Active</span>
+                  <span className="font-medium text-emerald-600">{overview.trainingInstitutes.active}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Inactive</span>
+                  <span className="font-medium text-slate-400">{overview.trainingInstitutes.inactive}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Advisory Board */}
+            <div 
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm cursor-pointer hover:border-[#D4AF37] transition-all"
+              onClick={() => navigate({ to: '/admin/advisory' })}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Advisory Board</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-1">{overview.advisors.total}</h3>
+                </div>
+                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <Briefcase className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Active</span>
+                  <span className="font-medium text-emerald-600">{overview.advisors.active}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Inactive</span>
+                  <span className="font-medium text-slate-400">{overview.advisors.inactive}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Credentials */}
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Credentials</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-1">{overview.credentials.generated}</h3>
+                </div>
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                  <Award className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs grid grid-cols-2 gap-x-4">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Valid</span>
+                  <span className="font-medium text-emerald-600">{overview.credentials.valid}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Pending</span>
+                  <span className="font-medium text-amber-600">{overview.credentials.pending}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-100 pt-1.5 mt-1.5">
+                  <span className="text-slate-500">Expired</span>
+                  <span className="font-medium text-red-500">{overview.credentials.expired}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-100 pt-1.5 mt-1.5">
+                  <span className="text-slate-500">Revoked</span>
+                  <span className="font-medium text-red-600">{overview.credentials.revoked}</span>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
 
-      {/* Section 2: Quick Actions */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-4 uppercase tracking-wider">
-          Quick Actions
-        </h3>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <QuickActionCard
-            title="Add Organization"
-            description="Register a new accredited body"
-            icon={<Plus className="h-4 w-4" />}
-            href="/admin/organizations"
-            iconColor="bg-blue-50 text-blue-600"
-            borderColor="border-l-blue-500"
-          />
-          <QuickActionCard
-            title="Enroll Auditor"
-            description="Register a new auditor"
-            icon={<User className="h-4 w-4" />}
-            href="/admin/auditors"
-            iconColor="bg-violet-50 text-violet-600"
-            borderColor="border-l-violet-500"
-          />
-          <QuickActionCard
-            title="Issue Credential"
-            description="Create and issue credentials"
-            icon={<FileText className="h-4 w-4" />}
-            href="/admin/credentials"
-            iconColor="bg-emerald-50 text-emerald-600"
-            borderColor="border-l-emerald-500"
-          />
-        </div>
-      </div>
-
-      {/* Section 3: Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Recent Activity */}
-          <ActivityTimeline activities={activities} isLoading={activityQuery.isLoading} />
-
-          {/* System Health */}
-          <SystemHealth indicators={healthIndicators} isLoading={healthQuery.isLoading} />
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* Pending Applications Widget */}
-          <PendingApplicationsWidget
-            applications={pendingApps}
-            isLoading={applicationsQuery.isLoading}
-          />
-
-          {/* Notifications */}
-          <NotificationCard
-            notifications={notifications}
-            isLoading={notificationsQuery.isLoading}
-          />
-        </div>
-      </div>
-
-      {/* Section 4: Summary Footer */}
-      <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-6 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">System Overview</h3>
-        <div className="grid gap-4 text-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <span className="text-slate-600">Total Advisors</span>
-            <span className="font-semibold text-slate-900">{metrics?.advisors.total ?? 0}</span>
+      {/* Lists Section */}
+      {overview && !isLoading && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          
+          {/* Pending Applications */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-semibold text-slate-800">Pending Applications</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600" onClick={() => navigate({ to: '/admin/applications' })}>
+                View All <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {overview.lists.pendingApplications.length > 0 ? overview.lists.pendingApplications.map((app: any) => (
+                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/applications/${app.id}` })}>
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs font-mono font-medium text-slate-500">{app.applicationNumber}</span>
+                    <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded font-medium">Pending</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-800">{app.company || app.fullName}</p>
+                  <p className="text-xs text-slate-500">{app.applicationType.replace('_', ' ')} • {new Date(app.createdAt).toLocaleDateString()}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-sm text-slate-500">No pending applications</div>
+              )}
+            </div>
           </div>
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <span className="text-slate-600">Published Resources</span>
-            <span className="font-semibold text-slate-900">{metrics?.resources.total ?? 0}</span>
+
+          {/* Pending Credentials */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-semibold text-slate-800">Pending Credentials</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600" onClick={() => navigate({ to: '/admin/credentials/pending' })}>
+                View All <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {overview.lists.pendingCredentials.length > 0 ? overview.lists.pendingCredentials.map((app: any) => (
+                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/credentials/pending` })}>
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs font-mono font-medium text-slate-500">{app.applicationNumber}</span>
+                    <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded font-medium">Awaiting Generation</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-800">{app.company || app.fullName}</p>
+                  <p className="text-xs text-slate-500">Approved on {new Date(app.reviewedAt).toLocaleDateString()}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-sm text-slate-500">No pending credentials</div>
+              )}
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-600">Last Updated</span>
-            <span className="text-xs text-slate-500">{new Date().toLocaleTimeString()}</span>
+
+          {/* Recent Approvals */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-slate-800">Recent Approvals</h3>
+              </div>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {overview.lists.recentApprovals.length > 0 ? overview.lists.recentApprovals.map((app: any) => (
+                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/applications/${app.id}` })}>
+                  <p className="text-sm font-medium text-slate-800">{app.company || app.fullName}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Approved by {app.reviewedBy?.fullName || 'Admin'} • {new Date(app.reviewedAt).toLocaleDateString()}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-sm text-slate-500">No recent approvals</div>
+              )}
+            </div>
           </div>
+
+          {/* Recent Credentials */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-slate-800">Recent Credentials</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600" onClick={() => navigate({ to: '/admin/credentials' })}>
+                View All <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {overview.lists.recentCredentials.length > 0 ? overview.lists.recentCredentials.map((cred: any) => (
+                <div key={cred.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/credentials/${cred.id}` })}>
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs font-mono font-medium text-slate-800">{cred.credentialId}</span>
+                    <StatusBadge status={cred.status} />
+                  </div>
+                  <p className="text-sm text-slate-600">{cred.organization?.organizationName || cred.application?.company || cred.application?.fullName}</p>
+                  <p className="text-xs text-slate-400">{cred.standard}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-sm text-slate-500">No recent credentials</div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Organizations */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-blue-500" />
+                <h3 className="text-sm font-semibold text-slate-800">Recent Organizations</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600" onClick={() => navigate({ to: '/admin/organizations' })}>
+                View All <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {overview.lists.recentOrganizations.length > 0 ? overview.lists.recentOrganizations.map((org: any) => (
+                <div key={org.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/organizations` })}>
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-sm font-medium text-slate-800">{org.organizationName}</span>
+                    <StatusBadge status={org.accreditationStatus} />
+                  </div>
+                  <p className="text-xs text-slate-500">{org.country} • Registered {new Date(org.createdAt).toLocaleDateString()}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-sm text-slate-500">No recent organizations</div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Auditors */}
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-violet-500" />
+                <h3 className="text-sm font-semibold text-slate-800">Recent Auditors</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-blue-600" onClick={() => navigate({ to: '/admin/auditors' })}>
+                View All <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {overview.lists.recentAuditors.length > 0 ? overview.lists.recentAuditors.map((auditor: any) => (
+                <div key={auditor.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/auditors` })}>
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-sm font-medium text-slate-800">{auditor.fullName}</span>
+                    <StatusBadge status={auditor.status} />
+                  </div>
+                  <p className="text-xs text-slate-500">{auditor.tier} Auditor • {auditor.organization?.organizationName}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-sm text-slate-500">No recent auditors</div>
+              )}
+            </div>
+          </div>
+
         </div>
-      </div>
+      )}
     </div>
   );
 }

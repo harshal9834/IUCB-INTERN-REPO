@@ -7,10 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ==========================================
-// ENUMS
-// ==========================================
-
 enum AdminRole {
   SUPER_ADMIN
   ADMIN
@@ -30,6 +26,7 @@ enum AuditorTier {
 
 enum CredentialStatus {
   VALID
+  SUSPENDED
   REVOKED
   EXPIRED
 }
@@ -45,9 +42,62 @@ enum AdvisorStatus {
   INACTIVE
 }
 
-// ==========================================
-// MODELS
-// ==========================================
+enum ApplicationType {
+  ACCREDITATION
+  AUDITOR
+  TRAINING_INSTITUTE
+  ADVISORY
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  FAILED_LOGIN
+  PASSWORD_CHANGE
+  PASSWORD_RESET
+  STATUS_CHANGE
+  APPROVE
+  REJECT
+  GENERATE
+  SEND_EMAIL
+  DOWNLOAD
+  UPLOAD
+  EXPORT
+  IMPORT
+  BULK_UPDATE
+  BULK_DELETE
+  ROLE_CHANGE
+  PERMISSION_CHANGE
+}
+
+enum AuditSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+enum AlertType {
+  MULTIPLE_FAILED_LOGINS
+  UNUSUAL_LOCATION
+  PRIVILEGE_ESCALATION
+  MASS_DELETE
+  MASS_UPDATE
+  BRUTE_FORCE
+  SECURITY_BREACH
+  INTEGRITY_VIOLATION
+  SYSTEM_ERROR
+}
 
 model Admin {
   id        String    @id @default(uuid()) @db.Uuid
@@ -61,9 +111,19 @@ model Admin {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  // Relations
-  auditLogs           AuditLog[]
-  reviewedApplications AdvisoryApplication[] @relation("ReviewedByAdmin")
+  auditLogs             AuditLog[]
+  reviewedApplications  Application[] @relation("ReviewedByAdmin")
+  generatedCertificates Credential[]  @relation("CertificateGeneratedBy")
+  assignedAlerts        AuditAlert[]  @relation("AssignedAlerts")
+  resolvedAlerts        AuditAlert[]  @relation("ResolvedAlerts")
+  generatedReports      ComplianceReport[] @relation("GeneratedReports")
+  activitySummaries     ActivitySummary[] @relation("ActivitySummaries")
+  entityHistories       EntityHistory[]
+  savedSearches         SavedSearch[]
+  retentionPolicies     RetentionPolicy[]
+  archivedRecords       ArchivedRecord[] @relation("ArchivedRecords")
+  restoredRecords       ArchivedRecord[] @relation("RestoredRecords")
+  dataExports           DataExport[]
 
   @@index([email])
   @@index([status])
@@ -81,22 +141,21 @@ model RefreshToken {
 }
 
 model Organization {
-  id                 String             @id @default(uuid()) @db.Uuid
-  organizationName   String
-  registrationNumber String             @unique
-  country            String
-  address            String
-  email              String
-  phone              String
-  website            String?
+  id                  String             @id @default(uuid()) @db.Uuid
+  organizationName    String
+  registrationNumber  String             @unique
+  country             String
+  address             String
+  email               String
+  phone               String
+  website             String?
   accreditationStatus OrganizationStatus @default(ACTIVE)
-  accreditationDate  DateTime
-  expiryDate         DateTime
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  deletedAt          DateTime?
+  accreditationDate   DateTime
+  expiryDate          DateTime
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  deletedAt           DateTime?
 
-  // Relations
   auditors    Auditor[]
   credentials Credential[]
 
@@ -120,7 +179,6 @@ model Auditor {
   updatedAt       DateTime    @updatedAt
   deletedAt       DateTime?
 
-  // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   credentials  Credential[]
 
@@ -130,74 +188,94 @@ model Auditor {
 }
 
 model Credential {
-  id               String           @id @default(uuid()) @db.Uuid
-  credentialNumber String           @unique
-  standard         String
-  issueDate        DateTime
-  expiryDate       DateTime
-  status           CredentialStatus @default(VALID)
-  organizationId   String           @db.Uuid
-  auditorId        String           @db.Uuid
-  qrCode           String?
-  verificationUrl  String
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  deletedAt        DateTime?
+  id                   String           @id @default(uuid()) @db.Uuid
+  credentialId         String           @unique
+  standard             String
+  issueDate            DateTime
+  expiryDate           DateTime
+  status               CredentialStatus @default(VALID)
+  organizationId       String?          @db.Uuid
+  auditorId            String?          @db.Uuid
+  applicationId        String?          @unique @db.Uuid
+  qrCode               String?
+  verificationUrl      String
+  certificateGenerated Boolean          @default(false)
+  certificatePath      String?
+  generatedAt          DateTime?
+  generatedById        String?          @db.Uuid
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
 
-  // Relations
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  auditor      Auditor      @relation(fields: [auditorId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auditor      Auditor?      @relation(fields: [auditorId], references: [id], onDelete: Cascade)
+  application  Application?  @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  generatedBy  Admin?        @relation("CertificateGeneratedBy", fields: [generatedById], references: [id], onDelete: SetNull)
+  emailLogs    EmailLog[]
 
-  @@index([credentialNumber])
+  @@index([credentialId])
   @@index([status])
   @@index([createdAt])
 }
 
-model AdvisoryApplication {
-  id               String            @id @default(uuid()) @db.Uuid
-  fullName         String
-  email            String            @unique
-  linkedinUrl      String?
-  company          String
-  designation      String
-  expertiseArea    String
-  experienceYears  Int
-  statementOfMerit String
-  resumeUrl        String?
+model Application {
+  id                String          @id @default(uuid()) @db.Uuid
+  applicationNumber String?         @unique
+  applicationType   ApplicationType @default(ADVISORY)
+  fullName          String
+  email             String
+  linkedinUrl       String?
+  company           String?
+  designation       String?
+  expertiseArea     String?
+  experienceYears   Int?
+  statementOfMerit  String?
+  resumeUrl         String?
+  registrationNumber String?
+  country           String?
+  address           String?
+  organizationType  String?
+  phone             String?
+  website           String?
+  appliedStandard   String?
+  message           String?
+  internalNotes     String?
   applicationStatus ApplicationStatus @default(PENDING)
-  reviewedById     String?           @db.Uuid
-  reviewedAt       DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  deletedAt        DateTime?
+  credentialGenerated Boolean         @default(false)
+  reviewedById      String?           @db.Uuid
+  reviewedAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
 
-  // Relations
-  reviewedBy Admin?   @relation("ReviewedByAdmin", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy Admin?      @relation("ReviewedByAdmin", fields: [reviewedById], references: [id], onDelete: SetNull)
   advisor    Advisor?
+  credential Credential?
 
   @@index([email])
+  @@index([applicationType])
   @@index([applicationStatus])
   @@index([createdAt])
+  @@map("AdvisoryApplication")
 }
 
 model Advisor {
-  id                    String                @id @default(uuid()) @db.Uuid
-  advisoryApplicationId String                @unique @db.Uuid
-  fullName              String
-  linkedinUrl           String?
-  organization          String
-  designation           String
-  expertiseArea         String
-  experienceYears       Int
-  profilePhoto          String?
-  bio                   String?
-  status                AdvisorStatus         @default(ACTIVE)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  deletedAt             DateTime?
+  id              String        @id @default(uuid()) @db.Uuid
+  applicationId   String        @unique @db.Uuid
+  fullName        String
+  linkedinUrl     String?
+  organization    String
+  designation     String
+  expertiseArea   String
+  experienceYears Int
+  profilePhoto    String?
+  bio             String?
+  status          AdvisorStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
 
-  // Relations
-  advisoryApplication AdvisoryApplication @relation(fields: [advisoryApplicationId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([createdAt])
@@ -235,36 +313,193 @@ model Resource {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
+  id          String        @id @default(uuid()) @db.Uuid
+  actorId     String?       @db.Uuid
+  actorName   String?
+  actorRole   AdminRole?
+  entityType  String
+  entityId    String
+  action      AuditAction?
+  module      String?
+  description String?
+  oldValues   Json?
+  newValues   Json?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  device      String?
+  browser     String?
+  os          String?
+  country     String?
+  city        String?
+  sessionId   String?
+  requestId   String?
+  status      String        @default("SUCCESS")
+  severity    AuditSeverity @default(LOW)
+  riskScore   Int           @default(0)
+  hash        String?
+  previousHash String?
+  createdAt   DateTime      @default(now())
+  
+  // Legacy fields for backward compatibility
   adminId    String?  @db.Uuid
-  entityType String
-  entityId   String
-  action     String
   oldData    Json?
   newData    Json?
-  ipAddress  String?
-  userAgent  String?
-  timestamp  DateTime @default(now())
+  timestamp  DateTime?
 
-  // Relations
-  admin Admin? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  actor      Admin?            @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  snapshots  AuditSnapshot[]
+  alerts     AuditAlert[]
 
-  @@index([adminId])
+  @@index([actorId])
   @@index([entityType])
+  @@index([action])
+  @@index([module])
+  @@index([severity])
+  @@index([status])
+  @@index([riskScore])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([ipAddress])
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  eventType   String
+  category    String
+  name        String
+  description String
+  metadata    Json?
+  timestamp   DateTime @default(now())
+
+  @@index([eventType])
+  @@index([category])
   @@index([timestamp])
 }
 
-model EmailLog {
+model AuditSnapshot {
   id         String   @id @default(uuid()) @db.Uuid
-  recipient  String
-  subject    String
-  template   String
-  status     String   @default("SENT") // SENT, FAILED
+  auditLogId String   @db.Uuid
+  entityType String
+  entityId   String
+  snapshot   Json
+  timestamp  DateTime @default(now())
+
+  auditLog AuditLog @relation(fields: [auditLogId], references: [id], onDelete: Cascade)
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([timestamp])
+}
+
+model AuditIntegrity {
+  id           String   @id @default(uuid()) @db.Uuid
+  chainHash    String   @unique
+  blockCount   Int      @default(0)
+  lastVerified DateTime @default(now())
+  isValid      Boolean  @default(true)
   errorMessage String?
-  sentAt     DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@index([chainHash])
+  @@index([lastVerified])
+  @@index([isValid])
+}
+
+model AuditAlert {
+  id          String      @id @default(uuid()) @db.Uuid
+  auditLogId  String?     @db.Uuid
+  alertType   AlertType
+  severity    AuditSeverity
+  title       String
+  description String
+  metadata    Json?
+  status      AlertStatus @default(ACTIVE)
+  assignedTo  String?     @db.Uuid
+  resolvedBy  String?     @db.Uuid
+  resolvedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  auditLog   AuditLog? @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
+  assignee   Admin?    @relation("AssignedAlerts", fields: [assignedTo], references: [id], onDelete: SetNull)
+  resolver   Admin?    @relation("ResolvedAlerts", fields: [resolvedBy], references: [id], onDelete: SetNull)
+
+  @@index([alertType])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ComplianceReport {
+  id             String   @id @default(uuid()) @db.Uuid
+  reportType     String
+  title          String
+  description    String?
+  parameters     Json?
+  generatedBy    String?  @db.Uuid
+  filePath       String?
+  fileFormat     String
+  recordCount    Int      @default(0)
+  dateFrom       DateTime
+  dateTo         DateTime
+  generatedAt    DateTime @default(now())
+
+  generator Admin? @relation("GeneratedReports", fields: [generatedBy], references: [id], onDelete: SetNull)
+
+  @@index([reportType])
+  @@index([generatedBy])
+  @@index([generatedAt])
+  @@index([dateFrom])
+  @@index([dateTo])
+}
+
+model AnalyticsSnapshot {
+  id          String   @id @default(uuid()) @db.Uuid
+  snapshotType String
+  period      String   // DAILY, WEEKLY, MONTHLY, YEARLY
+  data        Json
+  metrics     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([snapshotType])
+  @@index([period])
+  @@index([createdAt])
+}
+
+model ActivitySummary {
+  id            String   @id @default(uuid()) @db.Uuid
+  adminId       String?  @db.Uuid
+  entityType    String?
+  action        String?
+  date          DateTime @db.Date
+  count         Int      @default(1)
+  lastActivity  DateTime @default(now())
+
+  admin Admin? @relation("ActivitySummaries", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@unique([adminId, entityType, action, date])
+  @@index([adminId])
+  @@index([entityType])
+  @@index([action])
+  @@index([date])
+}
+
+model EmailLog {
+  id           String      @id @default(uuid()) @db.Uuid
+  recipient    String
+  subject      String
+  template     String
+  status       String      @default("SENT")
+  errorMessage String?
+  credentialId String?     @db.Uuid
+  sentAt       DateTime    @default(now())
+
+  credential Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
 
   @@index([recipient])
   @@index([sentAt])
+  @@index([credentialId])
 }
 
 model SystemSettings {
@@ -272,3 +507,196 @@ model SystemSettings {
   key   String @unique
   value String
 }
+
+model TrainingInstitute {
+  id                 String             @id @default(uuid()) @db.Uuid
+  instituteName      String
+  registrationNumber String             @unique
+  country            String
+  address            String
+  email              String
+  phone              String
+  website            String?
+  status             OrganizationStatus @default(ACTIVE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  @@index([instituteName])
+  @@index([registrationNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Phase 3: Complete Entity History
+model EntityHistory {
+  id              String   @id @default(uuid()) @db.Uuid
+  entityType      String   // "Organization", "Credential", "Application", etc.
+  entityId        String
+  version         Int      @default(1) // Version number for this entity
+  action          String   // "CREATE", "UPDATE", "DELETE"
+  changedBy       String?  @db.Uuid // Admin who made change
+  changeTimestamp DateTime @default(now())
+  
+  // Before and after snapshots
+  beforeData      Json? // Complete record before change
+  afterData       Json? // Complete record after change
+  
+  // Change details
+  changedFields   Json? // Only changed fields: {fieldName: {old, new}, ...}
+  description     String? // Human readable description
+  
+  // Metadata
+  ipAddress       String?
+  userAgent       String?
+  requestId       String? // Unique request identifier
+  
+  // Relationships
+  changedByAdmin  Admin? @relation(fields: [changedBy], references: [id], onDelete: SetNull)
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([version])
+  @@index([changeTimestamp])
+  @@index([action])
+  @@index([changedBy])
+  @@unique([entityId, entityType, version])
+  @@map("EntityHistories")
+}
+
+model ChangeLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  entityHistoryId String   @db.Uuid
+  entityType      String
+  entityId        String
+  fieldName       String   // Field that changed
+  oldValue        String?  // Old value (serialized)
+  newValue        String?  // New value (serialized)
+  changeType      String   // "CREATE", "UPDATE", "DELETE"
+  timestamp       DateTime @default(now())
+
+  @@index([entityHistoryId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([fieldName])
+  @@index([timestamp])
+  @@map("ChangeLogs")
+}
+
+// Phase 5: Advanced Search
+model SearchIndex {
+  id              String   @id @default(uuid()) @db.Uuid
+  entityType      String
+  entityId        String
+  title           String?
+  content         String? // Full text indexable content
+  searchText      String? // Concatenated searchable text
+  tags            Json? // Array of tags
+  metadata        Json?
+  lastUpdated     DateTime @default(now())
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([lastUpdated])
+  @@unique([entityType, entityId])
+  @@map("SearchIndices")
+}
+
+model SavedSearch {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  filters     Json // Saved filter criteria
+  createdBy   String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastUsed    DateTime?
+  useCount    Int      @default(0)
+
+  creator Admin @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([createdBy])
+  @@index([createdAt])
+  @@index([lastUsed])
+  @@map("SavedSearches")
+}
+
+// Phase 9: Retention Policies
+model RetentionPolicy {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @unique
+  description     String?
+  entityType      String
+  retentionDays   Int // Number of days to retain
+  deleteAction    String // "HARD_DELETE", "SOFT_DELETE", "ARCHIVE"
+  isActive        Boolean  @default(true)
+  createdBy       String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator Admin? @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([entityType])
+  @@index([isActive])
+  @@map("RetentionPolicies")
+}
+
+model ArchivedRecord {
+  id            String   @id @default(uuid()) @db.Uuid
+  entityType    String
+  entityId      String
+  title         String?
+  data          Json // Archived data snapshot
+  archivedAt    DateTime @default(now())
+  archivedBy    String?  @db.Uuid
+  reason        String? // RETENTION_EXPIRED, USER_REQUESTED, etc.
+  restoreInfo   Json? // Information needed to restore
+  isRestored    Boolean  @default(false)
+  restoredAt    DateTime?
+  restoredBy    String?  @db.Uuid
+
+  archiver Admin? @relation("ArchivedRecords", fields: [archivedBy], references: [id], onDelete: SetNull)
+  restorer Admin? @relation("RestoredRecords", fields: [restoredBy], references: [id], onDelete: SetNull)
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([archivedAt])
+  @@index([isRestored])
+  @@map("ArchivedRecords")
+}
+
+model DataExport {
+  id           String   @id @default(uuid()) @db.Uuid
+  exportType   String // "CSV", "EXCEL", "PDF", "JSON"
+  entityType   String?
+  filters      Json? // Export filters applied
+  recordCount  Int      @default(0)
+  filePath     String?
+  fileSize     Int?
+  status       String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  errorMessage String?
+  requestedBy  String   @db.Uuid
+  requestedAt  DateTime @default(now())
+  completedAt  DateTime?
+  expiresAt    DateTime?
+  downloadCount Int     @default(0)
+
+  requester Admin @relation(fields: [requestedBy], references: [id], onDelete: Cascade)
+
+  @@index([entityType])
+  @@index([status])
+  @@index([requestedBy])
+  @@index([requestedAt])
+  @@map("DataExports")
+}
+
+// Add to Admin model relationships
+// These need to be added to the Admin model:
+// - EntityHistory.changedByAdmin
+// - ComplianceReport.generator
+// - ActivitySummary.admin
+// - RetentionPolicy.creator
+// - ArchivedRecord.archiver, restorer
+// - DataExport.requester
+// - SavedSearch.creator
+// - AuditAlert.assignee, resolver

@@ -237,20 +237,20 @@ class AnalyticsRepository {
       prisma.auditor.count({ where: auditorWhere }),
       prisma.credential.count({ where: credentialWhere }),
       prisma.credential.count({ where: { ...credentialWhere, status: "VALID" } }),
-      prisma.advisoryApplication.count({ where: applicationWhere }),
-      prisma.advisoryApplication.count({ where: { ...applicationWhere, applicationStatus: "PENDING" } }),
-      prisma.advisoryApplication.count({ where: { ...applicationWhere, applicationStatus: "APPROVED" } }),
+      prisma.application.count({ where: applicationWhere }),
+      prisma.application.count({ where: { ...applicationWhere, applicationStatus: "PENDING" } }),
+      prisma.application.count({ where: { ...applicationWhere, applicationStatus: "APPROVED" } }),
       prisma.advisor.count({ where: advisorWhere }),
       prisma.advisor.count({ where: { ...advisorWhere, status: "ACTIVE" } }),
       prisma.resource.count({ where: resourceWhere }),
       prisma.organization.findMany({ where: { ...organizationWhere, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true } }),
-      prisma.advisoryApplication.findMany({ where: { ...applicationWhere, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true, applicationStatus: true } }),
+      prisma.application.findMany({ where: { ...applicationWhere, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true, applicationStatus: true } }),
       prisma.credential.groupBy({ by: ["standard"], where: credentialWhere, _count: { standard: true } }),
       prisma.auditor.groupBy({ by: ["tier"], where: auditorWhere, _count: { tier: true } }),
       prisma.credential.groupBy({ by: ["status"], where: credentialWhere, _count: { status: true } }),
       prisma.advisor.count({ where: { ...advisorWhere, status: "INACTIVE" } }),
       this.getReportRows(query),
-      prisma.advisoryApplication.count({ where: { ...applicationWhere, applicationStatus: "PENDING" } }),
+      prisma.application.count({ where: { ...applicationWhere, applicationStatus: "PENDING" } }),
     ]);
 
     const organizationGrowth = createTimeSeries(organizationRecords, startDate, endDate, groupByMonth);
@@ -275,7 +275,7 @@ class AnalyticsRepository {
       { id: "orgs", title: "Organizations", value: totalOrganizations, delta: 0, trend: "up" },
       { id: "auditors", title: "Auditors", value: totalAuditors, delta: 0, trend: "up" },
       { id: "credentials", title: "Credentials", value: totalCredentials, delta: 0, trend: "up" },
-      { id: "pending", title: "Pending Applications", value: await prisma.advisoryApplication.count({ where: { deletedAt: null, applicationStatus: "PENDING" } }), delta: 0, trend: "up" },
+      { id: "pending", title: "Pending Applications", value: await prisma.application.count({ where: { deletedAt: null, applicationStatus: "PENDING" } }), delta: 0, trend: "up" },
       { id: "advisors", title: "Advisors", value: totalAdvisors, delta: 0, trend: "up" },
       { id: "resources", title: "Resources", value: totalResources, delta: 0, trend: "up" },
     ];
@@ -374,12 +374,12 @@ class AnalyticsRepository {
   public async getApplicationSummary(query: AnalyticsQuery) {
     const where = buildWhere(query, "createdAt");
     const [totalApplications, submittedApplications, approvedApplications, rejectedApplications, pendingApplications, applications] = await Promise.all([
-      prisma.advisoryApplication.count({ where }),
-      prisma.advisoryApplication.count({ where: { ...where, applicationStatus: "PENDING" } }),
-      prisma.advisoryApplication.count({ where: { ...where, applicationStatus: "APPROVED" } }),
-      prisma.advisoryApplication.count({ where: { ...where, applicationStatus: "REJECTED" } }),
-      prisma.advisoryApplication.count({ where: { ...where, applicationStatus: "PENDING" } }),
-      prisma.advisoryApplication.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
+      prisma.application.count({ where }),
+      prisma.application.count({ where: { ...where, applicationStatus: "PENDING" } }),
+      prisma.application.count({ where: { ...where, applicationStatus: "APPROVED" } }),
+      prisma.application.count({ where: { ...where, applicationStatus: "REJECTED" } }),
+      prisma.application.count({ where: { ...where, applicationStatus: "PENDING" } }),
+      prisma.application.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
     ]);
 
     return {
@@ -420,7 +420,7 @@ class AnalyticsRepository {
 
     const reports = await prisma.auditLog.findMany({
       where,
-      include: { admin: { select: { fullName: true } } },
+      include: { actor: { select: { fullName: true } } },
       orderBy: { timestamp: "desc" },
       take: query.limit,
       skip: (query.page - 1) * query.limit,
@@ -442,7 +442,7 @@ class AnalyticsRepository {
 
     const auditLogs = await prisma.auditLog.findMany({
       where,
-      include: { admin: { select: { fullName: true } } },
+      include: { actor: { select: { fullName: true } } },
       orderBy: { timestamp: "desc" },
       take: query.limit,
       skip: (query.page - 1) * query.limit,
@@ -515,7 +515,7 @@ class AnalyticsRepository {
 
     const auditLogs = await prisma.auditLog.findMany({
       where,
-      include: { admin: { select: { fullName: true } } },
+      include: { actor: { select: { fullName: true } } },
       orderBy: { timestamp: "desc" },
       take: query.limit,
       skip: (query.page - 1) * query.limit,
@@ -523,8 +523,8 @@ class AnalyticsRepository {
 
     const rows = auditLogs.map((audit) => ({
       id: audit.id,
-      timestamp: audit.timestamp.toISOString(),
-      admin: audit.admin?.fullName || "System",
+      timestamp: (audit.timestamp ?? audit.createdAt).toISOString(),
+      admin: audit.actor?.fullName || "System",
       action: audit.action,
       entity: audit.entityType,
       details: cleanAuditDetails(audit),
@@ -539,3 +539,6 @@ class AnalyticsRepository {
 }
 
 export default new AnalyticsRepository();
+
+
+

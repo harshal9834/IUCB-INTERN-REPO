@@ -551,6 +551,56 @@ class AnalyticsController {
     const data = await analyticsService.getAdvisorSummary(query);
     return res.status(200).json(new ApiResponse(200, data, "Advisor analytics summary retrieved successfully."));
   });
+
+  // ─── NEW ENDPOINTS (required by frontend) ───────────────────────────
+
+  public getOverview = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const query = analyticsQuerySchema.parse(req.query);
+    const data = await analyticsService.getOverviewStats(query);
+    return res.status(200).json(new ApiResponse(200, data, "Analytics overview fetched successfully."));
+  });
+
+  public getCharts = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const query = analyticsQuerySchema.parse(req.query);
+    const data = await analyticsService.getChartsData(query);
+    return res.status(200).json(new ApiResponse(200, data, "Analytics charts data fetched successfully."));
+  });
+
+  public getRecentActivities = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const data = await analyticsService.getRecentActivities();
+    return res.status(200).json(new ApiResponse(200, data, "Recent activities fetched successfully."));
+  });
+
+  public exportExcel = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const query = analyticsQuerySchema.parse(req.query);
+    const rows = await analyticsService.getExcelExportData(query);
+
+    const ExcelJS = await import("exceljs");
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Analytics Report");
+
+    sheet.columns = [
+      { header: "Timestamp", key: "timestamp", width: 24 },
+      { header: "Admin", key: "admin", width: 24 },
+      { header: "Action", key: "action", width: 18 },
+      { header: "Entity", key: "entity", width: 18 },
+      { header: "Details", key: "details", width: 60 },
+      { header: "IP Address", key: "ip", width: 18 },
+    ];
+
+    rows.forEach((row) => sheet.addRow(row));
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    res.header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.header("Content-Disposition", "attachment; filename=analytics-report.xlsx");
+    return res.send(Buffer.from(buffer));
+  });
+
+  public getTrainingInstituteSummary = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const query = analyticsQuerySchema.parse(req.query);
+    const data = await analyticsService.getTrainingInstituteSummary(query);
+    return res.status(200).json(new ApiResponse(200, data, "Training Institute analytics fetched successfully."));
+  });
 }
 
 export default new AnalyticsController();

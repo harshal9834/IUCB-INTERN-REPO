@@ -16,6 +16,11 @@ const getDateRange = (query: AnalyticsQuery, field: string): DateFilter | undefi
 
   if (!startDate || !endDate) {
     switch (query.dateRange) {
+      case "TODAY":
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = now;
+        break;
       case "LAST_7_DAYS":
         startDate = new Date(now);
         startDate.setHours(0, 0, 0, 0);
@@ -25,7 +30,19 @@ const getDateRange = (query: AnalyticsQuery, field: string): DateFilter | undefi
       case "LAST_MONTH":
         startDate = new Date(now);
         startDate.setHours(0, 0, 0, 0);
-        startDate.setMonth(startDate.getMonth() - 1);
+        startDate.setDate(startDate.getDate() - 29);
+        endDate = now;
+        break;
+      case "LAST_90_DAYS":
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - 89);
+        endDate = now;
+        break;
+      case "LAST_6_MONTHS":
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setMonth(startDate.getMonth() - 6);
         endDate = now;
         break;
       case "LAST_YEAR":
@@ -157,6 +174,10 @@ const resolveRange = (query: AnalyticsQuery) => {
 
   if (!startDate || !query.endDate) {
     switch (query.dateRange) {
+      case "TODAY":
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        break;
       case "LAST_7_DAYS":
         startDate = new Date(now);
         startDate.setHours(0, 0, 0, 0);
@@ -165,7 +186,17 @@ const resolveRange = (query: AnalyticsQuery) => {
       case "LAST_MONTH":
         startDate = new Date(now);
         startDate.setHours(0, 0, 0, 0);
-        startDate.setMonth(startDate.getMonth() - 1);
+        startDate.setDate(startDate.getDate() - 29);
+        break;
+      case "LAST_90_DAYS":
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - 89);
+        break;
+      case "LAST_6_MONTHS":
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setMonth(startDate.getMonth() - 6);
         break;
       case "LAST_YEAR":
         startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
@@ -202,8 +233,14 @@ class AnalyticsRepository {
   public async getDashboardData(query: AnalyticsQuery) {
     const { startDate, endDate } = resolveRange(query);
     const dayCount = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-    const groupByMonth = dayCount > 90 || query.dateRange === "LAST_YEAR";
+    const groupByMonth = dayCount > 90 || query.dateRange === "LAST_YEAR" || query.dateRange === "LAST_6_MONTHS";
 
+    // ── KPI counts are always ALL-TIME totals (no date filter) ──────────────
+    // Only time-series charts respect the date range window
+    const baseWhere = { deletedAt: null };
+    const credentialBaseWhere = { deletedAt: null };
+
+    // Date-filtered WHERE for time-series data only
     const organizationWhere = buildWhere(query, "createdAt");
     const auditorWhere = buildWhere(query, "createdAt", true);
     const credentialWhere = buildWhere(query, "issueDate", true, true);
@@ -212,19 +249,21 @@ class AnalyticsRepository {
     const resourceWhere = buildWhere(query, "createdAt");
 
     const [
+      // All-time KPI counts
       totalOrganizations,
       activeOrganizations,
       totalAuditors,
       totalCredentials,
       validCredentials,
       totalApplications,
-      submittedApplications,
       approvedApplications,
       totalAdvisors,
       activeAdvisors,
       totalResources,
+      // Time-series records for growth charts
       organizationRecords,
       applicationRecords,
+      // Grouped data for pie charts (all-time)
       credentialByStandardData,
       auditorTierData,
       credentialStatusData,
@@ -232,25 +271,27 @@ class AnalyticsRepository {
       reportRows,
       pendingApplications,
     ] = await Promise.all([
-      prisma.organization.count({ where: organizationWhere }),
-      prisma.organization.count({ where: { ...organizationWhere, accreditationStatus: "ACTIVE" } }),
-      prisma.auditor.count({ where: auditorWhere }),
-      prisma.credential.count({ where: credentialWhere }),
-      prisma.credential.count({ where: { ...credentialWhere, status: "VALID" } }),
-      prisma.application.count({ where: applicationWhere }),
-      prisma.application.count({ where: { ...applicationWhere, applicationStatus: "PENDING" } }),
-      prisma.application.count({ where: { ...applicationWhere, applicationStatus: "APPROVED" } }),
-      prisma.advisor.count({ where: advisorWhere }),
-      prisma.advisor.count({ where: { ...advisorWhere, status: "ACTIVE" } }),
-      prisma.resource.count({ where: resourceWhere }),
-      prisma.organization.findMany({ where: { ...organizationWhere, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true } }),
-      prisma.application.findMany({ where: { ...applicationWhere, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true, applicationStatus: true } }),
-      prisma.credential.groupBy({ by: ["standard"], where: credentialWhere, _count: { standard: true } }),
-      prisma.auditor.groupBy({ by: ["tier"], where: auditorWhere, _count: { tier: true } }),
-      prisma.credential.groupBy({ by: ["status"], where: credentialWhere, _count: { status: true } }),
-      prisma.advisor.count({ where: { ...advisorWhere, status: "INACTIVE" } }),
+      // All-time totals — no date filter
+      prisma.organization.count({ where: baseWhere }),
+      prisma.organization.count({ where: { ...baseWhere, accreditationStatus: "ACTIVE" } }),
+      prisma.auditor.count({ where: { deletedAt: null } }),
+      prisma.credential.count({ where: credentialBaseWhere }),
+      prisma.credential.count({ where: { ...credentialBaseWhere, status: "VALID" } }),
+      prisma.application.count({ where: baseWhere }),
+      prisma.application.count({ where: { ...baseWhere, applicationStatus: "APPROVED" } }),
+      prisma.advisor.count({ where: { deletedAt: null } }),
+      prisma.advisor.count({ where: { deletedAt: null, status: "ACTIVE" } }),
+      prisma.resource.count({ where: { deletedAt: null } }),
+      // Time-series records (date-filtered for chart bucketing)
+      prisma.organization.findMany({ where: { deletedAt: null, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true } }),
+      prisma.application.findMany({ where: { deletedAt: null, createdAt: { gte: startDate, lte: endDate } }, select: { createdAt: true, applicationStatus: true } }),
+      // Pie chart groupings — all-time
+      prisma.credential.groupBy({ by: ["standard"], where: credentialBaseWhere, _count: { standard: true } }),
+      prisma.auditor.groupBy({ by: ["tier"], where: { deletedAt: null }, _count: { tier: true } }),
+      prisma.credential.groupBy({ by: ["status"], where: credentialBaseWhere, _count: { status: true } }),
+      prisma.advisor.count({ where: { deletedAt: null, status: "INACTIVE" } }),
       this.getReportRows(query),
-      prisma.application.count({ where: { ...applicationWhere, applicationStatus: "PENDING" } }),
+      prisma.application.count({ where: { ...baseWhere, applicationStatus: "PENDING" } }),
     ]);
 
     const organizationGrowth = createTimeSeries(organizationRecords, startDate, endDate, groupByMonth);
@@ -293,14 +334,23 @@ class AnalyticsRepository {
   }
 
   public async getOrganizationSummary(query: AnalyticsQuery) {
-    const where = buildWhere(query, "createdAt");
-    const [totalOrganizations, activeOrganizations, suspendedOrganizations, revokedOrganizations, organizations] = await Promise.all([
-      prisma.organization.count({ where }),
-      prisma.organization.count({ where: { ...where, accreditationStatus: "ACTIVE" } }),
-      prisma.organization.count({ where: { ...where, accreditationStatus: "SUSPENDED" } }),
-      prisma.organization.count({ where: { ...where, accreditationStatus: "REVOKED" } }),
-      prisma.organization.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
+    // All-time totals — no date filter on counts
+    const base = { deletedAt: null };
+    const [totalOrganizations, activeOrganizations, suspendedOrganizations, revokedOrganizations] = await Promise.all([
+      prisma.organization.count({ where: base }),
+      prisma.organization.count({ where: { ...base, accreditationStatus: "ACTIVE" } }),
+      prisma.organization.count({ where: { ...base, accreditationStatus: "SUSPENDED" } }),
+      prisma.organization.count({ where: { ...base, accreditationStatus: "REVOKED" } }),
     ]);
+
+    // Time-series records for charts (date-filtered)
+    const where = buildWhere(query, "createdAt");
+    const organizations = await prisma.organization.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
 
     return {
       totalOrganizations,
@@ -312,17 +362,17 @@ class AnalyticsRepository {
   }
 
   public async getAuditorSummary(query: AnalyticsQuery) {
-    const where = buildWhere(query, "createdAt", true);
-    const [totalAuditors, activeAuditors, inactiveAuditors, auditors] = await Promise.all([
-      prisma.auditor.count({ where }),
-      prisma.auditor.count({ where: { ...where, status: "ACTIVE" } }),
-      prisma.auditor.count({ where: { ...where, status: "INACTIVE" } }),
-      prisma.auditor.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
+    // All-time totals
+    const base = { deletedAt: null };
+    const [totalAuditors, activeAuditors, inactiveAuditors] = await Promise.all([
+      prisma.auditor.count({ where: base }),
+      prisma.auditor.count({ where: { ...base, status: "ACTIVE" } }),
+      prisma.auditor.count({ where: { ...base, status: "INACTIVE" } }),
     ]);
 
     const auditorsByTierData = await prisma.auditor.groupBy({
       by: ["tier"],
-      where,
+      where: base,
       _count: { tier: true },
     });
 
@@ -330,6 +380,15 @@ class AnalyticsRepository {
       acc[item.tier] = item._count.tier;
       return acc;
     }, {});
+
+    // Records for time-series (date-filtered)
+    const where = buildWhere(query, "createdAt", true);
+    const auditors = await prisma.auditor.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
 
     return {
       totalAuditors,
@@ -341,18 +400,18 @@ class AnalyticsRepository {
   }
 
   public async getCredentialSummary(query: AnalyticsQuery) {
-    const where = buildWhere(query, "issueDate", true, true);
-    const [totalCredentials, validCredentials, expiredCredentials, revokedCredentials, credentials] = await Promise.all([
-      prisma.credential.count({ where }),
-      prisma.credential.count({ where: { ...where, status: "VALID" } }),
-      prisma.credential.count({ where: { ...where, status: "EXPIRED" } }),
-      prisma.credential.count({ where: { ...where, status: "REVOKED" } }),
-      prisma.credential.findMany({ where, orderBy: { issueDate: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
+    // All-time totals
+    const base = { deletedAt: null };
+    const [totalCredentials, validCredentials, expiredCredentials, revokedCredentials] = await Promise.all([
+      prisma.credential.count({ where: base }),
+      prisma.credential.count({ where: { ...base, status: "VALID" } }),
+      prisma.credential.count({ where: { ...base, status: "EXPIRED" } }),
+      prisma.credential.count({ where: { ...base, status: "REVOKED" } }),
     ]);
 
     const credentialsByStandardData = await prisma.credential.groupBy({
       by: ["standard"],
-      where,
+      where: base,
       _count: { standard: true },
     });
 
@@ -360,6 +419,15 @@ class AnalyticsRepository {
       acc[item.standard] = item._count.standard;
       return acc;
     }, {});
+
+    // Date-filtered for time-series list
+    const where = buildWhere(query, "issueDate", true, true);
+    const credentials = await prisma.credential.findMany({
+      where,
+      orderBy: { issueDate: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
 
     return {
       totalCredentials,
@@ -372,19 +440,27 @@ class AnalyticsRepository {
   }
 
   public async getApplicationSummary(query: AnalyticsQuery) {
-    const where = buildWhere(query, "createdAt");
-    const [totalApplications, submittedApplications, approvedApplications, rejectedApplications, pendingApplications, applications] = await Promise.all([
-      prisma.application.count({ where }),
-      prisma.application.count({ where: { ...where, applicationStatus: "PENDING" } }),
-      prisma.application.count({ where: { ...where, applicationStatus: "APPROVED" } }),
-      prisma.application.count({ where: { ...where, applicationStatus: "REJECTED" } }),
-      prisma.application.count({ where: { ...where, applicationStatus: "PENDING" } }),
-      prisma.application.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
+    // All-time totals
+    const base = { deletedAt: null };
+    const [totalApplications, approvedApplications, rejectedApplications, pendingApplications] = await Promise.all([
+      prisma.application.count({ where: base }),
+      prisma.application.count({ where: { ...base, applicationStatus: "APPROVED" } }),
+      prisma.application.count({ where: { ...base, applicationStatus: "REJECTED" } }),
+      prisma.application.count({ where: { ...base, applicationStatus: "PENDING" } }),
     ]);
+
+    // Date-filtered for time-series list
+    const where = buildWhere(query, "createdAt");
+    const applications = await prisma.application.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
 
     return {
       totalApplications,
-      submittedApplications,
+      submittedApplications: pendingApplications,
       approvedApplications,
       rejectedApplications,
       pendingApplications,
@@ -393,13 +469,22 @@ class AnalyticsRepository {
   }
 
   public async getAdvisorSummary(query: AnalyticsQuery) {
-    const where = buildWhere(query, "createdAt");
-    const [totalAdvisors, activeAdvisors, inactiveAdvisors, advisors] = await Promise.all([
-      prisma.advisor.count({ where }),
-      prisma.advisor.count({ where: { ...where, status: "ACTIVE" } }),
-      prisma.advisor.count({ where: { ...where, status: "INACTIVE" } }),
-      prisma.advisor.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
+    // All-time totals
+    const base = { deletedAt: null };
+    const [totalAdvisors, activeAdvisors, inactiveAdvisors] = await Promise.all([
+      prisma.advisor.count({ where: base }),
+      prisma.advisor.count({ where: { ...base, status: "ACTIVE" } }),
+      prisma.advisor.count({ where: { ...base, status: "INACTIVE" } }),
     ]);
+
+    // Date-filtered for time-series list
+    const where = buildWhere(query, "createdAt");
+    const advisors = await prisma.advisor.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
 
     return {
       totalAdvisors,
@@ -455,15 +540,13 @@ class AnalyticsRepository {
   }
 
   public async getResourceSummary(query: AnalyticsQuery) {
-    const where = buildWhere(query, "createdAt");
-    const [totalResources, resources] = await Promise.all([
-      prisma.resource.count({ where }),
-      prisma.resource.findMany({ where, orderBy: { createdAt: "desc" }, take: query.limit, skip: (query.page - 1) * query.limit }),
-    ]);
+    // All-time total
+    const base = { deletedAt: null };
+    const totalResources = await prisma.resource.count({ where: base });
 
     const resourcesByCategoryData = await prisma.resource.groupBy({
       by: ["category"],
-      where,
+      where: base,
       _count: { category: true },
     });
 
@@ -472,11 +555,337 @@ class AnalyticsRepository {
       return acc;
     }, {});
 
+    // Date-filtered for list
+    const where = buildWhere(query, "createdAt");
+    const resources = await prisma.resource.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
+
     return {
       totalResources,
       resources,
       resourcesByCategory,
     };
+  }
+
+  // ─── Training Institutes ─────────────────────────────────────────────
+  public async getTrainingInstituteSummary(query: AnalyticsQuery) {
+    // All-time totals
+    const base = { deletedAt: null };
+    const [total, active, suspended, revoked] = await Promise.all([
+      prisma.trainingInstitute.count({ where: base }),
+      prisma.trainingInstitute.count({ where: { ...base, status: "ACTIVE" } }),
+      prisma.trainingInstitute.count({ where: { ...base, status: "SUSPENDED" } }),
+      prisma.trainingInstitute.count({ where: { ...base, status: "REVOKED" } }),
+    ]);
+
+    // Date-filtered for time-series list
+    const where = buildWhere(query, "createdAt");
+    const institutes = await prisma.trainingInstitute.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: query.limit,
+      skip: (query.page - 1) * query.limit,
+    });
+
+    const statusGroupData = await prisma.trainingInstitute.groupBy({
+      by: ["status"],
+      where: base,
+      _count: { status: true },
+    });
+
+    const byStatus = statusGroupData.reduce<Record<string, number>>((acc, item) => {
+      acc[item.status] = item._count.status;
+      return acc;
+    }, {});
+
+    return {
+      total,
+      active,
+      suspended,
+      revoked,
+      pending: 0, // TrainingInstitute model has no pending status — all come via applications
+      byStatus,
+      institutes,
+    };
+  }
+
+  // ─── NEW: /analytics/overview ────────────────────────────────────────
+  public async getOverviewStats(query: AnalyticsQuery) {
+    const where: any = { deletedAt: null };
+    if (query.startDate || query.endDate) {
+      const dateFilter: any = {};
+      if (query.startDate) dateFilter.gte = query.startDate;
+      if (query.endDate) dateFilter.lte = query.endDate;
+      where.createdAt = dateFilter;
+    }
+
+    const [
+      totalOrganizations,
+      activeOrganizations,
+      suspendedOrganizations,
+      revokedOrganizations,
+      applications,
+      pendingApplications,
+      approvedApplications,
+      rejectedApplications,
+      credentials,
+      certificates,
+      trainingInstitutes,
+      auditors,
+      todaysActivity,
+    ] = await Promise.all([
+      prisma.organization.count({ where }),
+      prisma.organization.count({ where: { ...where, accreditationStatus: "ACTIVE" } }),
+      prisma.organization.count({ where: { ...where, accreditationStatus: "SUSPENDED" } }),
+      prisma.organization.count({ where: { ...where, accreditationStatus: "REVOKED" } }),
+      prisma.application.count({ where }),
+      prisma.application.count({ where: { ...where, applicationStatus: "PENDING" } }),
+      prisma.application.count({ where: { ...where, applicationStatus: "APPROVED" } }),
+      prisma.application.count({ where: { ...where, applicationStatus: "REJECTED" } }),
+      prisma.credential.count({ where: { deletedAt: null } }),
+      prisma.credential.count({ where: { deletedAt: null, certificateGenerated: true } }),
+      prisma.trainingInstitute.count({ where: { deletedAt: null } }),
+      prisma.auditor.count({ where: { deletedAt: null } }),
+      prisma.auditLog.count({
+        where: {
+          createdAt: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          },
+        },
+      }),
+    ]);
+
+    return {
+      totalOrganizations,
+      activeOrganizations,
+      suspendedOrganizations,
+      revokedOrganizations,
+      applications,
+      pendingApplications,
+      approvedApplications,
+      rejectedApplications,
+      credentials,
+      certificates,
+      trainingInstitutes,
+      auditors,
+      todaysActivity,
+      systemHealth: 100,
+    };
+  }
+
+  // ─── NEW: /analytics/charts ───────────────────────────────────────────
+  public async getChartsData(query: AnalyticsQuery) {
+    const { startDate, endDate } = resolveRange(query);
+    const dayCount = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    const groupByMonth = dayCount > 90 || query.dateRange === "LAST_YEAR" || query.dateRange === "LAST_6_MONTHS";
+
+    const dateFilter = { gte: startDate, lte: endDate };
+
+    const [
+      applicationRecords,
+      credentialRecords,
+      organizationsByStatus,
+      auditorsByTier,
+      orgsByCountry,
+      credentialsByStandard,
+    ] = await Promise.all([
+      prisma.application.findMany({
+        where: { deletedAt: null, createdAt: dateFilter },
+        select: { createdAt: true, applicationStatus: true },
+      }),
+      prisma.credential.findMany({
+        where: { deletedAt: null, issueDate: dateFilter },
+        select: { issueDate: true, certificateGenerated: true },
+      }),
+      prisma.organization.groupBy({
+        by: ["accreditationStatus"],
+        where: { deletedAt: null },
+        _count: { accreditationStatus: true },
+      }),
+      prisma.auditor.groupBy({
+        by: ["tier"],
+        where: { deletedAt: null },
+        _count: { tier: true },
+      }),
+      prisma.organization.groupBy({
+        by: ["country"],
+        where: { deletedAt: null },
+        _count: { country: true },
+        orderBy: { _count: { country: "desc" } },
+        take: 10,
+      }),
+      prisma.credential.groupBy({
+        by: ["standard"],
+        where: { deletedAt: null },
+        _count: { standard: true },
+        orderBy: { _count: { standard: "desc" } },
+        take: 5,
+      }),
+    ]);
+
+    // Build monthly application trend
+    const buckets = createBuckets(startDate, endDate, groupByMonth);
+    const appCounts = buckets.reduce<Record<string, number>>((acc, b) => {
+      acc[b.key] = 0;
+      return acc;
+    }, {});
+    const credCounts = { ...appCounts };
+    const certCounts = { ...appCounts };
+
+    applicationRecords.forEach((r) => {
+      const key = bucketKey(new Date(r.createdAt), groupByMonth);
+      if (appCounts[key] !== undefined) appCounts[key]++;
+    });
+    credentialRecords.forEach((r) => {
+      const key = bucketKey(new Date(r.issueDate), groupByMonth);
+      if (credCounts[key] !== undefined) credCounts[key]++;
+      if (r.certificateGenerated) {
+        if (certCounts[key] !== undefined) certCounts[key]++;
+      }
+    });
+
+    const monthlyApplications = buckets.map((b) => ({ x: b.period, y: appCounts[b.key] }));
+    const monthlyCredentials = buckets.map((b) => ({ x: b.period, y: credCounts[b.key] }));
+    const monthlyCertificates = buckets.map((b) => ({ x: b.period, y: certCounts[b.key] }));
+
+    const organizationStatus = organizationsByStatus.map((item) => ({
+      id: item.accreditationStatus,
+      label: item.accreditationStatus,
+      value: item._count.accreditationStatus,
+    }));
+
+    const trainingInstitutes = await prisma.trainingInstitute
+      .groupBy({
+        by: ["status"],
+        where: { deletedAt: null },
+        _count: { status: true },
+      })
+      .then((rows) =>
+        rows.map((r) => ({ id: r.status, label: r.status, value: r._count.status }))
+      );
+
+    const countryDistribution = orgsByCountry.map((item) => ({
+      id: item.country,
+      label: item.country,
+      value: item._count.country,
+    }));
+
+    const topStandards = credentialsByStandard.map((item) => ({
+      id: item.standard,
+      label: item.standard,
+      value: item._count.standard,
+    }));
+
+    // Audit trend (last 7 days or period)
+    const auditRecords = await prisma.auditLog.findMany({
+      where: { createdAt: dateFilter },
+      select: { createdAt: true },
+    });
+    const auditCounts = { ...appCounts };
+    auditRecords.forEach((r) => {
+      const key = bucketKey(new Date(r.createdAt), groupByMonth);
+      if (auditCounts[key] !== undefined) auditCounts[key]++;
+    });
+    const auditTrend = buckets.map((b) => ({ x: b.period, y: auditCounts[b.key] }));
+
+    const auditorDistribution = auditorsByTier.map((item) => ({
+      id: item.tier,
+      label: item.tier,
+      value: item._count.tier,
+    }));
+
+    return {
+      monthlyApplications,
+      monthlyCredentials,
+      monthlyCertificates,
+      organizationStatus,
+      trainingInstitutes,
+      countryDistribution,
+      topStandards,
+      auditTrend,
+      auditorDistribution,
+    };
+  }
+
+  // ─── NEW: /analytics/recent-activities ───────────────────────────────
+  public async getRecentActivities() {
+    const [auditLogs, applications, credentials] = await Promise.all([
+      prisma.auditLog.findMany({
+        where: {},
+        include: { actor: { select: { fullName: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prisma.application.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { id: true, fullName: true, applicationType: true, applicationStatus: true, createdAt: true },
+      }),
+      prisma.credential.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { id: true, credentialId: true, standard: true, status: true, createdAt: true },
+      }),
+    ]);
+
+    const activities: Array<{
+      id: string;
+      type: "AUDIT_LOG" | "APPLICATION" | "CREDENTIAL" | "CERTIFICATE";
+      title: string;
+      description: string;
+      timestamp: string;
+      status?: string;
+    }> = [];
+
+    auditLogs.forEach((log) => {
+      activities.push({
+        id: log.id,
+        type: "AUDIT_LOG",
+        title: `${log.action ?? "Action"} on ${log.entityType}`,
+        description: log.description ?? `By ${log.actor?.fullName ?? "System"} — ${log.entityType} #${log.entityId.slice(0, 8)}`,
+        timestamp: (log.timestamp ?? log.createdAt).toISOString(),
+        status: log.status,
+      });
+    });
+
+    applications.forEach((app) => {
+      activities.push({
+        id: app.id,
+        type: "APPLICATION",
+        title: `Application from ${app.fullName}`,
+        description: `${app.applicationType} — ${app.applicationStatus}`,
+        timestamp: app.createdAt.toISOString(),
+        status: app.applicationStatus,
+      });
+    });
+
+    credentials.forEach((cred) => {
+      activities.push({
+        id: cred.id,
+        type: "CREDENTIAL",
+        title: `Credential ${cred.credentialId}`,
+        description: `Standard: ${cred.standard} — ${cred.status}`,
+        timestamp: cred.createdAt.toISOString(),
+        status: cred.status,
+      });
+    });
+
+    // Sort all combined by timestamp desc, take top 15
+    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return { activities: activities.slice(0, 15) };
+  }
+
+  // ─── NEW: /analytics/export/excel ────────────────────────────────────
+  public async getExcelExportData(query: AnalyticsQuery) {
+    const { rows } = await this.getReportRows(query);
+    return rows;
   }
 
   public async getFilters() {

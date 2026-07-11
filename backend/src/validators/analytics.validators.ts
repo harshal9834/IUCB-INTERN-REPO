@@ -8,7 +8,7 @@ const parseDate = z.preprocess((value) => {
 }, z.date().optional());
 
 export const analyticsQuerySchema = z.object({
-  dateRange: z.enum(["LAST_7_DAYS", "LAST_MONTH", "LAST_YEAR", "CUSTOM"]).optional(),
+  dateRange: z.enum(["TODAY", "LAST_7_DAYS", "LAST_MONTH", "LAST_90_DAYS", "LAST_6_MONTHS", "LAST_YEAR", "CUSTOM"]).optional(),
   startDate: parseDate,
   endDate: parseDate,
   organizationId: z.string().uuid().optional(),
@@ -24,6 +24,7 @@ export const analyticsQuerySchema = z.object({
     "RESOURCES",
     "REPORTS",
     "AUDIT_LOGS",
+    "TRAINING_INSTITUTES",
   ]).optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),

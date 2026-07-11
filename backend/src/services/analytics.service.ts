@@ -49,6 +49,26 @@ class AnalyticsService {
   public async getAdvisorSummary(query: AnalyticsQuery) {
     return analyticsRepository.getAdvisorSummary(query);
   }
+
+  public async getOverviewStats(query: AnalyticsQuery) {
+    return analyticsRepository.getOverviewStats(query);
+  }
+
+  public async getChartsData(query: AnalyticsQuery) {
+    return analyticsRepository.getChartsData(query);
+  }
+
+  public async getRecentActivities() {
+    return analyticsRepository.getRecentActivities();
+  }
+
+  public async getExcelExportData(query: AnalyticsQuery) {
+    return analyticsRepository.getExcelExportData(query);
+  }
+
+  public async getTrainingInstituteSummary(query: AnalyticsQuery) {
+    return analyticsRepository.getTrainingInstituteSummary(query);
+  }
 }
 
 export default new AnalyticsService();

@@ -17,6 +17,11 @@ export class DashboardController {
       approvedApplications,
       totalAdvisors,
       totalResources,
+      // Training Institutes metrics
+      totalTrainingInstitutes,
+      activeTrainingInstitutes,
+      suspendedTrainingInstitutes,
+      revokedTrainingInstitutes,
     ] = await Promise.all([
       prisma.organization.count({ where: { deletedAt: null } }),
       prisma.organization.count({ where: { deletedAt: null, accreditationStatus: "ACTIVE" } }),
@@ -27,14 +32,13 @@ export class DashboardController {
       prisma.application.count({ where: { deletedAt: null, applicationStatus: "PENDING" } }),
       prisma.application.count({ where: { deletedAt: null, applicationStatus: "APPROVED" } }),
       prisma.advisor.count({ where: { deletedAt: null, status: "ACTIVE" } }),
-      prisma.news.count({ where: { deletedAt: null } }),
+      prisma.news.count({ where: { deletedAt: null } }), // Was resource, but schema has News now or just random count
+      // Training Institutes - Calculate directly from database
+      prisma.trainingInstitute.count({ where: { deletedAt: null } }),
+      prisma.trainingInstitute.count({ where: { deletedAt: null, status: "ACTIVE" } }),
+      prisma.trainingInstitute.count({ where: { deletedAt: null, status: "SUSPENDED" } }),
+      prisma.trainingInstitute.count({ where: { deletedAt: null, status: "REVOKED" } }),
     ]);
-
-    // Training Institutes - not in current Prisma client model props, return 0
-    const totalTrainingInstitutes = 0;
-    const activeTrainingInstitutes = 0;
-    const suspendedTrainingInstitutes = 0;
-    const revokedTrainingInstitutes = 0;
 
     res.status(200).json(
       new ApiResponse(
@@ -64,7 +68,7 @@ export class DashboardController {
       // Organizations
       totalOrganizations,
       activeOrganizations,
-      inactiveOrganizations,
+      inactiveOrganizations, // suspended or revoked
       // Applications
       totalApplications,
       pendingApplications,
@@ -74,7 +78,7 @@ export class DashboardController {
       totalAuditors,
       activeAuditors,
       suspendedAuditors,
-      // Training Institutes (via applications since no dedicated model in client)
+      // Training Institutes (from Applications since there's no dedicated TI model yet, except as orgs possibly. Wait, how are TIs stored? The schema has ApplicationType.TRAINING_INSTITUTE. But what happens after approval? They become Organizations or just stay approved applications? I'll use approved Training Institute applications for "Active")
       totalTIs,
       activeTIs,
       // Advisors
@@ -82,12 +86,12 @@ export class DashboardController {
       activeAdvisors,
       inactiveAdvisors,
       // Credentials
-      pendingCredentials,
+      pendingCredentials, // Approved applications that don't have credentialGenerated
       totalGeneratedCredentials,
       validCredentials,
       expiredCredentials,
       revokedCredentials,
-
+      
       // Recent Lists
       recentPendingAppsList,
       recentPendingCredsList,
@@ -100,34 +104,34 @@ export class DashboardController {
       prisma.organization.count({ where: { deletedAt: null } }),
       prisma.organization.count({ where: { deletedAt: null, accreditationStatus: "ACTIVE" } }),
       prisma.organization.count({ where: { deletedAt: null, accreditationStatus: { in: ["SUSPENDED", "REVOKED"] } } }),
-
+      
       // Applications
       prisma.application.count({ where: { deletedAt: null } }),
       prisma.application.count({ where: { deletedAt: null, applicationStatus: "PENDING" } }),
       prisma.application.count({ where: { deletedAt: null, applicationStatus: "APPROVED" } }),
       prisma.application.count({ where: { deletedAt: null, applicationStatus: "REJECTED" } }),
-
+      
       // Auditors
       prisma.auditor.count({ where: { deletedAt: null } }),
       prisma.auditor.count({ where: { deletedAt: null, status: "ACTIVE" } }),
-      prisma.auditor.count({ where: { deletedAt: null, status: "SUSPENDED" } }),
-
-      // Training Institutes (via applications)
+      prisma.auditor.count({ where: { deletedAt: null, status: "SUSPENDED" } }), // Inactive is total - active - suspended basically
+      
+      // Training Institutes
       prisma.application.count({ where: { deletedAt: null, applicationType: "TRAINING_INSTITUTE" } }),
       prisma.application.count({ where: { deletedAt: null, applicationType: "TRAINING_INSTITUTE", applicationStatus: "APPROVED" } }),
-
+      
       // Advisors
       prisma.advisor.count({ where: { deletedAt: null } }),
       prisma.advisor.count({ where: { deletedAt: null, status: "ACTIVE" } }),
       prisma.advisor.count({ where: { deletedAt: null, status: "INACTIVE" } }),
-
+      
       // Credentials
       prisma.application.count({ where: { deletedAt: null, applicationStatus: "APPROVED", credentialGenerated: false } }),
       prisma.credential.count({ where: { deletedAt: null } }),
       prisma.credential.count({ where: { deletedAt: null, status: "VALID" } }),
       prisma.credential.count({ where: { deletedAt: null, status: "EXPIRED" } }),
       prisma.credential.count({ where: { deletedAt: null, status: "REVOKED" } }),
-
+      
       // Lists (Limit 5)
       prisma.application.findMany({
         where: { deletedAt: null, applicationStatus: "PENDING" },
@@ -175,20 +179,20 @@ export class DashboardController {
       new ApiResponse(
         200,
         {
-          organizations: {
-            total: totalOrganizations,
+          organizations: { 
+            total: totalOrganizations, 
             active: activeOrganizations,
             inactive: inactiveOrganizations,
             pending: pendingOrganizations
           },
-          applications: {
-            total: totalApplications,
+          applications: { 
+            total: totalApplications, 
             pending: pendingApplications,
             approved: approvedApplications,
             rejected: rejectedApplications
           },
-          auditors: {
-            total: totalAuditors,
+          auditors: { 
+            total: totalAuditors, 
             active: activeAuditors,
             inactive: inactiveAuditors,
             suspended: suspendedAuditors
@@ -198,14 +202,14 @@ export class DashboardController {
             active: activeTIs,
             inactive: inactiveTIs
           },
-          advisors: {
+          advisors: { 
             total: totalAdvisors,
             active: activeAdvisors,
             inactive: inactiveAdvisors
           },
-          credentials: {
+          credentials: { 
             pending: pendingCredentials,
-            generated: totalGeneratedCredentials,
+            generated: totalGeneratedCredentials, 
             valid: validCredentials,
             expired: expiredCredentials,
             revoked: revokedCredentials

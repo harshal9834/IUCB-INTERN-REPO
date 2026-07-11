@@ -15,7 +15,7 @@ import { Label } from "../components/ui/label";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import trainingInstitutesApi from "../services/api/training-institutes.api";
 
-export const Route = createFileRoute("/admin/training-institutes_/$id")({
+export const Route = createFileRoute("/admin/training-institutes/$id")({
   component: TrainingInstituteDetailsComponent,
 });
 

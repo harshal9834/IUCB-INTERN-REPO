@@ -1,41 +1,24 @@
 import { axiosInstance } from "./axios";
-
-export interface AnalyticsDashboardData {
-  metrics: Array<{ id: string; title: string; value: number; delta: number; trend: string }>;
-  organizationGrowth: Array<{ period: string; count: number }>;
-  auditorTier: Array<{ name: string; value: number; color?: string }>;
-  credentialStatus: Array<{ name: string; value: number; color?: string }>;
-  applicationTrend: Array<{ period: string; submitted: number; approved: number }>;
-  advisorStats: { total: number; licensed: number; pending: number; inactive: number };
-  standards: Array<{ name: string; percent: number; color?: string }>;
-  reports: Array<{ id: string; timestamp: string; admin: string; action: string; entity: string; details: string; ip: string }>;
-}
-
-export interface AnalyticsFiltersData {
-  organizations: Array<{ id: string; name: string }>;
-  standards: string[];
-  reportTypes: string[];
-}
+import { AnalyticsOverview, ChartDataResponse, RecentActivitiesResponse } from "../../types/analytics";
 
 export const analyticsApi = {
-  getDashboard: async (params?: any) => {
-    return axiosInstance.get("/analytics/dashboard", { params });
+  getOverview: async (filters?: any): Promise<AnalyticsOverview> => {
+    const response = await axiosInstance.get("/analytics/overview", { params: filters });
+    return response.data.data;
   },
-
-  getFilters: async () => {
-    return axiosInstance.get("/analytics/filters");
+  getCharts: async (filters?: any): Promise<ChartDataResponse> => {
+    const response = await axiosInstance.get("/analytics/charts", { params: filters });
+    return response.data.data;
   },
-
-  getReports: async (params?: any) => {
-    return axiosInstance.get("/analytics/reports", { params });
+  getRecentActivities: async (): Promise<RecentActivitiesResponse> => {
+    const response = await axiosInstance.get("/analytics/recent-activities");
+    return response.data.data;
   },
-
-  exportReport: async (format: "csv" | "excel" | "pdf", params?: any) => {
-    return axiosInstance.get("/analytics/export", {
-      params: { ...params, format },
-      responseType: "blob",
+  exportExcel: async (filters?: any) => {
+    const response = await axiosInstance.get("/analytics/export/excel", {
+      params: filters,
+      responseType: "blob"
     });
-  },
+    return response.data;
+  }
 };
-
-export default analyticsApi;

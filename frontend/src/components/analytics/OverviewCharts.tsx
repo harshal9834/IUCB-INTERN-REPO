@@ -18,7 +18,7 @@ export function OverviewCharts({ data }: ChartsProps) {
         <h3 className="text-sm font-bold mb-4">Monthly Applications</h3>
         {data.monthlyApplications.length > 0 ? (
           <ResponsiveLine
-            data={[{ id: "applications", data: data.monthlyApplications }]}
+            data={[{ id: "applications", data: data.monthlyApplications as any }]}
             margin={{ top: 20, right: 20, bottom: 50, left: 50 }}
             xScale={{ type: 'point' }}
             yScale={{ type: 'linear', min: 0, max: 'auto' }}

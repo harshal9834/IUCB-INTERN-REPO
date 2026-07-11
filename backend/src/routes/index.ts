@@ -9,6 +9,7 @@ import credentialsRoutes from "./credentials.routes.js";
 import advisoryRoutes from "./advisory.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import auditRoutes from "./audit.routes.js";
+import bulkEmailRoutes from "./bulk-email.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
 
 const rootRouter = Router();
@@ -32,6 +33,9 @@ rootRouter.use("/v1/credentials", credentialsRoutes);
 rootRouter.use("/v1/advisory", advisoryRoutes);
 rootRouter.use("/v1/analytics", analyticsRoutes);
 rootRouter.use("/v1/audit-logs", auditRoutes);
+
+// Bulk Email & Certificate System
+rootRouter.use("/v1/bulk-email", bulkEmailRoutes);
 
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);

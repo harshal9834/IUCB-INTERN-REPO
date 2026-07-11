@@ -700,3 +700,73 @@ model DataExport {
 // - DataExport.requester
 // - SavedSearch.creator
 // - AuditAlert.assignee, resolver
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BULK EMAIL & CERTIFICATE AUTOMATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+model BulkEmailCampaign {
+  id                     String   @id @default(uuid()) @db.Uuid
+  campaignId             String   @unique // e.g. CMP-2026-000001
+  name                   String?
+  templateHtml           String?  @db.Text
+  subject                String?
+  body                   String?  @db.Text
+  fromName               String?
+  replyTo                String?
+
+  totalRecipients        Int      @default(0)
+  credentialsGenerated   Int      @default(0)
+  certificatesGenerated  Int      @default(0)
+  emailsSent             Int      @default(0)
+  failedEmails           Int      @default(0)
+  skippedEmails          Int      @default(0)
+
+  status                 String   @default("DRAFT") // DRAFT, PROCESSING, COMPLETED, FAILED
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  credentials            BulkEmailCredential[]
+
+  @@index([campaignId])
+  @@index([status])
+}
+
+model BulkEmailCredential {
+  id                   String   @id @default(uuid()) @db.Uuid
+  campaignId           String   @db.Uuid
+
+  // Excel Data
+  candidateName        String
+  email                String
+  instituteName        String
+
+  // Generated System Fields
+  credentialId         String   @unique
+  certificateId        String   @unique
+  registrationNumber   String   @unique
+  verificationToken    String   @unique
+  verificationUrl      String
+  qrCode               String?  @db.Text
+  issueDate            DateTime
+  expiryDate           DateTime
+
+  // Local Certificate Storage
+  pdfPath              String?
+  pdfFileName          String?
+  generatedAt          DateTime?
+
+  // Status tracking
+  status               String   @default("PENDING") // PENDING, GENERATING, EMAILING, SENT, FAILED
+  errorMessage         String?  @db.Text
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  campaign             BulkEmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([email])
+  @@index([status])
+}

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Search, FileText, Download, BookOpen, FileCheck2, Layers } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, FileText, Download, BookOpen, FileCheck2, Layers, Eye } from "lucide-react";
 import { PageHero } from "../components/page-hero";
+import { EmptyState } from "../components/reusable-components";
 
 export const Route = createFileRoute("/documentation")({
   head: () => ({
@@ -25,79 +26,50 @@ const categories = [
   "Guidance",
   "Templates",
   "Forms",
-];
-
-const docs = [
-  {
-    title: "Accreditation Manual",
-    desc: "Comprehensive guide to all accreditation requirements and assessment criteria.",
-    version: "v5.2 · Jan 2025",
-    size: "PDF · 4.8 MB",
-    cat: "Manuals",
-  },
-  {
-    title: "Impartiality Policy",
-    desc: "IUCB framework safeguarding independence and impartiality.",
-    version: "v4.0 · Jan 2025",
-    size: "PDF · 1.2 MB",
-    cat: "Policies",
-  },
-  {
-    title: "Assessment Procedure",
-    desc: "Step-by-step assessment workflow for IUCB technical assessors.",
-    version: "v3.4 · Dec 2024",
-    size: "PDF · 2.6 MB",
-    cat: "Procedures",
-  },
-  {
-    title: "Accreditation Application Guide",
-    desc: "Guidance for first-time applicants and re-accreditation candidates.",
-    version: "v2.1 · Nov 2024",
-    size: "PDF · 3.8 MB",
-    cat: "Guidance",
-  },
-  {
-    title: "Cybersecurity Certification Roadmap",
-    desc: "Recommended pathway for cybersecurity scheme accreditation.",
-    version: "v1.5 · Oct 2024",
-    size: "PDF · 1.9 MB",
-    cat: "Guidance",
-  },
-  {
-    title: "Accreditation Application Form",
-    desc: "Official application template for all accreditation programs.",
-    version: "v6.0 · Jan 2025",
-    size: "DOCX · 320 KB",
-    cat: "Forms",
-  },
-  {
-    title: "Audit Report Template",
-    desc: "Standardized audit reporting template used across schemes.",
-    version: "v4.2 · Jan 2025",
-    size: "DOCX · 410 KB",
-    cat: "Templates",
-  },
-  {
-    title: "Complaints & Appeals Procedure",
-    desc: "Formal channels for stakeholders to raise concerns.",
-    version: "v2.5 · Dec 2024",
-    size: "PDF · 1.1 MB",
-    cat: "Procedures",
-  },
+  "Other"
 ];
 
 function Documentation() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All Documents");
+  const [docs, setDocs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/v1/resources/public");
+        const data = await res.json();
+        if (data.success) {
+          setDocs(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching docs", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDocs();
+  }, []);
+
+  const handleDownload = (id: string) => {
+    window.open(`http://localhost:5000/api/v1/resources/download/${id}`, "_blank");
+  };
+
+  const handleView = (id: string) => {
+    window.open(`http://localhost:5000/api/v1/resources/download/${id}?view=true`, "_blank");
+  };
 
   const filtered = docs.filter((d) => {
-    const matchesCat = cat === "All Documents" || d.cat === cat;
+    const matchesCat = cat === "All Documents" || d.category === cat;
     const matchesQ =
       !q ||
       d.title.toLowerCase().includes(q.toLowerCase()) ||
-      d.desc.toLowerCase().includes(q.toLowerCase());
+      (d.description && d.description.toLowerCase().includes(q.toLowerCase()));
     return matchesCat && matchesQ;
   });
+
+  const activeCategories = new Set(docs.map(d => d.category)).size;
 
   return (
     <>
@@ -114,8 +86,8 @@ function Documentation() {
       <section className="py-12 bg-white border-b border-border">
         <div className="container-x grid sm:grid-cols-3 gap-4">
           {[
-            { icon: FileText, v: docs.length, l: "Published Documents" },
-            { icon: Layers, v: 6, l: "Document Categories" },
+            { icon: FileText, v: loading ? "-" : docs.length, l: "Published Documents" },
+            { icon: Layers, v: loading ? "-" : activeCategories || 0, l: "Document Categories" },
             { icon: BookOpen, v: 4, l: "Languages Supported" },
           ].map((s) => (
             <div key={s.l} className="rounded-xl border border-border p-5 flex items-center gap-4">
@@ -161,31 +133,54 @@ function Documentation() {
           </div>
 
           <div className="mt-8 grid md:grid-cols-2 gap-5">
-            {filtered.map((d) => (
-              <article
-                key={d.title}
-                className="rounded-xl border border-border bg-white p-6 hover:border-secondary hover:shadow-lg transition group"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="h-11 w-11 rounded-md bg-light-blue text-primary grid place-items-center flex-shrink-0">
-                    <FileCheck2 className="h-5 w-5" />
+            {loading ? (
+               <div className="col-span-2 p-8 text-center text-gray-500">Loading documents...</div>
+            ) : filtered.length === 0 ? (
+               <div className="col-span-2">
+                 <EmptyState
+                   title="No Documents Found"
+                   description="Check back later or try adjusting your search filters."
+                   icon={<FileText className="h-10 w-10" />}
+                 />
+               </div>
+            ) : (
+              filtered.map((d) => (
+                <article
+                  key={d.id}
+                  className="rounded-xl border border-border bg-white p-6 hover:border-secondary hover:shadow-lg transition group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="h-11 w-11 rounded-md bg-light-blue text-primary grid place-items-center flex-shrink-0">
+                      <FileCheck2 className="h-5 w-5" />
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-secondary bg-light-blue/40 px-2 py-1 rounded">
+                      {d.category}
+                    </span>
                   </div>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-secondary bg-light-blue/40 px-2 py-1 rounded">
-                    {d.cat}
-                  </span>
-                </div>
-                <h3 className="mt-4 font-semibold text-navy">{d.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d.desc}</p>
-                <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
-                  <div className="text-[11px] font-mono text-muted-foreground">
-                    {d.version} · {d.size}
+                  <h3 className="mt-4 font-semibold text-navy">{d.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d.description || ""}</p>
+                  <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
+                    <div className="text-[11px] font-mono text-muted-foreground">
+                      {d.version || "v1.0"} · {d.filetype} · {(d.filesize / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleView(d.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary group-hover:text-primary"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> View
+                      </button>
+                      <button 
+                        onClick={() => handleDownload(d.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary group-hover:text-primary"
+                      >
+                        <Download className="h-3.5 w-3.5" /> Download
+                      </button>
+                    </div>
                   </div>
-                  <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary group-hover:text-primary">
-                    <Download className="h-3.5 w-3.5" /> Download
-                  </button>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))
+            )}
           </div>
         </div>
       </section>

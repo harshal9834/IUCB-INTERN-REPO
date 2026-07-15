@@ -9,17 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ProcessRouteImport } from './routes/process'
 import { Route as NotFoundRouteImport } from './routes/not-found'
 import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as DocumentationRouteImport } from './routes/documentation'
-import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DirectoryIndexRouteImport } from './routes/directory.index'
+import { Route as DirectoryUuidRouteImport } from './routes/directory.$uuid'
 import { Route as ApplyTrainingInstituteRouteImport } from './routes/apply.training-institute'
 import { Route as ApplySuccessRouteImport } from './routes/apply.success'
 import { Route as ApplyAuditorRouteImport } from './routes/apply.auditor'
@@ -36,6 +38,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminCredentialsRouteImport } from './routes/admin.credentials'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCertificatesRouteImport } from './routes/admin.certificates'
+import { Route as AdminCertificateTemplatesRouteImport } from './routes/admin.certificate-templates'
 import { Route as AdminAuditorsRouteImport } from './routes/admin.auditors'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
@@ -51,6 +54,11 @@ import { Route as AdminApplicationsIdRouteImport } from './routes/admin.applicat
 import { Route as AdminAdvisoryIdRouteImport } from './routes/admin.advisory_.$id'
 import { Route as AdminCredentialsGenerateApplicationIdRouteImport } from './routes/admin.credentials.generate.$applicationId'
 
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
@@ -81,11 +89,6 @@ const DocumentationRoute = DocumentationRouteImport.update({
   path: '/documentation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DirectoryRoute = DirectoryRouteImport.update({
-  id: '/directory',
-  path: '/directory',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -104,6 +107,16 @@ const AboutRoute = AboutRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectoryIndexRoute = DirectoryIndexRouteImport.update({
+  id: '/directory/',
+  path: '/directory/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectoryUuidRoute = DirectoryUuidRouteImport.update({
+  id: '/directory/$uuid',
+  path: '/directory/$uuid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplyTrainingInstituteRoute = ApplyTrainingInstituteRouteImport.update({
@@ -186,6 +199,12 @@ const AdminCertificatesRoute = AdminCertificatesRouteImport.update({
   path: '/admin/certificates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCertificateTemplatesRoute =
+  AdminCertificateTemplatesRouteImport.update({
+    id: '/admin/certificate-templates',
+    path: '/admin/certificate-templates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminAuditorsRoute = AdminAuditorsRouteImport.update({
   id: '/admin/auditors',
   path: '/admin/auditors',
@@ -267,18 +286,19 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
-  '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
   '/governance': typeof GovernanceRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/verify': typeof VerifyRoute
   '/admin/advisory': typeof AdminAdvisoryRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/certificate-templates': typeof AdminCertificateTemplatesRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/credentials': typeof AdminCredentialsRouteWithChildren
@@ -295,6 +315,8 @@ export interface FileRoutesByFullPath {
   '/apply/auditor': typeof ApplyAuditorRoute
   '/apply/success': typeof ApplySuccessRoute
   '/apply/training-institute': typeof ApplyTrainingInstituteRoute
+  '/directory/$uuid': typeof DirectoryUuidRoute
+  '/directory/': typeof DirectoryIndexRoute
   '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications/$id': typeof AdminApplicationsIdRoute
   '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
@@ -310,18 +332,19 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
-  '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
   '/governance': typeof GovernanceRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/verify': typeof VerifyRoute
   '/admin/advisory': typeof AdminAdvisoryRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/certificate-templates': typeof AdminCertificateTemplatesRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/credentials': typeof AdminCredentialsRouteWithChildren
@@ -337,6 +360,8 @@ export interface FileRoutesByTo {
   '/apply/auditor': typeof ApplyAuditorRoute
   '/apply/success': typeof ApplySuccessRoute
   '/apply/training-institute': typeof ApplyTrainingInstituteRoute
+  '/directory/$uuid': typeof DirectoryUuidRoute
+  '/directory': typeof DirectoryIndexRoute
   '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications/$id': typeof AdminApplicationsIdRoute
   '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
@@ -353,18 +378,19 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
-  '/directory': typeof DirectoryRoute
   '/documentation': typeof DocumentationRoute
   '/governance': typeof GovernanceRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/verify': typeof VerifyRoute
   '/admin/advisory': typeof AdminAdvisoryRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
   '/admin/auditors': typeof AdminAuditorsRoute
+  '/admin/certificate-templates': typeof AdminCertificateTemplatesRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/credentials': typeof AdminCredentialsRouteWithChildren
@@ -381,6 +407,8 @@ export interface FileRoutesById {
   '/apply/auditor': typeof ApplyAuditorRoute
   '/apply/success': typeof ApplySuccessRoute
   '/apply/training-institute': typeof ApplyTrainingInstituteRoute
+  '/directory/$uuid': typeof DirectoryUuidRoute
+  '/directory/': typeof DirectoryIndexRoute
   '/admin/advisory_/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications_/$id': typeof AdminApplicationsIdRoute
   '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
@@ -398,18 +426,19 @@ export interface FileRouteTypes {
     | '/about'
     | '/apply'
     | '/contact'
-    | '/directory'
     | '/documentation'
     | '/governance'
     | '/not-found'
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/verify'
     | '/admin/advisory'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/auditors'
+    | '/admin/certificate-templates'
     | '/admin/certificates'
     | '/admin/content'
     | '/admin/credentials'
@@ -426,6 +455,8 @@ export interface FileRouteTypes {
     | '/apply/auditor'
     | '/apply/success'
     | '/apply/training-institute'
+    | '/directory/$uuid'
+    | '/directory/'
     | '/admin/advisory/$id'
     | '/admin/applications/$id'
     | '/admin/credentials/generated'
@@ -441,18 +472,19 @@ export interface FileRouteTypes {
     | '/about'
     | '/apply'
     | '/contact'
-    | '/directory'
     | '/documentation'
     | '/governance'
     | '/not-found'
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/verify'
     | '/admin/advisory'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/auditors'
+    | '/admin/certificate-templates'
     | '/admin/certificates'
     | '/admin/content'
     | '/admin/credentials'
@@ -468,6 +500,8 @@ export interface FileRouteTypes {
     | '/apply/auditor'
     | '/apply/success'
     | '/apply/training-institute'
+    | '/directory/$uuid'
+    | '/directory'
     | '/admin/advisory/$id'
     | '/admin/applications/$id'
     | '/admin/credentials/generated'
@@ -483,18 +517,19 @@ export interface FileRouteTypes {
     | '/about'
     | '/apply'
     | '/contact'
-    | '/directory'
     | '/documentation'
     | '/governance'
     | '/not-found'
     | '/process'
     | '/services'
     | '/unauthorized'
+    | '/verify'
     | '/admin/advisory'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit-logs'
     | '/admin/auditors'
+    | '/admin/certificate-templates'
     | '/admin/certificates'
     | '/admin/content'
     | '/admin/credentials'
@@ -511,6 +546,8 @@ export interface FileRouteTypes {
     | '/apply/auditor'
     | '/apply/success'
     | '/apply/training-institute'
+    | '/directory/$uuid'
+    | '/directory/'
     | '/admin/advisory_/$id'
     | '/admin/applications_/$id'
     | '/admin/credentials/generated'
@@ -527,18 +564,19 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ApplyRoute: typeof ApplyRouteWithChildren
   ContactRoute: typeof ContactRoute
-  DirectoryRoute: typeof DirectoryRoute
   DocumentationRoute: typeof DocumentationRoute
   GovernanceRoute: typeof GovernanceRoute
   NotFoundRoute: typeof NotFoundRoute
   ProcessRoute: typeof ProcessRoute
   ServicesRoute: typeof ServicesRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
+  VerifyRoute: typeof VerifyRoute
   AdminAdvisoryRoute: typeof AdminAdvisoryRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
   AdminAuditorsRoute: typeof AdminAuditorsRoute
+  AdminCertificateTemplatesRoute: typeof AdminCertificateTemplatesRoute
   AdminCertificatesRoute: typeof AdminCertificatesRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCredentialsRoute: typeof AdminCredentialsRouteWithChildren
@@ -550,6 +588,8 @@ export interface RootRouteChildren {
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTrainingInstitutesRoute: typeof AdminTrainingInstitutesRouteWithChildren
+  DirectoryUuidRoute: typeof DirectoryUuidRoute
+  DirectoryIndexRoute: typeof DirectoryIndexRoute
   AdminAdvisoryIdRoute: typeof AdminAdvisoryIdRoute
   AdminApplicationsIdRoute: typeof AdminApplicationsIdRoute
   AdminCredentialsIdRoute: typeof AdminCredentialsIdRoute
@@ -557,6 +597,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unauthorized': {
       id: '/unauthorized'
       path: '/unauthorized'
@@ -599,13 +646,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocumentationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/directory': {
-      id: '/directory'
-      path: '/directory'
-      fullPath: '/directory'
-      preLoaderRoute: typeof DirectoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -632,6 +672,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory/': {
+      id: '/directory/'
+      path: '/directory'
+      fullPath: '/directory/'
+      preLoaderRoute: typeof DirectoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory/$uuid': {
+      id: '/directory/$uuid'
+      path: '/directory/$uuid'
+      fullPath: '/directory/$uuid'
+      preLoaderRoute: typeof DirectoryUuidRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apply/training-institute': {
@@ -744,6 +798,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/certificates'
       fullPath: '/admin/certificates'
       preLoaderRoute: typeof AdminCertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/certificate-templates': {
+      id: '/admin/certificate-templates'
+      path: '/admin/certificate-templates'
+      fullPath: '/admin/certificate-templates'
+      preLoaderRoute: typeof AdminCertificateTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/auditors': {
@@ -905,18 +966,19 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ApplyRoute: ApplyRouteWithChildren,
   ContactRoute: ContactRoute,
-  DirectoryRoute: DirectoryRoute,
   DocumentationRoute: DocumentationRoute,
   GovernanceRoute: GovernanceRoute,
   NotFoundRoute: NotFoundRoute,
   ProcessRoute: ProcessRoute,
   ServicesRoute: ServicesRoute,
   UnauthorizedRoute: UnauthorizedRoute,
+  VerifyRoute: VerifyRoute,
   AdminAdvisoryRoute: AdminAdvisoryRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminAuditLogsRoute: AdminAuditLogsRoute,
   AdminAuditorsRoute: AdminAuditorsRoute,
+  AdminCertificateTemplatesRoute: AdminCertificateTemplatesRoute,
   AdminCertificatesRoute: AdminCertificatesRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCredentialsRoute: AdminCredentialsRouteWithChildren,
@@ -928,6 +990,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTrainingInstitutesRoute: AdminTrainingInstitutesRouteWithChildren,
+  DirectoryUuidRoute: DirectoryUuidRoute,
+  DirectoryIndexRoute: DirectoryIndexRoute,
   AdminAdvisoryIdRoute: AdminAdvisoryIdRoute,
   AdminApplicationsIdRoute: AdminApplicationsIdRoute,
   AdminCredentialsIdRoute: AdminCredentialsIdRoute,

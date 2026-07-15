@@ -23,5 +23,31 @@ export class AdminController {
       res.status(500).json({ error: error.message });
     }
   };
+
+  createAdmin = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { fullName, email, password, role } = req.body;
+      if (!fullName || !email || !password) {
+        res.status(400).json({ error: "Missing required fields" });
+        return;
+      }
+      
+      const bcrypt = await import("bcryptjs");
+      const salt = await bcrypt.default.genSalt(10);
+      const hashedPassword = await bcrypt.default.hash(password, salt);
+
+      const admin = await this.adminService.createAdmin({
+        fullName,
+        email,
+        password: hashedPassword,
+        role: role || "ADMIN",
+      });
+
+
+      res.status(201).json({ success: true, admin: { id: admin.id, fullName: admin.fullName, email: admin.email, role: admin.role } });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 }
 export default AdminController;

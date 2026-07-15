@@ -70,7 +70,7 @@ export const errorHandler = (err: any, req: AuthenticatedRequest, res: Response,
     return res.status(err.statusCode).json({ 
       success: false, 
       message: err.message, 
-      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack 
+      error: process.env.NODE_ENV === 'production' ? undefined : err.stack 
     });
   }
   
@@ -78,14 +78,13 @@ export const errorHandler = (err: any, req: AuthenticatedRequest, res: Response,
     return res.status(400).json({ 
       success: false, 
       message: "Validation Error", 
-      errors: err.issues, 
-      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack 
+      error: err.issues
     });
   }
   
   return res.status(500).json({ 
     success: false, 
-    message: err.message || "Internal Server Error", 
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack 
+    message: "Internal Server Error", 
+    error: process.env.NODE_ENV === 'production' ? undefined : err.message
   });
 };

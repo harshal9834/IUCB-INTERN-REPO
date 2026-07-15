@@ -24,6 +24,9 @@ export interface Credential {
   certificatePath?: string;
   generatedAt?: string;
   generatedById?: string;
+  emailSent?: boolean;
+  emailSentAt?: string | null;
+  emailSentBy?: string | null;
   createdAt: string;
   updatedAt: string;
 

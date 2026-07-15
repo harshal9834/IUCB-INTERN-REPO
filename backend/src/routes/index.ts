@@ -18,6 +18,9 @@ import searchRoutes from "./search.routes.js";
 import auditRoutes from "./audit.routes.js";
 import bulkOperationsRoutes from "./bulk-operations.routes.js";
 import bulkEmailRoutes from "./bulk-email.routes.js";
+import directoryRoutes from "./directory.routes.js";
+import verifyRoutes from "./verify.routes.js";
+import resourcesRoutes from "./resources.routes.js";
 
 // Phase 5-10 Routes
 import advancedSearchRoutes from "./advanced-search.routes.js";
@@ -88,5 +91,19 @@ rootRouter.use("/v1/bulk-email", bulkEmailRoutes);
 
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);
+
+// Directory Verification
+rootRouter.use("/v1/directory", directoryRoutes);
+
+// Public Certificate Verification (via verificationUrl)
+rootRouter.use("/v1/verify", verifyRoutes);
+
+// Resources
+rootRouter.use("/v1/resources", resourcesRoutes);
+
+// Certificate Templates
+import certificateTemplateRoutes from "./certificate-template.routes.js";
+rootRouter.use("/v1/certificate-templates", certificateTemplateRoutes);
+
 
 export default rootRouter;

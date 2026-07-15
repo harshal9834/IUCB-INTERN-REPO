@@ -10,6 +10,7 @@ import {
   Award,
   FileCheck,
   Newspaper,
+  FileCode2,
   BarChart3,
   History,
   Settings,
@@ -22,7 +23,12 @@ import {
   User as UserIcon,
   ChevronDown,
   Globe,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  ShieldAlert,
 } from "lucide-react";
+
 
 interface SidebarItem {
   name: string;
@@ -37,7 +43,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const currentPath = routerState.location.pathname;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const navigationItems: SidebarItem[] = [
@@ -54,6 +60,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     { name: "Credentials", href: "/admin/credentials", icon: <Award className="h-5 w-5" /> },
     { name: "Certificates", href: "/admin/certificates", icon: <FileCheck className="h-5 w-5" /> },
     { name: "Content", href: "/admin/content", icon: <Newspaper className="h-5 w-5" /> },
+    { name: "Templates", href: "/admin/certificate-templates", icon: <FileCode2 className="h-5 w-5" /> },
     { name: "Analytics", href: "/admin/analytics", icon: <BarChart3 className="h-5 w-5" /> },
     { name: "Audit Logs", href: "/admin/audit-logs", icon: <History className="h-5 w-5" /> },
     { name: "Settings", href: "/admin/settings", icon: <Settings className="h-5 w-5" /> },
@@ -262,52 +269,10 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
           {/* Search box UI & Notifications Menu & User Profile Menu */}
           <div className="flex items-center gap-4">
-            {/* Global Search Mock */}
-            <div className="relative hidden lg:block w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Global search..."
-                className="w-full rounded-md border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-4 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0F2942] transition-all"
-              />
-            </div>
+            {/* Global Search Mock Removed */}
 
-            {/* Notification triggers */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setShowNotifications(!showNotifications);
-                  setShowProfileMenu(false);
-                }}
-                className="relative p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-[#D4AF37]" />
-              </button>
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 rounded-lg border border-slate-200 bg-white p-4 shadow-xl z-50">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Notifications
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="text-xs border-b border-slate-50 pb-2">
-                      <p className="font-semibold text-[#0F2942]">New Accreditation Application</p>
-                      <p className="text-slate-500 mt-0.5">
-                        EuroCert Compliance BV requested accreditation audit review.
-                      </p>
-                      <span className="text-[10px] text-slate-400 mt-1 block">5 mins ago</span>
-                    </div>
-                    <div className="text-xs">
-                      <p className="font-semibold text-[#0F2942]">System Warning</p>
-                      <p className="text-slate-500 mt-0.5">
-                        Database scaling parameters modified successfully.
-                      </p>
-                      <span className="text-[10px] text-slate-400 mt-1 block">1 hour ago</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+
+
 
             {/* Profile Dropdown */}
             <div className="relative">

@@ -8,6 +8,8 @@ import { EmailService } from "../services/email.service.js";
 import PDFDocument from "pdfkit";
 import * as fs from "fs";
 import * as path from "path";
+import { IdGeneratorService } from "../services/id-generator.service.js";
+import { certificateGeneratorService } from "../services/bulk-email/certificate-generator.service.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -117,6 +119,7 @@ export class CredentialsController {
       },
     });
     if (!credential) throw new ApiError(404, "Credential not found");
+
     res.status(200).json(new ApiResponse(200, { credential }, "Credential fetched successfully"));
   });
 
@@ -155,12 +158,22 @@ export class CredentialsController {
       if (auditor) auditorId = auditor.id;
     }
 
+    // Auto-detect candidateName and organizationName
+    let candidateName = application.fullName || "";
+    let organizationName = application.company || "";
+
     const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const credentialId = `IUCB-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    
+    // Generate sequential IDs
+    const { credentialId, certificateId, registrationNumber } = await IdGeneratorService.generateAllIds(application.applicationType);
 
     const credential = await prisma.credential.create({
       data: {
         credentialId,
+        certificateId,
+        registrationNumber,
+        candidateName,
+        organizationName,
         standard,
         issueDate: new Date(issueDate),
         expiryDate: new Date(expiryDate),
@@ -187,10 +200,11 @@ export class CredentialsController {
         entityId: credential.id,
         action: "GENERATE",
         newData: { credentialId, standard, applicationType: application.applicationType },
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip ?? null,
+        userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
       },
     });
+
 
     res.status(201).json(new ApiResponse(201, { credential }, "Credential generated successfully"));
   });
@@ -212,14 +226,33 @@ export class CredentialsController {
       || credential.application?.fullName
       || "Unknown Entity";
 
-    // Build PDF
-    const pdfBuffer = await buildCertificatePDF(
-      orgName,
-      credential.credentialId,
-      credential.standard,
-      credential.issueDate,
-      credential.expiryDate,
-    );
+    const certType = credential.application?.applicationType || "GENERAL";
+    const template = await prisma.certificateTemplate.findFirst({
+      where: { detectedType: certType, status: 'ACTIVE' }
+    });
+
+    if (!template) {
+      throw new ApiError(400, `No active Certificate Template found for type: ${certType}`);
+    }
+
+    const htmlContent = await fs.promises.readFile(path.resolve(process.cwd(), template.filepath), 'utf-8');
+
+    const templateData = {
+      CANDIDATE_NAME: credential.application?.fullName || "",
+      ORGANIZATION_NAME: orgName,
+      ACCREDITATION_SCOPE: credential.application?.expertiseArea || "",
+      CERTIFICATE_ID: credential.credentialId, // Note: standard schema uses credentialId for this
+      CREDENTIAL_ID: credential.credentialId,
+      REGISTRATION_NUMBER: credential.application?.registrationNumber || credential.organization?.registrationNumber || "",
+      ISSUE_DATE: credential.issueDate.toLocaleDateString(),
+      EXPIRY_DATE: credential.expiryDate.toLocaleDateString(),
+      STANDARD: credential.standard,
+      QR_CODE: credential.qrCode || "",
+      VERIFICATION_URL: credential.verificationUrl
+    };
+
+    const populatedHtml = certificateGeneratorService.populateTemplate(htmlContent, templateData);
+    const pdfBuffer = await certificateGeneratorService.generatePdfBuffer(populatedHtml);
 
     // Save to local storage
     const storageDir = getStorageDir();
@@ -247,10 +280,11 @@ export class CredentialsController {
         entityId: id,
         action: "GENERATE",
         newData: { certificatePath: dbPath },
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip ?? null,
+        userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
       },
     });
+
 
     res.status(200).json(new ApiResponse(200, { credential: updated, certificatePath: dbPath }, "Certificate generated and stored successfully"));
   });
@@ -320,6 +354,17 @@ export class CredentialsController {
       customMessage,
     });
 
+    const isResend = credential.emailSent;
+
+    const updatedCredential = await prisma.credential.update({
+      where: { id },
+      data: {
+        emailSent: true,
+        emailSentAt: new Date(),
+        emailSentBy: req.admin.fullName || "System",
+      },
+    });
+
     await prisma.auditLog.create({
       data: {
         adminId: req.admin.id,
@@ -327,12 +372,12 @@ export class CredentialsController {
         entityId: id,
         action: "SEND_EMAIL",
         newData: { recipient: recipientEmail },
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip ?? null,
+        userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
       },
     });
 
-    res.status(200).json(new ApiResponse(200, {}, "Certificate email sent successfully"));
+    res.status(200).json(new ApiResponse(200, { credential: updatedCredential }, "Certificate email sent successfully"));
   });
 
   // GET /api/v1/credentials/:id/email-logs
@@ -390,8 +435,8 @@ export class CredentialsController {
         action: "STATUS_CHANGE",
         oldData: { status: credential.status },
         newData: { status },
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip ?? null,
+        userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
       },
     });
 

@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
+import prisma from '../../config/Database.js';
 
 export interface EmailConfig {
   subject: string;
@@ -11,13 +12,14 @@ export interface EmailConfig {
 
 export class EmailDispatcherService {
   private transporter: nodemailer.Transporter;
+  private fromEmail: string;
 
   constructor() {
-    // In a real scenario, these would come from env vars.
-    // For development, we can use a mock or a generic SMTP config.
+    this.fromEmail = process.env.MAIL_FROM || 'noreply@iucb.org';
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -62,7 +64,7 @@ export class EmailDispatcherService {
     const html = this.populateEmailText(config.body, data);
 
     const mailOptions: nodemailer.SendMailOptions = {
-      from: `"${config.fromName}" <${process.env.SMTP_USER || 'no-reply@iucb.org'}>`,
+      from: `"${config.fromName}" <${this.fromEmail}>`,
       to,
       subject,
       html,
@@ -76,7 +78,31 @@ export class EmailDispatcherService {
       ]
     };
 
-    await this.transporter.sendMail(mailOptions);
+    try {
+      await this.transporter.sendMail(mailOptions);
+      
+      // Log success to unified EmailLog table
+      await prisma.emailLog.create({
+        data: {
+          recipient: to,
+          subject,
+          template: 'bulk-certificate',
+          status: 'SENT',
+        }
+      });
+    } catch (err: any) {
+      // Log failure to unified EmailLog table
+      await prisma.emailLog.create({
+        data: {
+          recipient: to,
+          subject,
+          template: 'bulk-certificate',
+          status: 'FAILED',
+          errorMessage: err.message,
+        }
+      });
+      throw err;
+    }
   }
 }
 

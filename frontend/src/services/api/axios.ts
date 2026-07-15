@@ -7,20 +7,23 @@ export const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Access token variable stored in memory
+// Access token stored in memory (primary) and localStorage (fallback for page refresh)
 let accessTokenMemory: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
   accessTokenMemory = token;
   if (token) {
     localStorage.setItem("has_session", "true");
+    localStorage.setItem("token", token);
   } else {
     localStorage.removeItem("has_session");
+    localStorage.removeItem("token");
   }
 };
 
 export const getAccessToken = () => {
-  return accessTokenMemory;
+  // Return in-memory token first, fall back to localStorage
+  return accessTokenMemory || localStorage.getItem("token");
 };
 
 // Request Interceptor: Attach bearer token

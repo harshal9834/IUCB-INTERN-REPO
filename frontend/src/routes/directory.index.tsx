@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import {
   Search,
@@ -11,8 +11,9 @@ import {
   Globe2,
 } from "lucide-react";
 import { PageHero } from "../components/page-hero";
+import { searchCertificate } from "../services/api/directory.api";
 
-export const Route = createFileRoute("/directory")({
+export const Route = createFileRoute("/directory/")({
   head: () => ({
     meta: [
       { title: "Accredited Directory — IUCB" },
@@ -99,9 +100,43 @@ const iconFor = (t: Entry["type"]) =>
   t === "Certification Body" ? Building2 : t === "Auditor" ? Users : GraduationCap;
 
 function Directory() {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
-  const [certId, setCertId] = useState("IUCB-ACB-0421");
+  const [certId, setCertId] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+
+  const handleVerify = async () => {
+    console.log("Verify Clicked");
+    console.log(certId);
+
+    if (!certId.trim()) return;
+    setIsVerifying(true);
+    setVerifyError("");
+    try {
+      console.log("Sending API request for", certId.trim());
+      const data = await searchCertificate(certId.trim());
+      console.log("API response:", data);
+      
+      if (data && data.uuid) {
+        console.log("Navigating to", data.uuid);
+        await router.navigate({ to: "/directory/$uuid", params: { uuid: data.uuid } });
+      } else {
+        throw new Error("UUID not found in response");
+      }
+    } catch (err: any) {
+      console.error("Verification error:", err);
+      // Axios wraps non-2xx responses; read the backend JSON message if available
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Certificate not found";
+      setVerifyError(message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const results = useMemo(() => {
     const ql = q.toLowerCase();
@@ -135,7 +170,10 @@ function Directory() {
             <label className="text-[12px] font-semibold uppercase tracking-wider text-primary">
               Certificate ID
             </label>
-            <div className="mt-3 grid sm:grid-cols-[1fr_auto] gap-3">
+            <form 
+              onSubmit={(e) => { e.preventDefault(); handleVerify(); }}
+              className="mt-3 grid sm:grid-cols-[1fr_auto] gap-3"
+            >
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
@@ -146,10 +184,19 @@ function Directory() {
                   className="w-full pl-12 pr-4 py-3.5 rounded-lg border border-border bg-white text-navy focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                 />
               </div>
-              <button className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition">
-                Verify Certificate
+              <button 
+                type="submit"
+                disabled={isVerifying || !certId.trim()}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+              >
+                {isVerifying ? "Verifying..." : "Verify Certificate"}
               </button>
-            </div>
+            </form>
+            {verifyError && (
+              <div className="mt-2 text-sm text-red-600 font-medium">
+                {verifyError}
+              </div>
+            )}
             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
               <span>Or scan the QR code on your certificate</span>
               <span>•</span>

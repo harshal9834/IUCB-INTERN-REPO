@@ -247,7 +247,7 @@ export class AdvisorsController {
       await EmailService.sendGenericEmail({
         to: recipient,
         subject,
-        htmlContent: message,
+        body: message,
       });
 
       await prisma.auditLog.create({

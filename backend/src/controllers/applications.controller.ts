@@ -14,6 +14,7 @@ import {
   applicationQuerySchema,
 } from "../validators/applications.validators.js";
 
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function generateApplicationNumber(type: string): string {
@@ -61,12 +62,17 @@ export class PublicApplicationsController {
       },
     });
 
-    await EmailService.sendSubmissionConfirmationEmail({
-      to: application.email,
-      applicantName: application.fullName,
-      applicationType: "Accreditation",
-      applicationNumber: application.applicationNumber!,
-    });
+
+    try {
+      await EmailService.sendSubmissionConfirmationEmail({
+        to: application.email,
+        applicantName: application.fullName,
+        applicationType: "Accreditation",
+        applicationNumber: application.applicationNumber!,
+      });
+    } catch (e) {
+      console.error("Email delivery failed for application submission");
+    }
 
     res.status(201).json(
       new ApiResponse(201, { application }, "Accreditation application submitted successfully"),
@@ -95,12 +101,17 @@ export class PublicApplicationsController {
       },
     });
 
-    await EmailService.sendSubmissionConfirmationEmail({
-      to: application.email,
-      applicantName: application.fullName,
-      applicationType: "Auditor",
-      applicationNumber: application.applicationNumber!,
-    });
+
+    try {
+      await EmailService.sendSubmissionConfirmationEmail({
+        to: application.email,
+        applicantName: application.fullName,
+        applicationType: "Auditor",
+        applicationNumber: application.applicationNumber!,
+      });
+    } catch (e) {
+      console.error("Email delivery failed for application submission");
+    }
 
     res.status(201).json(
       new ApiResponse(201, { application }, "Auditor application submitted successfully"),
@@ -128,12 +139,17 @@ export class PublicApplicationsController {
       },
     });
 
-    await EmailService.sendSubmissionConfirmationEmail({
-      to: application.email,
-      applicantName: application.fullName,
-      applicationType: "Training Institute",
-      applicationNumber: application.applicationNumber!,
-    });
+
+    try {
+      await EmailService.sendSubmissionConfirmationEmail({
+        to: application.email,
+        applicantName: application.fullName,
+        applicationType: "Training Institute",
+        applicationNumber: application.applicationNumber!,
+      });
+    } catch (e) {
+      console.error("Email delivery failed for application submission");
+    }
 
     res.status(201).json(
       new ApiResponse(201, { application }, "Training institute application submitted successfully"),
@@ -173,12 +189,17 @@ export class PublicApplicationsController {
       },
     });
 
-    await EmailService.sendSubmissionConfirmationEmail({
-      to: application.email,
-      applicantName: application.fullName,
-      applicationType: "Advisory Board",
-      applicationNumber: application.applicationNumber!,
-    });
+
+    try {
+      await EmailService.sendSubmissionConfirmationEmail({
+        to: application.email,
+        applicantName: application.fullName,
+        applicationType: "Advisory Board",
+        applicationNumber: application.applicationNumber!,
+      });
+    } catch (e) {
+      console.error("Email delivery failed for application submission");
+    }
 
     res.status(201).json(
       new ApiResponse(201, { application }, "Advisory application submitted successfully"),
@@ -258,6 +279,8 @@ export class AdminApplicationsController {
 
     if (!req.admin) throw new ApiError(401, "Not authenticated");
 
+    console.log("[DEBUG] Application received for approval. ID:", id);
+
     const application = await prisma.application.findFirst({
       where: { id, deletedAt: null },
     });
@@ -266,6 +289,184 @@ export class AdminApplicationsController {
       throw new ApiError(400, "This application has already been reviewed");
     }
 
+    console.log("[DEBUG] Application type:", application.applicationType);
+
+    const typeLabel = TYPE_LABELS[application.applicationType] ?? "Application";
+    let insertedId = "";
+    let mappedTable = "";
+    let insertedRecord: any = null;
+
+    try {
+      // ── Type-specific record creation ────────────────────────────────────────
+      if (application.applicationType === "ADVISORY") {
+        mappedTable = "Advisor";
+        const advisorData = {
+          applicationId: application.id,
+          fullName: application.fullName,
+          linkedinUrl: application.linkedinUrl ?? null,
+          organization: application.company ?? "N/A",
+          designation: application.designation ?? "N/A",
+          expertiseArea: application.expertiseArea ?? "General",
+          experienceYears: application.experienceYears ?? 0,
+          status: "ACTIVE" as const,
+        };
+        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
+        console.log(`[DEBUG] Data before insertion:`, advisorData);
+
+        insertedRecord = await prisma.advisor.create({ data: advisorData });
+        insertedId = insertedRecord.id;
+        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
+
+        // Try sending email, catch so it doesn't break insertion
+        try {
+          await EmailService.sendWelcomeEmail({
+            to: application.email,
+            applicantName: application.fullName,
+            role: "Advisory Board Member",
+          });
+        } catch (e) {
+          console.log("[DEBUG] Email send failed (Advisory), but proceeding.", e);
+        }
+      } else if (application.applicationType === "ACCREDITATION") {
+        mappedTable = "Organization";
+        const accDate = new Date();
+        const expDate = new Date();
+        expDate.setFullYear(expDate.getFullYear() + 5);
+
+        const orgData = {
+          organizationName: application.company ?? application.fullName,
+          registrationNumber: application.registrationNumber ?? `AUTO-${Date.now()}`,
+          country: application.country ?? "N/A",
+          address: application.address ?? "N/A", // Fixed from country to address
+          email: application.email,
+          phone: application.phone ?? "N/A",
+          website: application.website ?? null,
+          accreditationStatus: "ACTIVE" as const,
+          accreditationDate: accDate,
+          expiryDate: expDate,
+        };
+        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
+        console.log(`[DEBUG] Data before insertion:`, orgData);
+
+        insertedRecord = await prisma.organization.create({ data: orgData });
+        insertedId = insertedRecord.id;
+        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
+
+        try {
+          await EmailService.sendApprovalEmail({
+            to: application.email,
+            applicantName: application.fullName,
+            applicationType: typeLabel,
+            applicationNumber: application.applicationNumber ?? undefined,
+          });
+        } catch (e) {
+          console.log("[DEBUG] Email send failed (Accreditation), but proceeding.", e);
+        }
+      } else if (application.applicationType === "AUDITOR") {
+        mappedTable = "Auditor";
+        // Auto-create Auditor profile (linked to first available org for now)
+        let org = await prisma.organization.findFirst({
+          where: { deletedAt: null, accreditationStatus: "ACTIVE" },
+        });
+
+        // Fallback: create a system default org if none exist, because organizationId is required.
+        if (!org) {
+           org = await prisma.organization.create({
+             data: {
+               organizationName: "System Default Organization",
+               registrationNumber: `DEFAULT-ORG-${Date.now()}`,
+               country: "System",
+               address: "System",
+               email: "admin@iucb.org",
+               phone: "N/A",
+               accreditationStatus: "ACTIVE",
+               accreditationDate: new Date(),
+               expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
+             }
+           });
+           console.log("[DEBUG] Created System Default Organization since no active orgs were found.");
+        }
+
+        const auditorData = {
+          fullName: application.fullName,
+          email: application.email,
+          phone: application.phone ?? "N/A",
+          organizationId: org.id,
+          tier: "ASSOCIATE" as const,
+          specialization: application.appliedStandard ?? "General",
+          experienceYears: application.experienceYears ?? 0,
+          status: "ACTIVE",
+        };
+        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
+        console.log(`[DEBUG] Data before insertion:`, auditorData);
+
+        insertedRecord = await prisma.auditor.create({ data: auditorData });
+        insertedId = insertedRecord.id;
+        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
+
+        try {
+          await EmailService.sendWelcomeEmail({
+            to: application.email,
+            applicantName: application.fullName,
+            role: "IUCB Certified Auditor",
+          });
+        } catch (e) {
+          console.log("[DEBUG] Email send failed (Auditor), but proceeding.", e);
+        }
+      } else if (application.applicationType === "TRAINING_INSTITUTE") {
+        mappedTable = "TrainingInstitute";
+        const trnData = {
+          instituteName: application.company ?? application.fullName,
+          registrationNumber: application.registrationNumber ?? `TRN-AUTO-${Date.now()}`,
+          country: application.country ?? "N/A",
+          address: application.address ?? "N/A", // Fixed from country to address
+          email: application.email,
+          phone: application.phone ?? "N/A",
+          website: application.website ?? null,
+          status: "ACTIVE" as const,
+        };
+        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
+        console.log(`[DEBUG] Data before insertion:`, trnData);
+
+        insertedRecord = await prisma.trainingInstitute.create({ data: trnData });
+        insertedId = insertedRecord.id;
+        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
+
+        try {
+          await EmailService.sendApprovalEmail({
+            to: application.email,
+            applicantName: application.fullName,
+            applicationType: typeLabel,
+            applicationNumber: application.applicationNumber ?? undefined,
+          });
+        } catch (e) {
+          console.log("[DEBUG] Email send failed (Training Institute), but proceeding.", e);
+        }
+      }
+
+      console.log(`[DEBUG] Database commit successful for table ${mappedTable}, Inserted ID: ${insertedId}`);
+      
+      // Verify Fetch
+      if (mappedTable === "Advisor") {
+         const fetchResult = await prisma.advisor.findUnique({ where: { id: insertedId } });
+         console.log(`[DEBUG] Fetch result from Advisor table:`, fetchResult ? "SUCCESS" : "FAILED");
+      } else if (mappedTable === "Organization") {
+         const fetchResult = await prisma.organization.findUnique({ where: { id: insertedId } });
+         console.log(`[DEBUG] Fetch result from Organization table:`, fetchResult ? "SUCCESS" : "FAILED");
+      } else if (mappedTable === "Auditor") {
+         const fetchResult = await prisma.auditor.findUnique({ where: { id: insertedId } });
+         console.log(`[DEBUG] Fetch result from Auditor table:`, fetchResult ? "SUCCESS" : "FAILED");
+      } else if (mappedTable === "TrainingInstitute") {
+         const fetchResult = await prisma.trainingInstitute.findUnique({ where: { id: insertedId } });
+         console.log(`[DEBUG] Fetch result from TrainingInstitute table:`, fetchResult ? "SUCCESS" : "FAILED");
+      }
+
+    } catch (error: any) {
+      console.error(`[DEBUG] INSERTION FAILING! Exact reason:`, error);
+      throw new ApiError(500, `Failed to create target record in ${mappedTable}: ${error.message}`);
+    }
+
+    // Now update application status since insertion succeeded
     const updatedApplication = await prisma.application.update({
       where: { id },
       data: {
@@ -276,99 +477,6 @@ export class AdminApplicationsController {
       },
     });
 
-    const typeLabel = TYPE_LABELS[application.applicationType] ?? "Application";
-
-    // ── Type-specific record creation ────────────────────────────────────────
-    if (application.applicationType === "ADVISORY") {
-      // Create Advisor profile
-      await prisma.advisor.create({
-        data: {
-          applicationId: application.id,
-          fullName: application.fullName,
-          linkedinUrl: application.linkedinUrl ?? null,
-          organization: application.company ?? "N/A",
-          designation: application.designation ?? "N/A",
-          expertiseArea: application.expertiseArea ?? "General",
-          experienceYears: application.experienceYears ?? 0,
-          status: "ACTIVE",
-        },
-      });
-      await EmailService.sendWelcomeEmail({
-        to: application.email,
-        applicantName: application.fullName,
-        role: "Advisory Board Member",
-      });
-    } else if (application.applicationType === "ACCREDITATION") {
-      // Auto-create Organization
-      const accDate = new Date();
-      const expDate = new Date();
-      expDate.setFullYear(expDate.getFullYear() + 5);
-
-      await prisma.organization.create({
-        data: {
-          organizationName: application.company ?? application.fullName,
-          registrationNumber: application.registrationNumber ?? `AUTO-${Date.now()}`,
-          country: application.country ?? "N/A",
-          address: application.country ?? "N/A",
-          email: application.email,
-          phone: application.phone ?? "N/A",
-          website: application.website ?? null,
-          accreditationStatus: "ACTIVE",
-          accreditationDate: accDate,
-          expiryDate: expDate,
-        },
-      });
-      await EmailService.sendApprovalEmail({
-        to: application.email,
-        applicantName: application.fullName,
-        applicationType: typeLabel,
-        applicationNumber: application.applicationNumber ?? undefined,
-      });
-    } else if (application.applicationType === "AUDITOR") {
-      // Auto-create Auditor profile (linked to first available org for now)
-      const firstOrg = await prisma.organization.findFirst({
-        where: { deletedAt: null, accreditationStatus: "ACTIVE" },
-      });
-
-      await prisma.auditor.create({
-        data: {
-          fullName: application.fullName,
-          email: application.email,
-          phone: application.phone ?? "N/A",
-          organizationId: firstOrg!.id,
-          tier: "ASSOCIATE",
-          specialization: application.appliedStandard ?? "General",
-          experienceYears: application.experienceYears ?? 0,
-          status: "ACTIVE",
-        },
-      });
-      await EmailService.sendWelcomeEmail({
-        to: application.email,
-        applicantName: application.fullName,
-        role: "IUCB Certified Auditor",
-      });
-    } else if (application.applicationType === "TRAINING_INSTITUTE") {
-      // Auto-create Training Institute record
-      await prisma.trainingInstitute.create({
-        data: {
-          instituteName: application.company ?? application.fullName,
-          registrationNumber: application.registrationNumber ?? `TRN-AUTO-${Date.now()}`,
-          country: application.country ?? "N/A",
-          address: application.country ?? "N/A",
-          email: application.email,
-          phone: application.phone ?? "N/A",
-          website: application.website ?? null,
-          status: "ACTIVE",
-        },
-      });
-      await EmailService.sendApprovalEmail({
-        to: application.email,
-        applicantName: application.fullName,
-        applicationType: typeLabel,
-        applicationNumber: application.applicationNumber ?? undefined,
-      });
-    }
-
     // Audit log
     await prisma.auditLog.create({
       data: {
@@ -377,14 +485,27 @@ export class AdminApplicationsController {
         entityId: application.id,
         action: "APPROVE",
         oldData: { applicationStatus: "PENDING" },
-        newData: { applicationStatus: "APPROVED" },
+        newData: { applicationStatus: "APPROVED", mappedTable, insertedId },
         ipAddress: req.ip,
         userAgent: req.headers["user-agent"],
       },
     });
 
+    const orgName = application.company || application.fullName;
+    let notifyMessage = `Application ${application.applicationNumber} has been approved.`;
+    if (application.applicationType === "ACCREDITATION") {
+      notifyMessage = `Organization application for ${orgName} has been approved.`;
+    } else if (application.applicationType === "AUDITOR") {
+      notifyMessage = `Auditor ${application.fullName} has been approved.`;
+    } else if (application.applicationType === "TRAINING_INSTITUTE") {
+      notifyMessage = `Training Institute ${orgName} has been approved.`;
+    } else if (application.applicationType === "ADVISORY") {
+      notifyMessage = `Advisory Board application for ${application.fullName} has been approved.`;
+    }
+
+
     res.status(200).json(
-      new ApiResponse(200, { application: updatedApplication }, "Application approved successfully"),
+      new ApiResponse(200, { application: updatedApplication, insertedRecord, mappedTable }, "Application approved successfully"),
     );
   });
 
@@ -434,6 +555,7 @@ export class AdminApplicationsController {
         userAgent: req.headers["user-agent"],
       },
     });
+
 
     res.status(200).json(
       new ApiResponse(200, { application: updatedApplication }, "Application rejected successfully"),

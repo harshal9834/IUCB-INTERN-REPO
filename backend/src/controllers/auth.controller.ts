@@ -9,6 +9,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
+import { EmailService } from "../services/email.service.js";
 
 const authService = new AuthService();
 
@@ -32,6 +33,7 @@ export class AuthController {
     if (!admin || admin.deletedAt !== null) {
       // Log FAILED_LOGIN
       await authService.logAudit(null, "ADMIN", "NONE", "FAILED_LOGIN", req.ip || null, req.headers["user-agent"] || null, { email: body.email });
+
       throw new ApiError(401, "Invalid email or password");
     }
 
@@ -42,6 +44,7 @@ export class AuthController {
     const isMatch = await bcrypt.compare(body.password, admin.password);
     if (!isMatch) {
       await authService.logAudit(null, "ADMIN", admin.id, "FAILED_LOGIN", req.ip || null, req.headers["user-agent"] || null, { email: body.email });
+
       throw new ApiError(401, "Invalid email or password");
     }
 
@@ -59,6 +62,10 @@ export class AuthController {
 
     // Log LOGIN
     await authService.logAudit(admin.id, "ADMIN", admin.id, "LOGIN", req.ip || null, req.headers["user-agent"] || null);
+
+    if (admin.role === "SUPER_ADMIN") {
+
+    }
 
     const { password, ...adminWithoutPassword } = admin;
 
@@ -176,14 +183,12 @@ export class AuthController {
       create: { key: `reset_${admin.id}`, value: JSON.stringify({ token: hashedResetToken, expires: expiry.getTime() }) },
     });
 
-    // Create Email Log
-    await prisma.emailLog.create({
-      data: {
-        recipient: admin.email,
-        subject: "IUCB Dashboard Reset Password Requested",
-        template: "forgot-password",
-        status: "SENT",
-      },
+    // Send Email
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+    await EmailService.sendPasswordResetEmail({
+      to: admin.email,
+      adminName: admin.fullName,
+      resetLink,
     });
 
     // For local verification, return resetToken in data when not in production environment

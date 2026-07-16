@@ -30,6 +30,9 @@ import {
   ChevronRight,
   Calendar,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import CountUp from "react-countup";
+import { formatDistanceToNow, format } from "date-fns";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -74,11 +77,11 @@ const slides = [
   },
 ];
 
-const stats = [
-  { value: "500+", label: "Accredited Organizations" },
-  { value: "80+", label: "Signatory Nations" },
-  { value: "2,000+", label: "Certified Auditors" },
-  { value: "50+", label: "Standards Covered" },
+const staticStats = [
+  { value: "500", suffix: "+", label: "Accredited Organizations", key: "organizations" },
+  { value: "80", suffix: "+", label: "Signatory Nations", key: "countries" },
+  { value: "2000", suffix: "+", label: "Certified Auditors", key: "auditors" },
+  { value: "50", suffix: "+", label: "Standards Covered", key: "standards" },
 ];
 
 const paths = [
@@ -303,9 +306,9 @@ function HeroCarousel() {
               className="relative h-full rounded-2xl overflow-hidden border border-white/10 text-white p-7 shadow-2xl shadow-primary/20"
               style={{ background: "linear-gradient(135deg, #0F172A 0%, #004B7A 100%)" }}
             >
-              {i === 0 && <BusinessVisual />}
-              {i === 1 && <AuditorVisual />}
-              {i === 2 && <CryptoVisual />}
+              {i === 0 && <CertificateInsights />}
+              {i === 1 && <CertificateProfile />}
+              {i === 2 && <CertificateSnapshot />}
             </div>
           </div>
         </div>
@@ -314,142 +317,327 @@ function HeroCarousel() {
   );
 }
 
-function BusinessVisual() {
-  return (
-    <div className="h-full flex flex-col justify-between">
-      <div className="flex items-center justify-between">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-white/70">
-          Global Impact Index
+function CertificateInsights() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["latestCertificateInsights"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:5000/api/v1/public/certificate/latest/insights");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      return json.data;
+    },
+    staleTime: 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex flex-col justify-between animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] tracking-[0.25em] uppercase text-white/70">Certificate Insights</div>
         </div>
-        <div className="text-[10px] tracking-[0.25em] uppercase text-gold">Q2 / 2026</div>
+        <div className="grid grid-cols-3 gap-3 mt-6">
+          <div className="h-16 rounded-lg bg-white/5" />
+          <div className="h-16 rounded-lg bg-white/5" />
+          <div className="h-16 rounded-lg bg-white/5" />
+        </div>
+        <div className="mt-6 space-y-3">
+          <div className="h-4 bg-white/5 rounded-md w-full" />
+          <div className="h-4 bg-white/5 rounded-md w-full" />
+          <div className="h-4 bg-white/5 rounded-md w-full" />
+        </div>
+        <div className="mt-6 rounded-lg h-12 bg-white/5" />
       </div>
-      <div className="grid grid-cols-3 gap-3 mt-6">
+    );
+  }
+
+  if (!data) return <div className="h-full flex items-center justify-center text-white/50 text-xs">No insights available</div>;
+
+  return (
+    <div className="h-full flex flex-col justify-between overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+      <div className="flex shrink-0 items-center justify-between sticky top-0 z-10 pb-3 mb-2 border-b border-white/10">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+          Certificate Insights
+        </h3>
+        <div className="text-[10px] tracking-[0.25em] uppercase text-gold">Live</div>
+      </div>
+      <div className="grid grid-cols-3 gap-3 mt-4 shrink-0">
         {[
-          { k: "+42%", v: "Audit pass rate" },
-          { k: "−31%", v: "Compliance cost" },
-          { k: "+18", v: "New markets" },
+          { k: format(new Date(data.issueDate), "dd MMM yy"), v: "Issue Date" },
+          { k: format(new Date(data.expiryDate), "dd MMM yy"), v: "Expiry Date" },
+          { k: data.verificationStatus, v: "Verification" },
         ].map((s) => (
           <div key={s.v} className="rounded-lg bg-white/5 border border-white/10 p-3">
-            <div className="text-xl font-semibold text-gold">{s.k}</div>
+            <div className="text-sm font-semibold text-gold truncate" title={s.k}>{s.k}</div>
             <div className="text-[10px] text-white/65 mt-1 leading-tight">{s.v}</div>
           </div>
         ))}
       </div>
-      <div className="mt-6 space-y-2.5">
-        {[72, 88, 64, 91].map((w, idx) => (
+      <div className="mt-6 space-y-3 shrink-0">
+        {[
+          { label: "Certificate Validity", val: data.validityPercentage },
+          { label: "Verification Confidence", val: data.verificationConfidence },
+          { label: "Digital Signature", val: data.digitalSignature ? 100 : 0, txt: data.digitalSignature ? "Verified" : "N/A" },
+          { label: "QR Verification", val: data.qrVerified ? 100 : 0, txt: data.qrVerified ? "Verified" : "N/A" },
+        ].map((w, idx) => (
           <div key={idx} className="flex items-center gap-3">
-            <div className="text-[10px] w-16 text-white/60 uppercase tracking-wider">
-              Sector {idx + 1}
+            <div className="text-[9px] w-[100px] text-white/60 uppercase tracking-wider leading-tight">
+              {w.label}
             </div>
             <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-secondary to-gold rounded-full"
-                style={{ width: `${w}%` }}
+                className="h-full bg-gradient-to-r from-secondary to-gold rounded-full transition-all duration-1000"
+                style={{ width: `${w.val}%` }}
               />
             </div>
-            <div className="text-[10px] w-8 text-white/70 text-right">{w}%</div>
+            <div className="text-[10px] w-12 text-white/70 text-right truncate">{w.txt ?? `${w.val}%`}</div>
           </div>
         ))}
       </div>
-      <div className="mt-6 rounded-lg bg-gold/10 border border-gold/30 p-3 text-[11px] text-white/80">
-        Independent research: organizations with IUCB-recognized credentials win 2.4× more
-        enterprise tenders.
+      <div className="mt-6 rounded-lg bg-gold/10 border border-gold/30 p-3 text-[10px] text-white/80 shrink-0 leading-relaxed">
+        <span className="font-semibold text-gold">Certificate Verification Notice:</span> This credential is currently {data.status} and recognized within the IUCB accreditation framework. All certificate information displayed is retrieved directly from the official database.
       </div>
     </div>
   );
 }
 
-function AuditorVisual() {
-  const tiers = [
-    { t: "Lead Auditor", c: 412, tone: "gold" },
-    { t: "Senior Auditor", c: 780, tone: "secondary" },
-    { t: "Associate", c: 808, tone: "muted" },
-  ];
-  return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-white/70">
-          Competency Registry
+function CertificateProfile() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["latestCertificateInsights"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:5000/api/v1/public/certificate/latest/insights");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      return json.data;
+    },
+    staleTime: 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex flex-col animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] tracking-[0.25em] uppercase text-white/70">Certificate Profile</div>
         </div>
+        <div className="mt-6 space-y-3">
+           <div className="h-16 rounded-lg bg-white/5" />
+           <div className="h-16 rounded-lg bg-white/5" />
+           <div className="h-16 rounded-lg bg-white/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return <div className="h-full flex items-center justify-center text-white/50 text-xs">No profile available</div>;
+
+  const tiers = [
+    { t: "Certificate Type", v: data.certificateType, sub: "IUCB Certification", right: data.status, tone: "gold", icon: Award },
+    { t: "Certificate Status", v: data.status, sub: "Verified Certificate", right: format(new Date(data.expiryDate), "dd MMM yyyy"), tone: "secondary", icon: CheckCircle2 },
+    { t: "Certificate Template", v: data.templateName, sub: `Version ${data.templateVersion}`, right: "Published", tone: "muted", icon: FileCheck2 },
+  ];
+
+  return (
+    <div className="h-full flex flex-col overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+      <div className="flex shrink-0 items-center justify-between sticky top-0 z-10 pb-3 mb-2 border-b border-white/10">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+          Certificate Profile
+        </h3>
         <div className="text-[10px] tracking-[0.25em] uppercase text-gold">Active</div>
       </div>
-      <div className="mt-6 space-y-3">
+      <div className="mt-4 space-y-3 shrink-0">
         {tiers.map((tier) => (
           <div key={tier.t} className="rounded-lg bg-white/5 border border-white/10 p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-[65%]">
                 <div
-                  className={`h-9 w-9 rounded-full grid place-items-center ${tier.tone === "gold" ? "bg-gold/20 border border-gold/40 text-gold" : tier.tone === "secondary" ? "bg-secondary/30 border border-secondary/50 text-white" : "bg-white/10 border border-white/15 text-white/80"}`}
+                  className={`h-9 w-9 shrink-0 rounded-full grid place-items-center ${tier.tone === "gold" ? "bg-gold/20 border border-gold/40 text-gold" : tier.tone === "secondary" ? "bg-secondary/30 border border-secondary/50 text-white" : "bg-white/10 border border-white/15 text-white/80"}`}
                 >
-                  <Users className="h-4 w-4" />
+                  <tier.icon className="h-4 w-4" />
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">{tier.t}</div>
-                  <div className="text-[10px] text-white/60 uppercase tracking-wider">
-                    ISO 27001 / 27701
-                  </div>
+                <div className="min-w-0">
+                  <div className="text-[9px] text-white/60 uppercase tracking-wider">{tier.t}</div>
+                  <div className="text-[11px] font-semibold text-white truncate pr-2" title={tier.v}>{tier.v}</div>
+                  <div className="text-[9px] text-white/40 mt-0.5">{tier.sub}</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-lg font-semibold text-gold">{tier.c}</div>
-                <div className="text-[9px] text-white/60 uppercase">Active</div>
+              <div className="text-right shrink-0 w-[30%]">
+                <div className={`text-[10px] font-bold uppercase tracking-wider ${tier.tone === 'gold' ? 'text-gold' : 'text-white/80'}`}>{tier.right}</div>
               </div>
             </div>
           </div>
         ))}
       </div>
-      <div className="mt-auto pt-5 flex items-center gap-2 text-[11px] text-white/70">
-        <CheckCircle2 className="h-3.5 w-3.5 text-gold" />
-        Validated against ISO/IEC 17024 personnel scheme.
+      
+      {/* Optional Metrics */}
+      <div className="mt-auto pt-4 grid grid-cols-2 gap-4 shrink-0">
+         <div className="text-[10px] text-white/50 flex items-center justify-between border-t border-white/10 pt-3">
+            <span>Downloads</span>
+            <span className="text-white/80 font-medium">{data.downloads}</span>
+         </div>
+         {data.verificationCount !== undefined && (
+           <div className="text-[10px] text-white/50 flex items-center justify-between border-t border-white/10 pt-3">
+              <span>Verifications</span>
+              <span className="text-white/80 font-medium">{data.verificationCount}</span>
+           </div>
+         )}
       </div>
     </div>
   );
 }
 
-function CryptoVisual() {
+function CertificateSnapshot() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["latestCertificate"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:5000/api/v1/public/certificate/latest/summary");
+      if (!res.ok) throw new Error("Failed to fetch certificate");
+      const json = await res.json();
+      return json.data; // might be null
+    },
+    staleTime: 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex flex-col animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] tracking-[0.25em] uppercase text-white/70">Certificate Status Overview</div>
+          <div className="h-3 w-12 bg-white/20 rounded" />
+        </div>
+        <div className="mt-4 h-32 rounded-lg bg-white/5 border border-white/10" />
+        <div className="mt-3 space-y-2">
+          <div className="h-12 rounded-md bg-white/5" />
+          <div className="h-12 rounded-md bg-white/5" />
+        </div>
+        <div className="mt-auto pt-3 grid grid-cols-2 gap-3">
+          <div className="h-12 rounded-md bg-white/5" />
+          <div className="h-12 rounded-md bg-white/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-white/50 text-xs">
+        No recent certificates generated.
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-white/70">Ledger Snapshot</div>
+    <div className="h-full flex flex-col overflow-y-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+      <div className="flex shrink-0 items-center justify-between sticky top-0 z-10 pb-3 mb-2 border-b border-white/10">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+          Certificate Status Overview
+        </h3>
         <div className="inline-flex items-center gap-1 text-[10px] tracking-[0.25em] uppercase text-gold">
           <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" /> Live
         </div>
       </div>
-      <div className="mt-5 rounded-lg bg-white/5 border border-white/10 p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-wider text-white/60">Block #482,914</div>
-          <Lock className="h-3.5 w-3.5 text-gold" />
-        </div>
-        <div className="mt-2 font-mono text-[10px] text-gold/90 break-all leading-relaxed">
-          0x3F9A...8B21·E4D0·9C7F·A1B2·6D4E·8F50·1928·77AA
+
+      {/* TOP STATUS CARD */}
+      <div className="mt-2 rounded-lg bg-white/5 border border-white/10 p-4 shrink-0">
+        <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+          <div className="col-span-2">
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Credential ID</div>
+            <div className="text-[11px] font-mono text-gold/90 truncate">{data.credentialId}</div>
+          </div>
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Certificate ID</div>
+            <div className="text-[11px] font-mono text-white/90 truncate">{data.certificateId}</div>
+          </div>
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Certificate Type</div>
+            <div className="text-[11px] text-white/90 truncate">{data.certificateType}</div>
+          </div>
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Issued On</div>
+            <div className="text-[11px] text-white/90">{format(new Date(data.issuedOn), "dd MMM yyyy")}</div>
+          </div>
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Valid Until</div>
+            <div className="text-[11px] text-white/90">{format(new Date(data.expiryDate), "dd MMM yyyy")}</div>
+          </div>
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Generated By</div>
+            <div className="text-[11px] text-white/90 truncate">{data.generatedBy}</div>
+          </div>
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Status</div>
+            <div className="text-[11px] text-gold font-bold">{data.status}</div>
+          </div>
         </div>
       </div>
-      <div className="mt-3 space-y-2">
-        {["ACC-2026-8942 issued", "AUD-2026-1284 renewed", "TRN-2026-0421 verified"].map(
-          (row, idx) => (
+
+      {/* CERTIFICATE SUMMARY */}
+      <div className="mt-3 rounded-lg bg-white/5 border border-white/10 p-3 shrink-0 grid grid-cols-2 gap-2">
+         <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Verification Status</div>
+            <div className="text-[10px] text-white/90">{data.verificationStatus}</div>
+         </div>
+         <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Template Used</div>
+            <div className="text-[10px] text-white/90 truncate" title={data.templateName}>{data.templateName}</div>
+         </div>
+         <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Email Status</div>
+            <div className="text-[10px] text-white/90">{data.emailStatus}</div>
+         </div>
+         <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Download Count</div>
+            <div className="text-[10px] text-white/90">{data.downloadCount} Downloads</div>
+         </div>
+      </div>
+
+      {/* RECENT CERTIFICATE EVENTS */}
+      <div className="mt-3 shrink-0">
+        <div className="text-[10px] uppercase tracking-wider text-white/70 mb-2">Recent Certificate Events</div>
+        <div className="space-y-2">
+          {data.activities.map((act: any, idx: number) => (
             <div
-              key={row}
-              className="flex items-center justify-between rounded-md bg-white/[0.04] border border-white/10 px-3 py-2 text-[11px]"
+              key={idx}
+              className="flex items-start justify-between rounded-md bg-white/[0.04] border border-white/10 px-3 py-2 text-[11px]"
             >
-              <div className="flex items-center gap-2 text-white/80">
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${idx === 0 ? "bg-gold" : "bg-secondary"}`}
-                />
-                {row}
+              <div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${idx === 0 ? "bg-gold" : "bg-secondary"}`}
+                  />
+                  {act.eventName}
+                </div>
+                <div className="text-[9px] text-white/50 mt-0.5 ml-3.5">
+                  By {act.performedBy}
+                </div>
               </div>
-              <span className="font-mono text-[10px] text-white/50">2s ago</span>
+              <div className="text-right">
+                <div className="font-mono text-[9px] text-white/50">
+                  {formatDistanceToNow(new Date(act.timestamp))} ago
+                </div>
+                <div className="text-[8px] text-white/40 mt-0.5 uppercase tracking-wider">{act.referenceNumber}</div>
+              </div>
             </div>
-          ),
-        )}
-      </div>
-      <div className="mt-auto pt-5 grid grid-cols-2 gap-3">
-        <div className="rounded-md bg-gold/10 border border-gold/30 p-3 text-center">
-          <ShieldCheck className="h-5 w-5 mx-auto text-gold" />
-          <div className="mt-1 text-[10px] uppercase tracking-wider text-white/80">Signed</div>
+          ))}
+          {data.activities.length === 0 && (
+             <div className="text-[10px] text-white/50 italic py-2 text-center">No recent events</div>
+          )}
         </div>
-        <div className="rounded-md bg-secondary/15 border border-secondary/40 p-3 text-center">
-          <QrCode className="h-5 w-5 mx-auto text-white" />
-          <div className="mt-1 text-[10px] uppercase tracking-wider text-white/80">QR-ready</div>
+      </div>
+
+      {/* RIGHT STATUS PANELS */}
+      <div className="mt-4 pt-3 border-t border-white/10 grid grid-cols-2 gap-3 shrink-0">
+        <div className="rounded-md bg-gold/10 border border-gold/30 p-2.5 flex items-center justify-between">
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">Digital Signature</div>
+            <div className="text-[10px] text-gold mt-0.5">{data.digitalSignature ? "Available" : "Not Available"}</div>
+          </div>
+          <ShieldCheck className="h-5 w-5 text-gold opacity-80" />
+        </div>
+        <div className="rounded-md bg-secondary/15 border border-secondary/40 p-2.5 flex items-center justify-between">
+          <div>
+            <div className="text-[9px] uppercase tracking-wider text-white/50">QR Verification</div>
+            <div className="text-[10px] text-white/90 mt-0.5">{data.qrGenerated ? "Generated" : "Not Generated"}</div>
+          </div>
+          <QrCode className="h-5 w-5 text-white opacity-80" />
         </div>
       </div>
     </div>
@@ -459,22 +647,58 @@ function CryptoVisual() {
 /* ----------------------------- KPI STRIP ----------------------------- */
 
 function KpiStrip() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["publicStatistics"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:5000/api/v1/public/statistics");
+      if (!res.ok) throw new Error("Failed to fetch statistics");
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      return json.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
   return (
     <section className="bg-white border-b border-border">
       <div className="container-x py-10 grid grid-cols-2 md:grid-cols-4 gap-6">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="text-center md:text-left border-l-2 border-gold pl-4 md:pl-5"
-          >
-            <div className="text-3xl md:text-[2.25rem] font-semibold text-gold tracking-tight leading-none">
-              {s.value}
+        {staticStats.map((s) => {
+          const apiValue = data ? data[s.key] : null;
+          const displayValue = apiValue ?? 0;
+          
+          return (
+            <div
+              key={s.label}
+              className="text-center md:text-left border-l-2 border-gold pl-4 md:pl-5"
+            >
+              <div className="text-3xl md:text-[2.25rem] font-semibold text-gold tracking-tight leading-none">
+                {isLoading ? (
+                  <div className="h-10 w-24 bg-slate-200 animate-pulse rounded md:mx-0 mx-auto" />
+                ) : (
+                  <>
+                    {isError || !apiValue ? (
+                      "0+"
+                    ) : (
+                      <>
+                        <CountUp
+                          start={0}
+                          end={displayValue}
+                          duration={1.5}
+                          separator=","
+                        />
+                        +
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="mt-2 text-[12px] text-muted-foreground uppercase tracking-wider">
+                {s.label}
+              </div>
             </div>
-            <div className="mt-2 text-[12px] text-muted-foreground uppercase tracking-wider">
-              {s.label}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

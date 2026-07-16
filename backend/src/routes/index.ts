@@ -30,9 +30,11 @@ import integrityVerificationRoutes from "./integrity-verification.routes.js";
 import dataRetentionRoutes from "./data-retention.routes.js";
 
 import { AdvisoryController } from "../controllers/advisory.controller.js";
+import { StatisticsController } from "../controllers/statistics.controller.js";
 
 const rootRouter = Router();
 const advisoryCtrl = new AdvisoryController();
+const statisticsCtrl = new StatisticsController();
 
 // API Health Check
 rootRouter.get("/health", (req, res) => {
@@ -92,6 +94,14 @@ rootRouter.use("/v1/bulk-email", bulkEmailRoutes);
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);
 
+// PRD: GET /api/v1/public/statistics
+rootRouter.get("/v1/public/statistics", statisticsCtrl.getPublicStatistics);
+
+// GET /api/v1/public/certificate/:credentialId/summary
+rootRouter.get("/v1/public/certificate/:credentialId/summary", statisticsCtrl.getCertificateSummary);
+
+// GET /api/v1/public/certificate/:credentialId/insights
+rootRouter.get("/v1/public/certificate/:credentialId/insights", statisticsCtrl.getCertificateInsights);
 // Directory Verification
 rootRouter.use("/v1/directory", directoryRoutes);
 

@@ -279,7 +279,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               <button
                 onClick={() => {
                   setShowProfileMenu(!showProfileMenu);
-                  setShowNotifications(false);
                 }}
                 className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-slate-50 transition-colors"
               >

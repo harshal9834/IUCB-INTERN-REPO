@@ -176,25 +176,6 @@ const content: Record<
     ],
     standards: ["ISO/IEC 17021", "ISO 19011", "IUCB Advisory Charter v2.0"],
   },
-  advisory: {
-    badge: "Advisory Program",
-    title: "Advisory Board Membership",
-    intro:
-      "Join IUCB's Advisory Board to shape global accreditation standards, provide strategic guidance, and influence policy direction. Share your expertise and contribute to international best practices.",
-    benefits: [
-      "Strategic influence on accreditation standards development",
-      "Peer networking with global accreditation leaders",
-      "Recognition as IUCB Advisory Board Member",
-      "Early access to emerging standards and initiatives",
-    ],
-    eligibility: [
-      "Recognized expertise in audit, management systems, or compliance",
-      "Senior leadership experience in accreditation or certification",
-      "Demonstrated commitment to quality and integrity",
-      "Ability to participate in quarterly board meetings",
-    ],
-    standards: ["ISO/IEC 17021", "ISO 19011", "IUCB Advisory Charter v2.0"],
-  },
 };
 
 function Services() {

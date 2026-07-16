@@ -15,9 +15,11 @@ import verifyRoutes from "./verify.routes.js";
 import resourcesRoutes from "./resources.routes.js";
 import certificateTemplateRoutes from "./certificate-template.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
+import { StatisticsController } from "../controllers/statistics.controller.js";
 
 const rootRouter = Router();
 const advisoryCtrl = new AdvisoryController();
+const statisticsCtrl = new StatisticsController();
 
 // API Health Check
 rootRouter.get("/health", (req, res) => {
@@ -41,17 +43,26 @@ rootRouter.use("/v1/audit-logs", auditRoutes);
 // Bulk Email & Certificate System
 rootRouter.use("/v1/bulk-email", bulkEmailRoutes);
 
-// Directory & Verification (completed-dash)
+// Directory & Verification
 rootRouter.use("/v1/directory", directoryRoutes);
 rootRouter.use("/v1/verify", verifyRoutes);
 
-// Resources (completed-dash)
+// Resources
 rootRouter.use("/v1/resources", resourcesRoutes);
 
-// Certificate Templates (completed-dash)
+// Certificate Templates
 rootRouter.use("/v1/certificate-templates", certificateTemplateRoutes);
 
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);
+
+// PRD: GET /api/v1/public/statistics (completed-dash)
+rootRouter.get("/v1/public/statistics", statisticsCtrl.getPublicStatistics);
+
+// GET /api/v1/public/certificate/:credentialId/summary (completed-dash)
+rootRouter.get("/v1/public/certificate/:credentialId/summary", statisticsCtrl.getCertificateSummary);
+
+// GET /api/v1/public/certificate/:credentialId/insights (completed-dash)
+rootRouter.get("/v1/public/certificate/:credentialId/insights", statisticsCtrl.getCertificateInsights);
 
 export default rootRouter;

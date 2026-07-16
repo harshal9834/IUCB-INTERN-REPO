@@ -9,7 +9,7 @@ import AuditService, { AuditContext } from './audit.service.js';
 import { AuditAction, AuditSeverity } from '../types/audit-enums.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_signing_key_change_me_in_production";
-const JWT_EXPIRES_IN = "15m"; // Short lived access token
+const JWT_EXPIRES_IN = "24h"; // Extended for development — change to 15m in production
 const REFRESH_TOKEN_EXPIRES_DAYS = 7;
 
 export class AuthService {

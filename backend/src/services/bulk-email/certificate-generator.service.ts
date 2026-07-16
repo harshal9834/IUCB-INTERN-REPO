@@ -84,6 +84,33 @@ export class CertificateGeneratorService {
       pdfFileName 
     };
   }
+
+  /**
+   * Generates a PDF buffer from HTML (for direct API usage)
+   */
+  public async generatePdfBuffer(populatedHtml: string): Promise<Buffer> {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    try {
+      const page = await browser.newPage();
+      await page.setContent(populatedHtml, { waitUntil: 'domcontentloaded' });
+      
+      // Generate PDF
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        landscape: true, // typical for certificates
+        printBackground: true,
+        margin: { top: '0', right: '0', bottom: '0', left: '0' }
+      });
+      
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await browser.close();
+    }
+  }
 }
 
 export const certificateGeneratorService = new CertificateGeneratorService();

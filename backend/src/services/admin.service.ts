@@ -11,5 +11,9 @@ export class AdminService {
   async getAdminByEmail(email: string): Promise<Admin | null> {
     return this.adminRepository.findByEmail(email);
   }
+
+  async createAdmin(data: any): Promise<Admin> {
+    return this.adminRepository.create(data);
+  }
 }
 export default AdminService;

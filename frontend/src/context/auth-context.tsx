@@ -33,9 +33,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const restoreSession = async () => {
       // Only attempt if we had a previous session flag
       const hadSession = localStorage.getItem("has_session");
+      const storedToken = localStorage.getItem("token");
+      
       if (!hadSession) {
         setIsLoading(false);
         return;
+      }
+
+      // Immediately restore token from localStorage so in-flight requests work
+      if (storedToken) {
+        setAccessToken(storedToken);
       }
 
       try {
@@ -60,9 +67,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           status: admin.status,
         });
       } catch {
-        // Session expired or no valid cookie — clear flag and proceed as unauthenticated
-        localStorage.removeItem("has_session");
-        setAccessToken(null);
+        // Refresh failed — try using the stored token directly as fallback
+        if (storedToken) {
+          try {
+            const meRes = await axiosInstance.get("/auth/me");
+            const admin = meRes.data.data.admin;
+            setUser({
+              id: admin.id,
+              name: admin.fullName,
+              email: admin.email,
+              role: admin.role,
+              status: admin.status,
+            });
+          } catch {
+            // Token also invalid — clear everything
+            localStorage.removeItem("has_session");
+            localStorage.removeItem("token");
+            setAccessToken(null);
+          }
+        } else {
+          localStorage.removeItem("has_session");
+          setAccessToken(null);
+        }
       } finally {
         setIsLoading(false);
       }

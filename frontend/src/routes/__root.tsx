@@ -158,6 +158,7 @@ function RootLayoutWrapper() {
     "/admin/certificates",
     "/admin/applications",
     "/admin/content",
+    "/admin/certificate-templates",
     "/admin/analytics",
     "/admin/audit-logs",
     "/admin/settings",

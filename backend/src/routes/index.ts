@@ -14,6 +14,7 @@ import directoryRoutes from "./directory.routes.js";
 import verifyRoutes from "./verify.routes.js";
 import resourcesRoutes from "./resources.routes.js";
 import certificateTemplateRoutes from "./certificate-template.routes.js";
+import heroRoutes from "./hero.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
 import { StatisticsController } from "../controllers/statistics.controller.js";
 
@@ -64,5 +65,7 @@ rootRouter.get("/v1/public/certificate/:credentialId/summary", statisticsCtrl.ge
 
 // GET /api/v1/public/certificate/:credentialId/insights (completed-dash)
 rootRouter.get("/v1/public/certificate/:credentialId/insights", statisticsCtrl.getCertificateInsights);
+
+rootRouter.use("/v1", heroRoutes);
 
 export default rootRouter;

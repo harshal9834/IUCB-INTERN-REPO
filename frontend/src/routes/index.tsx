@@ -4,7 +4,7 @@ import {
   ShieldCheck, BadgeCheck, Globe2, Users, Building2, GraduationCap, Search,
   ArrowRight, FileCheck2, Award, Lock, Scale, Eye, CheckCircle2, AlertTriangle,
   Briefcase, Cpu, HeartPulse, Banknote, Factory, Landmark, Quote, QrCode, Upload,
-  Loader2, ChevronLeft, ChevronRight, Calendar,
+  Loader2, ChevronLeft, ChevronRight, Calendar, Camera
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import CountUp from "react-countup";
@@ -148,7 +148,7 @@ function Home() {
       <InstitutionalOverview />
       <AudiencePaths />
       <ProblemSolution />
-      <WhatWeOffer />
+      <SecureCredentialVerification />
       <TrustPillars />
       <IndustriesRow />
     </>
@@ -159,13 +159,32 @@ function Home() {
 
 function HeroCarousel() {
   const [i, setI] = useState(0);
+
+  const { data: dynamicSlides, isLoading } = useQuery({
+    queryKey: ["publicHeroSlides"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:5000/api/v1/public/hero-slides");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      return json.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const activeSlides = dynamicSlides && dynamicSlides.length > 0 
+    ? dynamicSlides.map((s: any) => ({
+        ...s,
+        cta: { label: s.ctaLabel, to: s.ctaUrl }
+      }))
+    : slides;
+
   useEffect(() => {
-    const t = setInterval(() => setI((p) => (p + 1) % slides.length), 6500);
+    const t = setInterval(() => setI((p) => (p + 1) % activeSlides.length), 6500);
     return () => clearInterval(t);
-  }, []);
+  }, [activeSlides.length]);
 
   return (
-    <section className="relative overflow-hidden" style={{ backgroundColor: "#F8FAFC" }}>
+    <section className="relative overflow-hidden flex items-center" style={{ backgroundColor: "#F8FAFC" }}>
       <div className="absolute inset-0 opacity-[0.45]"
         style={{
           backgroundImage: "linear-gradient(to right, #E2E8F0 1px, transparent 1px), linear-gradient(to bottom, #E2E8F0 1px, transparent 1px)",
@@ -176,67 +195,81 @@ function HeroCarousel() {
       <div className="absolute -top-32 -right-32 h-[36rem] w-[36rem] rounded-full bg-secondary/10 blur-3xl" />
       <div className="absolute -bottom-32 left-1/4 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
 
-      <div className="container-x relative pt-14 pb-20 md:pt-20 md:pb-28 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center min-h-[560px]">
+      <div className="w-full max-w-[1550px] mx-auto px-6 md:px-12 xl:px-20 relative pt-8 pb-16 md:pt-12 md:pb-24 lg:pt-12 lg:pb-28 grid lg:grid-cols-12 gap-12 lg:gap-20 xl:gap-28 items-start">
         {/* LEFT: cross-fade text */}
-        <div className="lg:col-span-7 relative min-h-[380px]">
-          {slides.map((s, idx) => (
-            <div
-              key={s.title}
-              className={`transition-all duration-700 ${idx === i ? "opacity-100 translate-y-0 relative" : "opacity-0 translate-y-3 absolute inset-0 pointer-events-none"}`}
-            >
-              <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.22em] uppercase text-primary bg-white border border-gold/50 rounded-full px-3 py-1.5 shadow-sm" style={{ color: "#004B7A" }}>
-                <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-                {s.eyebrow}
-              </div>
-              <h1 className="mt-6 text-4xl md:text-5xl lg:text-[3.6rem] font-semibold leading-[1.05] tracking-tight" style={{ color: "#0F172A" }}>
-                {s.title}
-              </h1>
-              <div className="mt-3 text-lg md:text-xl font-semibold" style={{ color: "#D4AF37" }}>{s.accent}</div>
-              <p className="mt-6 max-w-2xl text-base md:text-[17px] leading-relaxed" style={{ color: "#475569" }}>
-                {s.body}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
-                <Link
-                  to={s.cta.to as never}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-gold text-gold-foreground text-sm font-semibold hover:brightness-105 transition shadow-lg shadow-gold/30"
-                >
-                  {s.cta.label} <ArrowRight className="h-4 w-4" />
-                </Link>
-                <div className="flex items-center gap-3 pl-2">
-                  <div className="text-2xl font-semibold" style={{ color: "#D4AF37" }}></div>
-                  <div className="text-xs leading-tight max-w-[120px]" style={{ color: "#64748B" }}></div>
+        <div className="lg:col-span-7 relative flex flex-col justify-center mt-2 lg:mt-4">
+          {isLoading ? (
+            <div className="animate-pulse">
+              <div className="h-6 w-32 bg-primary/10 rounded-full mb-6"></div>
+              <div className="h-12 w-3/4 bg-primary/10 rounded-lg mb-5"></div>
+              <div className="h-6 w-1/2 bg-primary/10 rounded-lg mb-6"></div>
+              <div className="h-6 w-full bg-primary/10 rounded mb-2"></div>
+              <div className="h-6 w-full bg-primary/10 rounded mb-2"></div>
+              <div className="h-6 w-2/3 bg-primary/10 rounded mb-8"></div>
+              <div className="h-12 w-40 bg-gold/20 rounded-full"></div>
+            </div>
+          ) : (
+            activeSlides.map((s: any, idx: number) => (
+              <div
+                key={s.title}
+                className={`transition-all duration-700 ${idx === i ? "opacity-100 translate-y-0 relative" : "opacity-0 translate-y-3 absolute inset-0 pointer-events-none"}`}
+              >
+                <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.22em] uppercase text-primary bg-white border border-gold/50 rounded-full px-3 py-1.5 shadow-sm" style={{ color: "#004B7A" }}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+                  {s.eyebrow}
+                </div>
+                <h1 className="mt-7 text-4xl md:text-5xl lg:text-[3.8rem] font-semibold leading-[1.08] tracking-tight max-w-[860px]" style={{ color: "#0F172A" }}>
+                  {s.title}
+                </h1>
+                <div className="mt-5 text-lg md:text-xl font-semibold" style={{ color: "#D4AF37" }}>{s.accent}</div>
+                <p className="mt-7 max-w-[800px] text-base md:text-[17px] leading-relaxed" style={{ color: "#475569" }}>
+                  {s.body}
+                </p>
+                <div className="mt-10 flex flex-wrap items-center gap-8">
+                  <Link
+                    to={s.cta.to as never}
+                    className="inline-flex items-center gap-2 px-7 py-4 rounded-full bg-gold text-gold-foreground text-sm font-semibold hover:brightness-105 transition shadow-lg shadow-gold/30"
+                  >
+                    {s.cta.label} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <div className="flex items-center gap-3 pl-2">
+                    <div className="text-[1.7rem] font-semibold" style={{ color: "#D4AF37" }}>+95%</div>
+                    <div className="text-xs leading-tight max-w-[120px] font-medium" style={{ color: "#64748B" }}>Audit Pass Rate</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
 
           {/* tracking controls */}
-          <div className="mt-12 flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              {slides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setI(idx)}
-                  aria-label={`Go to slide ${idx + 1}`}
-                  className={`h-2.5 rounded-full transition-all ${idx === i ? "w-8 bg-primary" : "w-2.5 border border-primary/30 bg-transparent hover:bg-primary/10"}`}
-                />
-              ))}
+          {!isLoading && (
+            <div className="mt-16 flex items-center gap-5">
+              <div className="flex items-center gap-2">
+                {activeSlides.map((_: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setI(idx)}
+                    aria-label={`Go to slide ${idx + 1}`}
+                    className={`h-2.5 rounded-full transition-all ${idx === i ? "w-8 bg-primary" : "w-2.5 border border-primary/30 bg-transparent hover:bg-primary/10"}`}
+                  />
+                ))}
+              </div>
+              <div className="h-5 w-px bg-primary/20" />
+              <div className="flex items-center gap-1">
+                <button onClick={() => setI((p) => (p - 1 + activeSlides.length) % activeSlides.length)} className="h-8 w-8 grid place-items-center rounded-full border border-primary/25 text-primary hover:bg-primary/5 transition" aria-label="Previous">
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button onClick={() => setI((p) => (p + 1) % activeSlides.length)} className="h-8 w-8 grid place-items-center rounded-full border border-primary/25 text-primary hover:bg-primary/5 transition" aria-label="Next">
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="h-5 w-px bg-primary/20" />
-            <div className="flex items-center gap-1">
-              <button onClick={() => setI((p) => (p - 1 + slides.length) % slides.length)} className="h-8 w-8 grid place-items-center rounded-full border border-primary/25 text-primary hover:bg-primary/5 transition" aria-label="Previous">
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button onClick={() => setI((p) => (p + 1) % slides.length)} className="h-8 w-8 grid place-items-center rounded-full border border-primary/25 text-primary hover:bg-primary/5 transition" aria-label="Next">
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* RIGHT: visual composition */}
-        <div className="lg:col-span-5 relative">
-          <div className="relative mx-auto max-w-md aspect-[4/5]">
+        <div className="lg:col-span-5 relative mt-4 lg:mt-8 xl:mt-10 flex flex-col justify-start">
+          <div className="relative w-full max-w-[580px] h-[520px] ml-auto">
             {/* masked geometry */}
             <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-secondary/15 via-secondary/5 to-transparent blur-2xl" />
             <div className="absolute -top-4 -right-4 h-40 w-40 rounded-3xl border-2 border-gold/50 rotate-6" />
@@ -244,7 +277,7 @@ function HeroCarousel() {
 
             {/* Main panel — dark navy card (completed-dash: new certificate visuals) */}
             <div
-              className="relative h-full rounded-2xl overflow-hidden border border-white/10 text-white p-7 shadow-2xl shadow-primary/20"
+              className="relative h-full rounded-2xl overflow-hidden border border-white/10 text-white p-7 shadow-2xl shadow-primary/20 flex flex-col"
               style={{ background: "linear-gradient(135deg, #0F172A 0%, #004B7A 100%)" }}
             >
               {i === 0 && <CertificateInsights />}
@@ -622,7 +655,7 @@ function KpiStrip() {
 
 function InstitutionalOverview() {
   return (
-    <section className="py-20 md:py-24 bg-soft-gray">
+    <section className="py-16 md:py-20 bg-soft-gray">
       <div className="container-x grid lg:grid-cols-12 gap-12 items-center">
         <div className="lg:col-span-6">
           <div className="eyebrow">Global Validation Initiative</div>
@@ -700,7 +733,7 @@ function MontagePanel({
 
 function AudiencePaths() {
   return (
-    <section className="py-20 md:py-24 bg-white">
+    <section className="py-16 md:py-20 bg-white">
       <div className="container-x">
         <div className="max-w-2xl">
           <div className="eyebrow">How Can We Help You?</div>
@@ -709,7 +742,7 @@ function AudiencePaths() {
           </h2>
           <p className="mt-4 text-muted-foreground">Tailored journeys for every stakeholder in the accreditation ecosystem.</p>
         </div>
-        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {paths.map((p) => (
             <Link
               key={p.title}
@@ -736,7 +769,7 @@ function AudiencePaths() {
 
 function ProblemSolution() {
   return (
-    <section className="py-20 md:py-24 bg-soft-gray">
+    <section className="py-16 md:py-20 bg-soft-gray">
       <div className="container-x">
         <div className="max-w-2xl">
           <div className="eyebrow">The Solution Matrix</div>
@@ -745,7 +778,7 @@ function ProblemSolution() {
           </h2>
           <p className="mt-4 text-muted-foreground">Mapping common industry compliance failures against our platform capabilities.</p>
         </div>
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
+        <div className="mt-10 grid md:grid-cols-3 gap-6">
           {problems.map((p, i) => (
             <article key={i} className="rounded-2xl overflow-hidden border border-border bg-white shadow-sm hover:shadow-lg transition">
               <div className="bg-[#FFF7E6] border-b border-gold/20 p-5">
@@ -771,11 +804,11 @@ function ProblemSolution() {
   );
 }
 
-/* ----------------------------- WHAT WE OFFER ----------------------------- */
+/* ----------------------------- SECURE CREDENTIAL VERIFICATION ----------------------------- */
 
-function WhatWeOffer() {
+function SecureCredentialVerification() {
   return (
-    <section className="py-20 md:py-24 bg-primary text-white relative overflow-hidden">
+    <section className="py-16 md:py-20 bg-primary text-white relative overflow-hidden">
       <div
         className="absolute inset-0 opacity-[0.05]"
         style={{
@@ -783,52 +816,128 @@ function WhatWeOffer() {
           backgroundSize: "56px 56px",
         }}
       />
-      <div className="container-x relative">
-        <div className="max-w-2xl">
-          <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gold">What We Offer</div>
-          <h2 className="mt-3 text-3xl md:text-4xl font-semibold leading-tight tracking-tight">
-            Accreditation, Certification & Professional Development
+      <div className="container-x relative grid lg:grid-cols-2 gap-12 lg:gap-24 items-start pt-4">
+        {/* Left Column */}
+        <div className="max-w-[480px]">
+          <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-gold border border-gold/30 rounded-full px-3.5 py-1 bg-gold/5">
+            <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+            SECURE CREDENTIAL VERIFICATION
+          </div>
+          <h2 className="mt-5 text-4xl md:text-5xl lg:text-[3.5rem] font-semibold leading-[1.05] tracking-tight">
+            Instant, <span className="text-gold">Cryptographic</span> Verification
           </h2>
-          <p className="mt-4 text-white/75">
-            A single ecosystem for organizational accreditation, individual certifications, and professional development pathways.
+          <p className="mt-5 text-white/75 text-[17px] leading-relaxed max-w-[440px]">
+            Trust requires transparency. The open verification console allows anyone — regulators, employers, or partners — to instantly validate the authenticity and current status of any IUCB issued credential.
           </p>
-        </div>
-        <div className="mt-12 grid lg:grid-cols-3 gap-5">
-          {[
-            {
-              icon: Building2,
-              title: "Accreditation Programs",
-              desc: "Formal recognition of competence for Certification Bodies, Auditors, and Training Providers.",
-              to: "/services",
-            },
-            {
-              icon: BadgeCheck,
-              title: "Certification Schemes",
-              desc: "Independent certification against ISO, Cybersecurity, and Privacy standards.",
-              to: "/services",
-            },
-            {
-              icon: GraduationCap,
-              title: "Professional Development",
-              desc: "World-class courses and rigorous exams for compliance professionals.",
-              to: "/services",
-            },
-          ].map((c) => (
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-3 text-white/90">
+              <ShieldCheck className="h-4 w-4 text-gold" />
+              <span className="font-medium text-[15px]">Tamper-Proof Credentials</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/90">
+              <QrCode className="h-4 w-4 text-gold" />
+              <span className="font-medium text-[15px]">QR Code Verification</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/90">
+              <CheckCircle2 className="h-4 w-4 text-gold" />
+              <span className="font-medium text-[15px]">Real-Time Validation</span>
+            </div>
+          </div>
+          <div className="mt-8">
             <Link
-              key={c.title}
-              to={c.to as never}
-              className="group rounded-2xl bg-white/[0.06] border border-white/15 p-7 hover:bg-white/[0.1] hover:-translate-y-1 transition-all"
+              to="/verify"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gold text-gold-foreground text-sm font-semibold hover:brightness-105 transition shadow-lg shadow-gold/20"
             >
-              <div className="h-12 w-12 rounded-lg bg-gold/15 border border-gold/30 text-gold grid place-items-center">
-                <c.icon className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-xl font-semibold">{c.title}</h3>
-              <p className="mt-2 text-sm text-white/70 leading-relaxed">{c.desc}</p>
-              <div className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-gold">
-                Explore <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
+              Verify a Credential <ArrowRight className="h-4 w-4" />
             </Link>
-          ))}
+          </div>
+        </div>
+
+        {/* Right Column (Verification Console Card) */}
+        <div className="relative lg:ml-auto w-full max-w-[540px]">
+          <div className="rounded-xl border border-white/10 bg-[#0F172A] px-6 py-5 shadow-2xl">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-white/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+                ONLINE
+              </div>
+              <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/40">
+                SECURE LAYER
+              </div>
+            </div>
+
+            {/* Heading */}
+            <div>
+              <h3 className="text-base font-bold text-white">Verification Console</h3>
+              <p className="text-xs text-white/50 mt-0.5">Verify any IUCB issued credential directly.</p>
+            </div>
+
+            {/* Inputs & Buttons */}
+            <div className="mt-5 space-y-2.5">
+              <div>
+                <div className="text-[10px] font-bold tracking-[0.1em] uppercase text-white/50 mb-1.5">CREDENTIAL ID</div>
+                <input
+                  type="text"
+                  placeholder="IUCB-ACB-0421 • ISO-27001-9842"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-gold/50 transition-colors font-mono"
+                  disabled
+                />
+              </div>
+              <button className="w-full flex items-center justify-center gap-2 bg-[#4273c5] hover:bg-[#325ca6] text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">
+                <ShieldCheck className="h-4 w-4" />
+                Verify Authenticity
+              </button>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2 text-xs font-medium text-white transition-colors">
+                  <Upload className="h-3.5 w-3.5 opacity-70" />
+                  Upload PDF
+                </button>
+                <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2 text-xs font-medium text-white transition-colors">
+                  <Camera className="h-3.5 w-3.5 opacity-70" />
+                  Use Camera
+                </button>
+              </div>
+            </div>
+
+            {/* Verification Result Card */}
+            <div className="mt-4 rounded-lg bg-white/[0.03] border border-white/10 p-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.1em] uppercase text-[#34D399] mb-2">
+                <CheckCircle2 className="h-3 w-3" />
+                CREDENTIAL STATUS
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <h4 className="text-xl font-bold text-white">Verified</h4>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/30">
+                  Active
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                <div>
+                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Issuer</div>
+                  <div className="text-xs text-white">IUCB</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Issue Date</div>
+                  <div className="text-xs text-white">12 March 2026</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Status</div>
+                  <div className="text-xs font-semibold text-[#34D399]">Active</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Verification</div>
+                  <div className="text-xs text-white">Cryptographically Signed</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-4 flex items-center gap-2 text-[10px] text-white/40 border-t border-white/10 pt-3">
+              <Lock className="h-3.5 w-3.5" />
+              Powered by cryptographic signatures and an immutable registry on ledger.
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -839,7 +948,7 @@ function WhatWeOffer() {
 
 function TrustPillars() {
   return (
-    <section className="py-20 md:py-24 bg-white">
+    <section className="pt-16 pb-10 md:pt-20 md:pb-12 bg-white">
       <div className="container-x">
         <div className="max-w-2xl">
           <div className="eyebrow">Trust Framework</div>
@@ -847,7 +956,7 @@ function TrustPillars() {
             Why organizations and regulators trust IUCB
           </h2>
         </div>
-        <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {trust.map((t) => (
             <div key={t.title} className="rounded-xl border border-border p-6 hover:border-primary hover:shadow-md hover:-translate-y-0.5 transition">
               <div className="h-10 w-10 rounded-md bg-light-blue text-primary grid place-items-center">
@@ -867,18 +976,18 @@ function TrustPillars() {
 
 function IndustriesRow() {
   return (
-    <section className="py-20 md:py-24 bg-soft-gray">
+    <section className="py-10 md:py-12 bg-soft-gray">
       <div className="container-x">
         <div className="max-w-2xl">
           <div className="eyebrow">Recognized Across Sectors</div>
           <h2 className="mt-3 text-3xl md:text-4xl font-semibold text-navy tracking-tight">
             From Fortune 500 to government agencies
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-3 text-muted-foreground">
             IUCB accreditation is recognized where it matters — across regulated and high-trust industries.
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {industries.map((i) => (
             <div key={i.label} className="rounded-xl bg-white border border-border p-6 text-center hover:border-secondary hover:shadow-md transition">
               <i.icon className="h-7 w-7 mx-auto text-secondary" />

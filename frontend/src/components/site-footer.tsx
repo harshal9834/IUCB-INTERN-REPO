@@ -37,9 +37,11 @@ export function SiteFooter() {
       <div className="container-x py-16 grid gap-12 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gold text-gold-foreground">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
+            <img 
+              src="/logos/FINAL_LOGO_DESIGN.jpeg" 
+              alt="IUCB Logo" 
+              className="h-11 w-11 object-contain flex-shrink-0 rounded-md"
+            />
             <div>
               <div className="text-lg font-semibold">IUCB</div>
               <div className="text-[10px] uppercase tracking-widest opacity-75">

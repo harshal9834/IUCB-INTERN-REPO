@@ -67,12 +67,12 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50">
       {/* Zone B — Branding row */}
       <div className="bg-white border-b border-border">
-        <div className="container-x flex h-[68px] items-center justify-between">
+        <div className="w-full max-w-[1550px] mx-auto px-6 md:px-12 xl:px-20 flex h-[68px] items-center justify-between">
           <Link to="/" className="flex items-center gap-4">
             <img 
               src="/logos/FINAL_LOGO_DESIGN.jpeg" 
               alt="IUCB Logo" 
-              className="h-16 w-16 flex-shrink-0"
+              className="h-16 w-16 flex-shrink-0 object-contain rounded-full"
             />
             <div className="leading-tight hidden sm:block">
               <div className="text-base font-bold tracking-tight text-primary">IUCB</div>
@@ -102,8 +102,8 @@ export function SiteHeader() {
       </div>
 
       {/* Zone C — Global navigation bar */}
-      <div className="bg-primary text-white border-t border-white/10 relative">
-        <div className="container-x">
+      <div className="bg-primary text-white border-t border-white/10">
+        <div className="w-full max-w-[1550px] mx-auto px-6 md:px-12 xl:px-20 relative flex items-center justify-between">
           <nav className="hidden lg:flex items-center gap-0">
             {nav.map((item) => (
               <div
@@ -133,7 +133,7 @@ export function SiteHeader() {
                   >
                     <div className="absolute left-0 top-full w-screen">
                       <div className="bg-white border-b-4 border-gold shadow-2xl">
-                        <div className="container-x py-10 grid grid-cols-4 gap-10">
+                        <div className="w-full max-w-[1550px] mx-auto px-6 md:px-12 xl:px-20 py-10 grid grid-cols-4 gap-10">
                           {(item.hasMenu === "programs" ? programsMega : resourcesMega).map(
                             (col) => (
                               <div key={col.title}>
@@ -162,15 +162,22 @@ export function SiteHeader() {
                 )}
               </div>
             ))}
-            <div className="ml-auto flex items-center gap-2 py-2">
+          </nav>
+          
+          <div className="hidden lg:flex items-center gap-4 py-2">
+              <Link
+                to="/verify"
+                className="inline-flex items-center h-9 px-6 rounded-full border border-white/40 text-white text-[13px] font-semibold hover:bg-white/10 transition"
+              >
+                Verify
+              </Link>
               <Link
                 to="/services"
-                className="inline-flex items-center h-9 px-5 rounded-full bg-gold text-gold-foreground text-[13px] font-bold hover:brightness-105 transition shadow-sm"
+                className="inline-flex items-center h-9 px-6 rounded-full bg-gold text-gold-foreground text-[13px] font-bold hover:brightness-105 transition shadow-sm"
               >
                 Get Accredited
               </Link>
-            </div>
-          </nav>
+          </div>
         </div>
         {/* Subtle gold separator between header and page content */}
         <div className="h-px w-full bg-gradient-to-r from-transparent via-gold/40 to-transparent" />

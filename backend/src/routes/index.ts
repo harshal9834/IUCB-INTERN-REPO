@@ -15,6 +15,9 @@ import verifyRoutes from "./verify.routes.js";
 import resourcesRoutes from "./resources.routes.js";
 import certificateTemplateRoutes from "./certificate-template.routes.js";
 import heroRoutes from "./hero.routes.js";
+import trainingInstitutesRoutes from "./training-institutes.routes.js";
+import trainingInstituteRoutes from "./training-institute.routes.js";
+import applicationsRoutes from "./applications.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
 import { StatisticsController } from "../controllers/statistics.controller.js";
 
@@ -41,6 +44,9 @@ rootRouter.use("/v1/advisory", advisoryRoutes);
 rootRouter.use("/v1/analytics", analyticsRoutes);
 rootRouter.use("/v1/audit-logs", auditRoutes);
 
+// Applications (Admin CRUD + approve/reject)
+rootRouter.use("/v1/applications", applicationsRoutes);
+
 // Bulk Email & Certificate System
 rootRouter.use("/v1/bulk-email", bulkEmailRoutes);
 
@@ -53,6 +59,12 @@ rootRouter.use("/v1/resources", resourcesRoutes);
 
 // Certificate Templates
 rootRouter.use("/v1/certificate-templates", certificateTemplateRoutes);
+
+// Training Institutes (protected CRUD + status)
+rootRouter.use("/v1/training-institutes", trainingInstitutesRoutes);
+
+// Training Institute public application
+rootRouter.use("/v1/training-institute", trainingInstituteRoutes);
 
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);

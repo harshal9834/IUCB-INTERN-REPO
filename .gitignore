@@ -87,3 +87,11 @@ tmp/
 # Runtime Uploads & Assets
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# Runtime storage (user-uploaded files, generated certificates, etc.)
+backend/storage/resources/*
+!backend/storage/resources/.gitkeep
+backend/storage/certificate-templates/*
+!backend/storage/certificate-templates/.gitkeep
+backend/storage/generated-certificates/*
+!backend/storage/generated-certificates/.gitkeep

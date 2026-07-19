@@ -150,19 +150,34 @@ export class BulkEmailService {
           data: { status: 'EMAILING' }
         });
 
-        // Reconstruct combined data for email template
-        const combinedData = {
-          'Candidate Name': cred.candidateName,
-          'Email': cred.email,
-          'Institute Name': cred.instituteName,
-          'Credential ID': cred.credentialId,
-          'Certificate ID': cred.certificateId,
+        // Reconstruct combined data for email template.
+        // We include BOTH the display-name form AND the UPPER_SNAKE form of each
+        // field so templates using either convention resolve correctly.
+        const combinedData: Record<string, string> = {
+          // Display-name forms
+          'Candidate Name':      cred.candidateName,
+          'Email':               cred.email,
+          'Institute Name':      cred.instituteName,
+          'Credential ID':       cred.credentialId,
+          'Certificate ID':      cred.certificateId,
           'Registration Number': cred.registrationNumber,
-          'Verification Token': cred.verificationToken,
-          'Verification URL': cred.verificationUrl,
-          'Issue Date': cred.issueDate.toLocaleDateString(),
-          'Expiry Date': cred.expiryDate.toLocaleDateString(),
-          'Campaign ID': campaign.campaignId,
+          'Verification Token':  cred.verificationToken,
+          'Verification URL':    cred.verificationUrl,
+          'Issue Date':          cred.issueDate.toLocaleDateString(),
+          'Expiry Date':         cred.expiryDate.toLocaleDateString(),
+          'Campaign ID':         campaign.campaignId,
+          // UPPER_SNAKE_CASE aliases (template may use either form)
+          'CANDIDATE_NAME':      cred.candidateName,
+          'EMAIL':               cred.email,
+          'INSTITUTE_NAME':      cred.instituteName,
+          'CREDENTIAL_ID':       cred.credentialId,
+          'CERTIFICATE_ID':      cred.certificateId,
+          'REGISTRATION_NUMBER': cred.registrationNumber,
+          'VERIFICATION_TOKEN':  cred.verificationToken,
+          'VERIFICATION_URL':    cred.verificationUrl,
+          'ISSUE_DATE':          cred.issueDate.toLocaleDateString(),
+          'EXPIRY_DATE':         cred.expiryDate.toLocaleDateString(),
+          'CAMPAIGN_ID':         campaign.campaignId,
         };
 
         if (cred.pdfPath && cred.pdfFileName) {

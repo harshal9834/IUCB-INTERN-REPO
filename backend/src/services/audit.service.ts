@@ -1,36 +1,18 @@
 // ============================================================
-// Audit Service – merge, normalize, sort, paginate, filter,
-// search, and compute dashboard statistics.
-// No direct DB access here – all through the repository.
+// Audit Service – reads from the AuditLog table via repository.
+// Every request triggers a fresh DB query – no in-memory cache.
 // ============================================================
 
 import auditRepository from '../repositories/audit.repository.js';
-import {
-  mapOrganization,
-  mapAuditor,
-  mapCredential,
-  mapApplication,
-  mapAdvisor,
-  mapNews,
-  mapResource,
-} from '../utils/audit.mapper.js';
-import {
-  pickAdmin,
-  sortLogs,
-  searchLogs,
-  filterLogs,
-  paginateLogs,
-  generateDashboardExtras,
-  buildChartData,
-} from '../utils/audit.helpers.js';
 import type {
   AuditLogDTO,
   AuditQueryParams,
   AuditLogsResponseDTO,
   AuditStatisticsDTO,
+  RawAuditLog,
 } from '../types/audit.types.js';
 
-// Exported for compatibility with feature-branch middlewares/services
+// Exported for compatibility with middlewares/services
 export interface AuditContext {
   adminId?: string;
   adminName?: string;
@@ -48,45 +30,90 @@ export interface EntityChange {
   newData?: any;
 }
 
+// ----------------------------------------------------------
+// Map a raw DB AuditLog row → AuditLogDTO (frontend shape)
+// ----------------------------------------------------------
+function mapRawToDTO(raw: RawAuditLog): AuditLogDTO {
+  // Normalise action: DB stores CREATE/UPDATE/DELETE etc.;
+  // frontend expects CREATED/UPDATED/DELETED etc.
+  const actionMap: Record<string, string> = {
+    CREATE:          'CREATED',
+    UPDATE:          'UPDATED',
+    DELETE:          'DELETED',
+    APPROVE:         'APPROVED',
+    REJECT:          'REJECTED',
+    STATUS_CHANGE:   'UPDATED',
+    GENERATE:        'ISSUED',
+    UPLOAD:          'UPLOADED',
+    EXPORT:          'ARCHIVED',
+    LOGIN:           'LOGIN',
+    LOGOUT:          'LOGOUT',
+    FAILED_LOGIN:    'FAILED_LOGIN',
+    PASSWORD_CHANGE: 'UPDATED',
+    PASSWORD_RESET:  'PASSWORD_RESET',
+    SEND_EMAIL:      'UPDATED',
+    DOWNLOAD:        'UPDATED',
+    IMPORT:          'CREATED',
+    BULK_UPDATE:     'UPDATED',
+    BULK_DELETE:     'DELETED',
+    ROLE_CHANGE:     'UPDATED',
+    PERMISSION_CHANGE: 'UPDATED',
+  };
+
+  const rawAction  = (raw.action ?? '').toUpperCase();
+  const action     = (actionMap[rawAction] ?? rawAction) as AuditLogDTO['action'];
+  const timestamp  = (raw.timestamp ?? raw.createdAt).toISOString();
+
+  // Prefer newValues/oldValues; fall back to legacy newData/oldData
+  const newData =
+    raw.newValues != null
+      ? (raw.newValues as Record<string, unknown>)
+      : raw.newData != null
+      ? (raw.newData as Record<string, unknown>)
+      : null;
+
+  const oldData =
+    raw.oldValues != null
+      ? (raw.oldValues as Record<string, unknown>)
+      : raw.oldData != null
+      ? (raw.oldData as Record<string, unknown>)
+      : null;
+
+  return {
+    id:          raw.id,
+    timestamp,
+    action,
+    entityType:  raw.entityType as AuditLogDTO['entityType'],
+    entityName:  (newData as any)?.name
+                   ?? (newData as any)?.fullName
+                   ?? (newData as any)?.title
+                   ?? raw.entityId,
+    entityId:    raw.entityId,
+    details:     raw.description ?? `${action} on ${raw.entityType}`,
+    adminName:   raw.actorName ?? 'System',
+    adminId:     raw.actorId ?? raw.adminId ?? '',
+    ipAddress:   raw.ipAddress ?? '',
+    userAgent:   raw.userAgent ?? '',
+    oldData,
+    newData,
+    remarks:     raw.module ?? null,
+    status:      (raw.status?.toUpperCase() === 'SUCCESS' ? 'SUCCESS' : 'FAILED') as AuditLogDTO['status'],
+  };
+}
+
 class AuditService {
   // ----------------------------------------------------------
-  // Build the merged & sorted master log list
-  // ----------------------------------------------------------
-  private async buildAllLogs(): Promise<{ logs: AuditLogDTO[]; adminName: string; adminId: string }> {
-    const raw = await auditRepository.fetchAllRawData();
-    const { adminName, adminId } = pickAdmin(raw.admins);
-
-    const logs: AuditLogDTO[] = [
-      ...raw.organizations.map((r) => mapOrganization(r, adminName, adminId)),
-      ...raw.auditors.map((r) => mapAuditor(r, adminName, adminId)),
-      ...raw.credentials.map((r) => mapCredential(r, adminName, adminId)),
-      ...raw.applications.map((r) => mapApplication(r, adminName, adminId)),
-      ...raw.advisors.map((r) => mapAdvisor(r, adminName, adminId)),
-      ...raw.news.map((r) => mapNews(r, adminName, adminId)),
-      ...raw.resources.map((r) => mapResource(r, adminName, adminId)),
-    ];
-
-    // Default sort: newest first
-    return { logs: sortLogs(logs, 'newest'), adminName, adminId };
-  }
-
-  // ----------------------------------------------------------
-  // GET /audit-logs
+  // GET /audit-logs – paginated, filtered, sorted
   // ----------------------------------------------------------
   public async getLogs(params: AuditQueryParams): Promise<AuditLogsResponseDTO> {
-    const { logs } = await this.buildAllLogs();
-
-    // Apply filters → search → sort → paginate
-    const filtered = filterLogs(logs, params);
-    const searched = searchLogs(filtered, params.search ?? '');
-    const sorted   = sortLogs(searched, params.sort ?? 'newest');
-    const { items, total, totalPages } = paginateLogs(sorted, params.page, params.limit);
+    const { logs: rawLogs, total } = await auditRepository.findMany(params);
+    const totalPages = Math.max(1, Math.ceil(total / params.limit));
 
     return {
-      logs: items,
+      logs: rawLogs.map(mapRawToDTO),
       pagination: {
-        page: params.page,
-        limit: params.limit,
+        page:       params.page,
+        limit:      params.limit,
         total,
         totalPages,
       },
@@ -97,62 +124,27 @@ class AuditService {
   // GET /audit-logs/:id
   // ----------------------------------------------------------
   public async getLogById(id: string): Promise<AuditLogDTO | null> {
-    const { logs } = await this.buildAllLogs();
-    return logs.find((l) => l.id === id) ?? null;
+    const raw = await auditRepository.findById(id);
+    return raw ? mapRawToDTO(raw) : null;
   }
 
   // ----------------------------------------------------------
-  // GET /audit-logs/statistics
+  // GET /audit-logs/statistics – live DB aggregation
   // ----------------------------------------------------------
   public async getStatistics(): Promise<AuditStatisticsDTO> {
-    const { logs } = await this.buildAllLogs();
-    const total = logs.length;
-
-    // Creates are real counts
-    const creates = logs.filter((l) =>
-      ['CREATED', 'ISSUED', 'UPLOADED', 'PUBLISHED'].includes(l.action),
-    ).length;
-
-    // Updates, deletes, statusChanges: realistic demo values
-    const { updates, deletes, statusChanges } = generateDashboardExtras(total, creates);
-
-    return {
-      totalActions: total,
-      creates,
-      updates,
-      deletes,
-      statusChanges,
-    };
+    return auditRepository.getStatistics();
   }
 
   // ----------------------------------------------------------
-  // Export: return all (filtered) logs for CSV / PDF
+  // Export – all filtered logs, no pagination
   // ----------------------------------------------------------
   public async getLogsForExport(params: Partial<AuditQueryParams>): Promise<AuditLogDTO[]> {
-    const { logs } = await this.buildAllLogs();
-
-    const query: AuditQueryParams = {
-      page: 1,
-      limit: Number.MAX_SAFE_INTEGER,
-      ...params,
-    };
-
-    const filtered = filterLogs(logs, query);
-    const searched = searchLogs(filtered, query.search ?? '');
-    return sortLogs(searched, query.sort ?? 'newest');
+    const rawLogs = await auditRepository.findAllForExport(params);
+    return rawLogs.map(mapRawToDTO);
   }
 
   // ----------------------------------------------------------
-  // Chart data (used by dashboard)
-  // ----------------------------------------------------------
-  public async getChartData() {
-    const { logs } = await this.buildAllLogs();
-    return buildChartData(logs, 6);
-  }
-
-  // ----------------------------------------------------------
-  // Compatibility stubs for feature-branch middlewares/services
-  // These are no-ops until the full audit pipeline is wired up
+  // Compatibility stubs – actual write path via Prisma direct
   // ----------------------------------------------------------
   public async logAudit(
     _context: AuditContext,
@@ -166,7 +158,7 @@ class AuditService {
     _metadata?: any,
     _severity?: any,
   ): Promise<void> {
-    // No-op stub — full implementation pending
+    // No-op stub — the audit middleware writes directly to Prisma
   }
 
   public async logBulkAudit(
@@ -178,7 +170,7 @@ class AuditService {
     _description: string,
     _severity?: any,
   ): Promise<void> {
-    // No-op stub — full implementation pending
+    // No-op stub
   }
 }
 

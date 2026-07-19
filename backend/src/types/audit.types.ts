@@ -93,6 +93,32 @@ export interface AuditQueryParams {
   sort?: 'newest' | 'oldest' | 'entity' | 'action';
 }
 
+// ---- Raw AuditLog record from the AuditLog table ------------
+
+export interface RawAuditLog {
+  id: string;
+  createdAt: Date;
+  action: string | null;
+  entityType: string;
+  entityId: string;
+  description: string | null;
+  actorName: string | null;
+  actorId: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  oldValues: unknown;
+  newValues: unknown;
+  status: string;
+  module: string | null;
+  severity: string;
+  metadata: unknown;
+  // legacy
+  oldData: unknown;
+  newData: unknown;
+  timestamp: Date | null;
+  adminId: string | null;
+}
+
 // ---- Raw database shapes (repository layer output) -----------
 
 export interface RawOrganization {

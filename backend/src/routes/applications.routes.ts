@@ -3,7 +3,7 @@ import { AdminApplicationsController } from "../controllers/applications.control
 import { protect } from "../middlewares/auth.middleware.js";
 import { setupAuditContext } from "../middlewares/audit.middleware.js";
 import { auditApplications, autoAudit } from "../middlewares/auto-audit.middleware.js";
-import { AuditSeverity } from "@prisma/client";
+import { AuditSeverity } from "../types/audit-enums.js";
 
 const router = Router();
 const ctrl = new AdminApplicationsController();

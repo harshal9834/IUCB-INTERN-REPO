@@ -13,21 +13,35 @@ export class CertificateGeneratorService {
   }
 
   /**
-   * Replaces placeholders in the HTML template with actual values
+   * Replaces placeholders in the HTML template with actual values.
+   *
+   * Matching is FLEXIBLE — {{CANDIDATE_NAME}}, {{Candidate Name}},
+   * {{candidateName}} all resolve from a data key of any casing/separator form.
    */
   public populateTemplate(html: string, data: Record<string, any>): string {
-    let populatedHtml = html;
-    
-    // Convert keys to lowercase for case-insensitive matching
-    const normalizedData: Record<string, string> = {};
+    // Build canonical-key → value map so any placeholder form resolves correctly.
+    // e.g. both "Candidate Name" and "CANDIDATE_NAME" map to canonical "candidatename"
+    const canonicalMap = new Map<string, string>();
     for (const [key, value] of Object.entries(data)) {
-      normalizedData[key.toLowerCase()] = String(value);
+      const canon = key
+        .toLowerCase()
+        .replace(/[\s_\-]/g, '');    // strip spaces, underscores, hyphens
+      // First writer wins — preserve the most specific key
+      if (!canonicalMap.has(canon)) {
+        canonicalMap.set(canon, String(value ?? ''));
+      }
     }
 
-    // Replace {{Placeholder}}
+    let populatedHtml = html;
     populatedHtml = populatedHtml.replace(/\{\{([^}]+)\}\}/g, (match, p1) => {
-      const key = p1.trim().toLowerCase();
-      return normalizedData[key] !== undefined ? normalizedData[key] : match;
+      const rawKey = p1.trim();
+      const canon = rawKey.toLowerCase().replace(/[\s_\-]/g, '');
+      const resolved = canonicalMap.get(canon);
+      if (resolved !== undefined) {
+        return resolved;
+      }
+      console.warn(`[CertificateGenerator] Unresolved placeholder: {{${rawKey}}}`);
+      return match;   // leave unreplaced so it's visible in the output
     });
 
     return populatedHtml;

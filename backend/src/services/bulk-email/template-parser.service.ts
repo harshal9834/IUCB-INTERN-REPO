@@ -1,3 +1,27 @@
+// ============================================================
+// Template Parser Service
+// Extracts {{placeholders}} from HTML templates and matches
+// them against available Excel columns + system-generated fields.
+// ============================================================
+
+// ─── Canonical key normalisation ─────────────────────────────────────────────
+//
+// Converts any casing/separator variant to a stable canonical key used
+// purely for MATCHING purposes (never displayed to the user).
+//
+// Examples that all map to the same canonical key:
+//   CANDIDATE_NAME  →  candidatename
+//   Candidate Name  →  candidatename
+//   candidate_name  →  candidatename
+//   candidateName   →  candidatename
+//   CandidateName   →  candidatename
+//
+function canonicalKey(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/[\s_\-]/g, '');   // strip spaces, underscores, hyphens
+}
+
 export class TemplateParserService {
   /**
    * Extracts all placeholders enclosed in double curly braces {{Placeholder}}
@@ -11,54 +35,82 @@ export class TemplateParserService {
       placeholders.add(match[1].trim());
     }
 
-    return Array.from(placeholders);
+    const result = Array.from(placeholders);
+    console.log('[TemplateParsing] Extracted placeholders:', result);
+    return result;
   }
 
   /**
-   * Compares extracted placeholders with Excel columns and returns a mapping summary
+   * Matches template placeholders against available Excel columns and
+   * system-generated fields.
+   *
+   * Matching is FLEXIBLE:
+   *   - Case-insensitive
+   *   - Ignores spaces, underscores, hyphens
+   *   - So {{CANDIDATE_NAME}} matches column "Candidate Name" or "candidateName"
    */
   public matchPlaceholders(
-    placeholders: string[], 
-    excelColumns: string[]
-  ): { 
-    matched: string[], 
-    systemGenerated: string[], 
-    missing: string[] 
+    placeholders: string[],
+    excelColumns: string[],
+  ): {
+    matched: string[];
+    systemGenerated: string[];
+    missing: string[];
   } {
-    // These are predefined system fields that we will generate
-    const systemFields = [
-      'Credential ID',
-      'Certificate ID',
-      'Registration Number',
-      'Verification Token',
-      'Verification URL',
-      'QR_CODE',
-      'Issue Date',
-      'Expiry Date',
-      'Certificate Status',
-      'Campaign ID',
-      'Created Date',
-      'Created Time'
-    ].map(f => f.toLowerCase());
+    // System-generated fields (canonical keys for comparison)
+    const systemFieldCanonicals = new Set<string>([
+      'credentialid',
+      'certificateid',
+      'registrationnumber',
+      'verificationtoken',
+      'verificationurl',
+      'qrcode',
+      'qr_code',         // alias kept for legacy templates
+      'issuedate',
+      'expirydate',
+      'certificatestatus',
+      'campaignid',
+      'createddate',
+      'createdtime',
+    ]);
 
-    const excelColumnsLower = excelColumns.map(c => c.toLowerCase());
-    
+    // Build canonical → original map for Excel columns
+    // (keeps first occurrence wins if duplicates exist)
+    const excelCanonicalMap = new Map<string, string>();
+    for (const col of excelColumns) {
+      const canon = canonicalKey(col);
+      if (!excelCanonicalMap.has(canon)) {
+        excelCanonicalMap.set(canon, col);
+      }
+    }
+
+    console.log('[TemplateParsing] Excel columns received:', excelColumns);
+    console.log('[TemplateParsing] Excel canonical keys:', [...excelCanonicalMap.keys()]);
+
     const matched: string[] = [];
     const systemGenerated: string[] = [];
     const missing: string[] = [];
 
     for (const placeholder of placeholders) {
-      const placeholderLower = placeholder.toLowerCase();
-      
-      if (excelColumnsLower.includes(placeholderLower)) {
+      const placeholderCanon = canonicalKey(placeholder);
+
+      console.log(
+        `[TemplateParsing] Checking placeholder "${placeholder}" → canonical "${placeholderCanon}"`,
+      );
+
+      if (excelCanonicalMap.has(placeholderCanon)) {
         matched.push(placeholder);
-      } else if (systemFields.includes(placeholderLower)) {
+        console.log(`  → MATCHED from Excel (column: "${excelCanonicalMap.get(placeholderCanon)}")`);
+      } else if (systemFieldCanonicals.has(placeholderCanon)) {
         systemGenerated.push(placeholder);
+        console.log('  → SYSTEM GENERATED');
       } else {
         missing.push(placeholder);
+        console.log('  → UNRESOLVED / MISSING');
       }
     }
 
+    console.log('[TemplateParsing] Result:', { matched, systemGenerated, missing });
     return { matched, systemGenerated, missing };
   }
 }

@@ -41,7 +41,7 @@ function Contact() {
                     <BadgeCheck className="h-7 w-7" />
                   </div>
                   <h3 className="mt-5 text-xl font-semibold text-navy">Message received</h3>
-                  <p className="mt-2 text-muted-foreground">
+                  <p className="mt-10 text-muted-foreground">
                     An IUCB representative will respond within 2–3 business days.
                   </p>
                 </div>

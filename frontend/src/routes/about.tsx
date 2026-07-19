@@ -49,7 +49,7 @@ function About() {
   description="The International Union for Certification & Benchmarking (IUCB) is an independent international accreditation body dedicated to strengthening confidence in certification, professional competence, and organizational compliance through globally recognized accreditation frameworks."
 />
 
-      <section className="py-16 bg-white border-b border-border">
+      <section className="py-10 md:py-12 bg-white border-b border-border">
         <div className="container-x grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { v: "500+", l: "Accredited Organizations" },
@@ -65,45 +65,81 @@ function About() {
         </div>
       </section>
 
-     <section className="py-20 md:py-24 bg-white">
-  <div className="container-x grid lg:grid-cols-3 gap-8">
-    {[
-      {
-        icon: Target,
-        title: "Our Mission",
-        desc: "To strengthen global confidence in certification, accreditation, and professional competence through independent, transparent, and internationally recognized assessment frameworks.",
-      },
-      {
-        icon: Eye,
-        title: "Our Vision",
-        desc: "To become the world's most trusted accreditation authority, enabling organizations and professionals to demonstrate excellence through globally recognized credentials.",
-      },
-      {
-        icon: Compass,
-        title: "Our Core Values",
-        desc: "Integrity, impartiality, transparency, innovation, and continual improvement guide every accreditation and certification activity undertaken by IUCB.",
-      },
-    ].map((c) => (
-      <div
-        key={c.title}
-        className="rounded-xl border border-border p-8 bg-card"
-      >
-        <div className="h-12 w-12 rounded-lg bg-light-blue text-primary grid place-items-center">
-          <c.icon className="h-6 w-6" />
+<section className="py-12 md:py-16 bg-white">
+  <div className="container-x grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+    {/* LEFT COLUMN */}
+    <div className="max-w-xl">
+      <div className="flex items-center gap-4 text-[10px] font-bold tracking-[0.2em] uppercase text-primary">
+        <div className="w-8 h-[2px] bg-primary/20" />
+        MISSION & VISION
+      </div>
+      <h2 className="mt-5 text-4xl md:text-[2.75rem] font-bold text-navy leading-[1.1] tracking-tight">
+        Advancing Global Trust Through Rigorous Standards.
+      </h2>
+      <p className="mt-5 text-muted-foreground text-[17px] leading-relaxed">
+        Our mission is to establish a unified, globally recognized ecosystem for compliance and certification. We empower organizations and professionals to demonstrate their competence through transparent, impartial, and technologically secure accreditation.
+      </p>
+      <p className="mt-4 text-muted-foreground text-[15px] leading-relaxed">
+        Our vision is a world where compliance is not a barrier to entry, but a verifiable asset that drives cross-border commerce, secures data privacy, and elevates industry standards globally.
+      </p>
+
+      <div className="mt-10 grid sm:grid-cols-2 gap-5">
+        <div className="rounded-2xl border border-border p-6 bg-white shadow-sm">
+          <div className="h-10 w-10 rounded-full bg-soft-gray text-primary grid place-items-center mb-5">
+            <Target className="h-5 w-5" />
+          </div>
+          <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-navy mb-3">MISSION</div>
+          <p className="text-[13px] text-muted-foreground leading-relaxed">
+            A unified accreditation ecosystem with impartial verification, designed to strengthen global trust and professional competence.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border p-6 bg-white shadow-sm">
+          <div className="h-10 w-10 rounded-full bg-soft-gray text-primary grid place-items-center mb-5">
+            <Eye className="h-5 w-5" />
+          </div>
+          <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-navy mb-3">VISION</div>
+          <p className="text-[13px] text-muted-foreground leading-relaxed">
+            A compliance landscape where verified certification unlocks global opportunity and protects every stakeholder.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* RIGHT COLUMN */}
+    <div className="relative lg:ml-auto w-full max-w-[540px]">
+      <div className="rounded-3xl border border-white/10 bg-[#0F172A] p-10 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        
+        <div className="relative h-44 w-44 rounded-full bg-white shadow-[0_0_60px_rgba(255,255,255,0.1)] p-1.5 flex items-center justify-center mb-10 mt-4">
+          <img src="/logos/FINAL_LOGO_DESIGN.jpeg" alt="IUCB Logo" className="h-full w-full object-contain rounded-full" />
         </div>
 
-        <h3 className="mt-5 text-xl font-semibold text-navy">
-          {c.title}
-        </h3>
+        <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-gold border border-gold/30 rounded-full px-4 py-1.5 bg-gold/5 relative z-10 mb-5">
+          <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+          CORPORATE ARCHITECTURE
+        </div>
 
-        <p className="mt-3 text-muted-foreground leading-relaxed">
-          {c.desc}
+        <p className="text-[15px] text-white/70 leading-relaxed max-w-[340px] relative z-10 mb-12">
+          A bold, modern visual that reflects IUCB's commitment to standards, governance, and international recognition.
         </p>
+
+        <div className="flex items-center justify-center gap-4 sm:gap-6 text-[9px] sm:text-[10px] font-bold tracking-[0.2em] text-white/20 uppercase w-full relative z-10 mb-2">
+          <span>INTEGRITY</span>
+          <span>UNITY</span>
+          <span>COMPETENCE</span>
+          <span>BENCHMARKING</span>
+        </div>
       </div>
-    ))}
+    </div>
   </div>
 </section>
-      <section className="py-20 md:py-24 bg-soft-gray">
+      <section className="py-10 md:py-14 bg-soft-gray">
   <div className="container-x">
     <div className="max-w-2xl">
       <div className="eyebrow">Our Journey</div>
@@ -121,7 +157,7 @@ function About() {
       </p>
     </div>
 
-    <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
       {milestones.map((m) => (
         <div
           key={m.year}
@@ -144,8 +180,65 @@ function About() {
   </div>
 </section>
 
-      <section className="py-20 md:py-24 bg-white">
-  <div className="container-x grid lg:grid-cols-2 gap-12 items-center">
+<section className="py-12 md:py-16 bg-white">
+  <div className="container-x">
+    <div className="max-w-2xl mx-auto text-center">
+      <h2 className="text-3xl md:text-[2.5rem] font-semibold text-navy tracking-tight">
+        Guided by Industry <span className="text-[#0274b3]">Experts.</span>
+      </h2>
+      <p className="mt-5 text-muted-foreground leading-relaxed text-[15px]">
+        IUCB's strategic direction is managed by our executive team, while our accreditation decisions are strictly governed by an Independent Oversight Council to ensure complete impartiality.
+      </p>
+    </div>
+
+    <div className="mt-10 max-w-4xl mx-auto grid md:grid-cols-2 gap-5">
+      {/* Card 1 */}
+      <div className="rounded-2xl border border-border p-7 bg-white shadow-sm flex flex-col items-start text-left">
+        <div className="h-12 w-12 rounded-full bg-[#fdf5eb] text-[#c0965c] flex items-center justify-center font-bold text-[13px] mb-5 shadow-inner">
+          ER
+        </div>
+        <h3 className="font-bold text-navy text-[17px]">Dr. Elena Rostova</h3>
+        <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#c0965c] mt-1.5 mb-4">
+          EXECUTIVE DIRECTOR
+        </div>
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
+          Leads IUCB's strategic direction with a focus on regulatory alignment and international trust frameworks.
+        </p>
+      </div>
+
+      {/* Card 2 */}
+      <div className="rounded-2xl border border-border p-7 bg-white shadow-sm flex flex-col items-start text-left">
+        <div className="h-12 w-12 rounded-full bg-[#fdf5eb] text-[#c0965c] flex items-center justify-center font-bold text-[13px] mb-5 shadow-inner">
+          MC
+        </div>
+        <h3 className="font-bold text-navy text-[17px]">Marcus Chen</h3>
+        <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#c0965c] mt-1.5 mb-4">
+          HEAD OF DIGITAL INTEGRITY
+        </div>
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
+          Architect of IUCB's credential security, ensuring every certificate is tamper-evident and globally verifiable.
+        </p>
+      </div>
+
+      {/* Card 3 */}
+      <div className="rounded-2xl border border-border p-7 bg-white shadow-sm flex flex-col items-start text-left">
+        <div className="h-12 w-12 rounded-full bg-[#fdf5eb] text-[#c0965c] flex items-center justify-center font-bold text-[13px] mb-5 shadow-inner">
+          SJ
+        </div>
+        <h3 className="font-bold text-navy text-[17px]">Sarah Jenkins</h3>
+        <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#c0965c] mt-1.5 mb-4">
+          CHAIR OF THE OVERSIGHT COUNCIL
+        </div>
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
+          Acting independently of the executive team, Sarah brings 15 years of regulatory auditing experience to ensure all accreditation decisions remain objective and free from influence.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <section className="py-10 md:py-14 bg-white">
+  <div className="container-x grid lg:grid-cols-2 gap-10 items-center">
     <div>
       <div className="eyebrow">Global Headquarters</div>
 

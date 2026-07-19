@@ -102,7 +102,7 @@ function Governance() {
         description="Independent oversight, transparent policies, and rigorous governance bodies ensure every accreditation we issue is impartial, traceable, and globally credible."
       />
 
-      <section className="py-20 md:py-24 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="container-x">
           <div className="max-w-2xl">
             <div className="eyebrow">Governance Bodies</div>
@@ -110,7 +110,7 @@ function Governance() {
               Independent oversight at every level
             </h2>
           </div>
-          <div className="mt-12 grid md:grid-cols-2 gap-5">
+          <div className="mt-10 grid md:grid-cols-2 gap-5">
             {bodies.map((b) => (
               <div key={b.title} className="rounded-xl border border-border p-6 bg-card">
                 <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ function Governance() {
         </div>
       </section>
 
-      <section className="py-20 md:py-24 bg-soft-gray">
+      <section className="py-16 md:py-20 bg-soft-gray">
         <div className="container-x">
           <div className="max-w-2xl">
             <div className="eyebrow">Policies & Documentation</div>
@@ -137,7 +137,7 @@ function Governance() {
               Every IUCB policy is publicly documented, version-controlled, and reviewed annually.
             </p>
           </div>
-          <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {policies.map((p) => (
               <div
                 key={p.title}

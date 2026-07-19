@@ -116,7 +116,7 @@ function VerifyPage() {
     window.open(`http://localhost:5000/api/v1/verify/view?credential=${encodeURIComponent(credential)}`, "_blank");
 
   return (
-    <div className="min-h-screen bg-soft-gray py-10 px-4">
+    <div className="min-h-screen bg-soft-gray py-16 md:py-20 px-4">
       <div className="max-w-5xl mx-auto">
 
         {/* Back */}

@@ -83,7 +83,7 @@ function Process() {
         description="A transparent, internationally aligned workflow — from initial application to global public verification — typically completed in 6 to 8 weeks."
       />
 
-      <section className="py-20 md:py-24 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="container-x">
           <div className="relative">
             <div className="hidden md:block absolute left-7 top-2 bottom-2 w-px bg-border" />

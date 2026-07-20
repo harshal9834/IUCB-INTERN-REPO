@@ -199,7 +199,12 @@ function TrainingInstituteDetailsComponent() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5"><MapPin className="w-4 h-4"/> Location</p>
-                    <p className="font-medium">{institute.address}, {institute.country}</p>
+                    <div className="font-medium">
+                      {institute.addressLine1} {institute.addressLine2}<br/>
+                      {institute.city}, {institute.state} {institute.postalCode}<br/>
+                      {institute.country} ({institute.countryCode})<br/>
+                      <span className="text-xs text-slate-400 font-normal">Phone Code: {institute.phoneCode}</span>
+                    </div>
                   </div>
                 </div>
               )}

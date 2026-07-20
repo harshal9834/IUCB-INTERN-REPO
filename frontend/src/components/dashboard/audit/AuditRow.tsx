@@ -9,6 +9,45 @@ interface AuditRowProps {
   onView: (log: AuditLog) => void
 }
 
+function formatDetails(details: any): string {
+  if (!details) return "—";
+  if (typeof details === "string") {
+    const trimmed = details.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return formatDetails(parsed);
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+  if (typeof details === "object") {
+    const parts: string[] = [];
+    if (details.reason) parts.push(`Reason: ${String(details.reason).trim()}`);
+    if (details.status) parts.push(`Status: ${details.status}`);
+    if (details.subject) parts.push(`Subject: "${details.subject}"`);
+    if (details.recipient) parts.push(`Recipient: ${details.recipient}`);
+    if (details.applicationStatus) parts.push(`App Status: ${details.applicationStatus}`);
+    if (details.fullName) parts.push(`Name: ${details.fullName}`);
+    if (details.company || details.organization) parts.push(`Org: ${details.company || details.organization}`);
+    if (details.standard) parts.push(`Standard: ${details.standard}`);
+    if (details.credentialId) parts.push(`Credential: ${details.credentialId}`);
+    if (details.mappedTable) parts.push(`Mapped: ${details.mappedTable}`);
+    if (details.insertedId) parts.push(`ID: ${details.insertedId}`);
+    if (details.remarks) parts.push(`Remarks: ${details.remarks}`);
+
+    if (parts.length > 0) return parts.join(" • ");
+
+    const keys = Object.keys(details).filter((k) => details[k] !== null && details[k] !== undefined);
+    if (keys.length > 0) {
+      return keys.map((k) => `${k}: ${typeof details[k] === "object" ? JSON.stringify(details[k]) : details[k]}`).join(", ");
+    }
+  }
+  return String(details);
+}
+
 export default memo(function AuditRow({ log, index, onView }: AuditRowProps) {
   const ts = new Date(log.timestamp).toLocaleString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
@@ -27,8 +66,8 @@ export default memo(function AuditRow({ log, index, onView }: AuditRowProps) {
       </td>
       <td className="px-4 py-3 text-sm text-slate-700">{log.entityType}</td>
       <td className="px-4 py-3 text-sm font-medium text-slate-800">{log.entityName}</td>
-      <td className="px-4 py-3 text-sm text-slate-500 max-w-[220px] truncate" title={log.details}>
-        {log.details}
+      <td className="px-4 py-3 text-sm font-medium text-slate-700 max-w-md break-words leading-relaxed" title={formatDetails(log.details)}>
+        {formatDetails(log.details)}
       </td>
       <td className="px-4 py-3 text-sm text-slate-500 whitespace-nowrap font-mono">{log.ipAddress}</td>
       <td className="px-4 py-3 text-center">

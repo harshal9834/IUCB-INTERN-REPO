@@ -25,8 +25,8 @@ export const applyAuditorSchema = z.object({
   country: z.string().min(2, "Country required"),
   appliedStandard: z.string().min(2, "Specialization standard required"),
   experienceYears: z.coerce.number().int().min(0),
-  statementOfMerit: z.string().min(20, "Please provide a brief statement").optional(),
-  linkedinUrl: z.string().url("Invalid LinkedIn URL").optional().nullable(),
+  statementOfMerit: z.string().optional().nullable().or(z.literal("")),
+  linkedinUrl: z.string().url("Invalid LinkedIn URL").optional().nullable().or(z.literal("")),
 });
 
 // ── Public: Apply Training Institute ────────────────────────────────────────

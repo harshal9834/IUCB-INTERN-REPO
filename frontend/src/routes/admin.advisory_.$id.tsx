@@ -68,6 +68,7 @@ function AdvisoryBoardDetailsComponent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["advisor", id] });
       queryClient.invalidateQueries({ queryKey: ["advisor-audit-logs", id] });
+      queryClient.invalidateQueries({ queryKey: ["advisor-email-logs", id] });
       setStatusDialog(null);
     },
   });

@@ -62,6 +62,9 @@ const publicApplicationsApi = {
 
   submitAdvisory: (data: AdvisoryPayload) =>
     api.post("/advisory/apply", data),
+
+  submitContact: (data: { name: string; email: string; org?: string; subject: string; message: string }) =>
+    api.post("/contact", data),
 };
 
 export default publicApplicationsApi;

@@ -18,6 +18,17 @@ import heroRoutes from "./hero.routes.js";
 import trainingInstitutesRoutes from "./training-institutes.routes.js";
 import trainingInstituteRoutes from "./training-institute.routes.js";
 import applicationsRoutes from "./applications.routes.js";
+import accreditationRoutes from "./accreditation.routes.js";
+import auditorRoutes from "./auditor.routes.js";
+import searchRoutes from "./search.routes.js";
+import advancedSearchRoutes from "./advanced-search.routes.js";
+import bulkOperationsRoutes from "./bulk-operations.routes.js";
+import complianceReportRoutes from "./compliance-report.routes.js";
+import dataRetentionRoutes from "./data-retention.routes.js";
+import historyRoutes from "./history.routes.js";
+import integrityVerificationRoutes from "./integrity-verification.routes.js";
+import securityMonitoringRoutes from "./security-monitoring.routes.js";
+import contactRoutes from "./contact.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
 import { StatisticsController } from "../controllers/statistics.controller.js";
 
@@ -65,6 +76,21 @@ rootRouter.use("/v1/training-institutes", trainingInstitutesRoutes);
 
 // Training Institute public application
 rootRouter.use("/v1/training-institute", trainingInstituteRoutes);
+
+// Accreditation & Auditor public applications
+rootRouter.use("/v1/accreditation", accreditationRoutes);
+rootRouter.use("/v1/auditor", auditorRoutes);
+
+// Additional system routes
+rootRouter.use("/v1/search", searchRoutes);
+rootRouter.use("/v1/search/advanced", advancedSearchRoutes);
+rootRouter.use("/v1/bulk-operations", bulkOperationsRoutes);
+rootRouter.use("/v1/compliance-reports", complianceReportRoutes);
+rootRouter.use("/v1/data-retention", dataRetentionRoutes);
+rootRouter.use("/v1/history", historyRoutes);
+rootRouter.use("/v1/integrity-verification", integrityVerificationRoutes);
+rootRouter.use("/v1/security-monitoring", securityMonitoringRoutes);
+rootRouter.use("/v1/contact", contactRoutes);
 
 // PRD: GET /api/v1/public/advisors
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);

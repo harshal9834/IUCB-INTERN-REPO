@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Mail, MapPin, Phone, Send, BadgeCheck } from "lucide-react";
+import { Mail, MapPin, Phone, Send, BadgeCheck, Loader2 } from "lucide-react";
 import { PageHero } from "../components/page-hero";
+import publicApplicationsApi from "../services/api/public-applications.api";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -19,6 +20,40 @@ export const Route = createFileRoute("/contact")({
 
 function Contact() {
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const org = String(formData.get("org") || "").trim();
+    const subject = String(formData.get("subject") || "").trim();
+    const message = String(formData.get("message") || "").trim();
+
+    try {
+      await publicApplicationsApi.submitContact({
+        name,
+        email,
+        org: org || undefined,
+        subject,
+        message,
+      });
+      setSent(true);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        "Failed to send message. Please try again or email us directly.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <PageHero
@@ -41,18 +76,18 @@ function Contact() {
                     <BadgeCheck className="h-7 w-7" />
                   </div>
                   <h3 className="mt-5 text-xl font-semibold text-navy">Message received</h3>
-                  <p className="mt-10 text-muted-foreground">
-                    An IUCB representative will respond within 2–3 business days.
+                  <p className="mt-4 text-muted-foreground text-sm max-w-md mx-auto">
+                    Your message has been sent directly to the IUCB Administration team. A representative will respond within 2–3 business days.
                   </p>
                 </div>
               ) : (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setSent(true);
-                  }}
-                  className="grid gap-5"
-                >
+                <form onSubmit={handleSubmit} className="grid gap-5">
+                  {error && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs text-red-600 font-medium">
+                      {error}
+                    </div>
+                  )}
+
                   <div className="grid sm:grid-cols-2 gap-5">
                     <Input label="Full Name" name="name" required />
                     <Input label="Email Address" name="email" type="email" required />
@@ -62,6 +97,7 @@ function Contact() {
                   <div>
                     <label className="block text-sm font-semibold text-navy mb-2">Message</label>
                     <textarea
+                      name="message"
                       required
                       rows={6}
                       className="w-full px-4 py-3 rounded-lg border border-border bg-white text-navy focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
@@ -69,9 +105,18 @@ function Contact() {
                   </div>
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-secondary transition w-full sm:w-auto"
+                    disabled={loading}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-secondary transition w-full sm:w-auto disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Send Message <Send className="h-4 w-4" />
+                    {loading ? (
+                      <>
+                        Sending Message <Loader2 className="h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        Send Message <Send className="h-4 w-4" />
+                      </>
+                    )}
                   </button>
                 </form>
               )}

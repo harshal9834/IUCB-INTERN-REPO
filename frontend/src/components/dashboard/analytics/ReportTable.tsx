@@ -3,6 +3,45 @@ import type { ReportRow } from '../../../types/analytics'
 import { analyticsApi } from '../../../services/api/analytics.api'
 import { Download } from 'lucide-react'
 
+function formatDetails(details: any): string {
+  if (!details) return "—";
+  if (typeof details === "string") {
+    const trimmed = details.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return formatDetails(parsed);
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+  if (typeof details === "object") {
+    const parts: string[] = [];
+    if (details.reason) parts.push(`Reason: ${String(details.reason).trim()}`);
+    if (details.status) parts.push(`Status: ${details.status}`);
+    if (details.subject) parts.push(`Subject: "${details.subject}"`);
+    if (details.recipient) parts.push(`Recipient: ${details.recipient}`);
+    if (details.applicationStatus) parts.push(`App Status: ${details.applicationStatus}`);
+    if (details.fullName) parts.push(`Name: ${details.fullName}`);
+    if (details.company || details.organization) parts.push(`Org: ${details.company || details.organization}`);
+    if (details.standard) parts.push(`Standard: ${details.standard}`);
+    if (details.credentialId) parts.push(`Credential: ${details.credentialId}`);
+    if (details.mappedTable) parts.push(`Mapped: ${details.mappedTable}`);
+    if (details.insertedId) parts.push(`ID: ${details.insertedId}`);
+    if (details.remarks) parts.push(`Remarks: ${details.remarks}`);
+
+    if (parts.length > 0) return parts.join(" • ");
+
+    const keys = Object.keys(details).filter((k) => details[k] !== null && details[k] !== undefined);
+    if (keys.length > 0) {
+      return keys.map((k) => `${k}: ${typeof details[k] === "object" ? JSON.stringify(details[k]) : details[k]}`).join(", ");
+    }
+  }
+  return String(details);
+}
+
 function ActionBadge({ action }: { action: string }) {
   const color =
     action === 'Created'
@@ -140,7 +179,7 @@ export default function ReportTable({
                   <td className="py-3 px-3 text-slate-700 font-medium">{r.admin}</td>
                   <td className="py-3 px-3"><ActionBadge action={r.action} /></td>
                   <td className="py-3 px-3 text-slate-700">{r.entity}</td>
-                  <td className="py-3 px-3 text-slate-500 max-w-xs truncate">{r.details}</td>
+                  <td className="py-3 px-3 text-slate-700 font-medium max-w-md leading-relaxed break-words">{formatDetails(r.details)}</td>
                   <td className="py-3 px-3 text-slate-500 whitespace-nowrap">{r.ip}</td>
                 </tr>
               ))

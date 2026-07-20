@@ -323,6 +323,7 @@ export class AdminApplicationsController {
             to: application.email,
             applicantName: application.fullName,
             role: "Advisory Board Member",
+            applicationNumber: application.applicationNumber ?? undefined,
           });
         } catch (e) {
           console.log("[DEBUG] Email send failed (Advisory), but proceeding.", e);

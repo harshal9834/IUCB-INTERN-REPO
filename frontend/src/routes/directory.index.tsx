@@ -180,7 +180,7 @@ function Directory() {
                   type="text"
                   value={certId}
                   onChange={(e) => setCertId(e.target.value)}
-                  placeholder="e.g. IUCB-ACB-0421"
+                  placeholder="Enter Certificate ID..."
                   className="w-full pl-12 pr-4 py-3.5 rounded-lg border border-border bg-white text-navy focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                 />
               </div>
@@ -197,11 +197,6 @@ function Directory() {
                 {verifyError}
               </div>
             )}
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Or scan the QR code on your certificate</span>
-              <span>•</span>
-              <span>Try: IUCB-ACB-0421</span>
-            </div>
           </div>
         </div>
       </section>

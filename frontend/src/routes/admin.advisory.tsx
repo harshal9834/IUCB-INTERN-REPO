@@ -76,16 +76,16 @@ function AdvisoryBoardComponent() {
       accessor: (r) => (
         <div 
           className="cursor-pointer hover:text-blue-600"
-          onClick={(e) => { e.stopPropagation(); navigate({ to: `/admin/advisory/${r.id}` }); }}
+          onClick={(e) => { e.stopPropagation(); navigate({ to: "/admin/advisory/$id", params: { id: r.id } }); }}
         >
           <p className="font-semibold text-[#0F2942] text-sm hover:text-blue-600 transition-colors">{r.fullName}</p>
-          <p className="text-xs text-slate-400 mt-0.5">{r.email}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{(r as any).application?.email || r.email || "—"}</p>
         </div>
       ),
     },
     { header: "Organization", accessor: "organization" },
     { header: "Designation", accessor: "designation", className: "hidden md:table-cell" },
-    { header: "Country", accessor: "country", className: "hidden lg:table-cell" },
+    { header: "Country", accessor: (r) => (r as any).application?.country || r.country || "—", className: "hidden lg:table-cell" },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     {
       header: "Joined Date",
@@ -152,7 +152,7 @@ function AdvisoryBoardComponent() {
         total={pagination?.total}
         emptyTitle="No advisory board members found"
         emptyDescription="There are currently no active advisory board members."
-        onRowClick={(row) => navigate({ to: `/admin/advisory/${row.id}` })}
+        onRowClick={(row) => navigate({ to: "/admin/advisory/$id", params: { id: row.id } })}
         headerSlot={
           <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
@@ -188,7 +188,7 @@ function AdvisoryBoardComponent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate({ to: `/admin/advisory/${row.id}` }); }}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate({ to: "/admin/advisory/$id", params: { id: row.id } }); }}>
                 <Eye className="mr-2 h-3.5 w-3.5" /> View Details
               </DropdownMenuItem>
             </DropdownMenuContent>

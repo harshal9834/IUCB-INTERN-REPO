@@ -31,6 +31,7 @@ export class AdvisorsController {
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
+        include: { application: true },
       }),
       prisma.advisor.count({ where }),
     ]);
@@ -53,6 +54,7 @@ export class AdvisorsController {
 
     const advisor = await prisma.advisor.findFirst({
       where: { id, deletedAt: null },
+      include: { application: true },
     });
 
     if (!advisor) throw new ApiError(404, "Advisor not found");
@@ -75,6 +77,7 @@ export class AdvisorsController {
 
       const advisor = await prisma.advisor.findFirst({
         where: { id, deletedAt: null },
+        include: { application: true },
       });
       if (!advisor) throw new ApiError(404, "Advisor not found");
 
@@ -82,6 +85,7 @@ export class AdvisorsController {
       const updated = await prisma.advisor.update({
         where: { id },
         data: { status },
+        include: { application: true },
       });
 
       await prisma.auditLog.create({
@@ -96,6 +100,34 @@ export class AdvisorsController {
           userAgent: req.headers["user-agent"],
         },
       });
+
+      // Send automatic notification email if email is present
+      const recipientEmail = advisor.application?.email;
+      if (recipientEmail) {
+        const EmailService = (await import("../services/email.service.js")).EmailService;
+        try {
+          if (status === "SUSPENDED") {
+            await EmailService.sendAdvisorySuspensionEmail({
+              to: recipientEmail,
+              memberName: advisor.fullName,
+              reason,
+            });
+          } else if (status === "INACTIVE") {
+            await EmailService.sendAdvisoryDeactivationEmail({
+              to: recipientEmail,
+              memberName: advisor.fullName,
+              reason,
+            });
+          } else if (status === "ACTIVE" && oldStatus !== "ACTIVE") {
+            await EmailService.sendAdvisoryReactivationEmail({
+              to: recipientEmail,
+              memberName: advisor.fullName,
+            });
+          }
+        } catch (e) {
+          console.error(`[AdvisorsController] Failed to send status change email to ${recipientEmail}:`, e);
+        }
+      }
 
       res.status(200).json(
         new ApiResponse(200, { advisor: updated }, "Advisor status updated"),
@@ -220,19 +252,22 @@ export class AdvisorsController {
       const { recipient, subject, message } = req.body;
 
       if (!req.admin) throw new ApiError(401, "Not authenticated");
-      if (!recipient || !subject || !message) {
-        throw new ApiError(400, "Missing required fields: recipient, subject, message");
-      }
 
       const advisor = await prisma.advisor.findFirst({
         where: { id, deletedAt: null },
+        include: { application: true },
       });
       if (!advisor) throw new ApiError(404, "Advisor not found");
+
+      const targetEmail = recipient || advisor.application?.email;
+      if (!targetEmail || !subject || !message) {
+        throw new ApiError(400, "Missing required fields: recipient email, subject, message");
+      }
 
       // Use EmailService to send the email
       const EmailService = (await import("../services/email.service.js")).EmailService;
       await EmailService.sendGenericEmail({
-        to: recipient,
+        to: targetEmail,
         subject,
         htmlContent: message,
       });
@@ -243,7 +278,7 @@ export class AdvisorsController {
           entityType: "ADVISOR",
           entityId: id,
           action: "SEND_EMAIL",
-          newData: { recipient, subject },
+          newData: { recipient: targetEmail, subject },
           ipAddress: req.ip,
           userAgent: req.headers["user-agent"],
         },

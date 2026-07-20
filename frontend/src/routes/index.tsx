@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import {
   ShieldCheck, BadgeCheck, Globe2, Users, Building2, GraduationCap, Search,
   ArrowRight, FileCheck2, Award, Lock, Scale, Eye, CheckCircle2, AlertTriangle,
-  Briefcase, Cpu, HeartPulse, Banknote, Factory, Landmark, Quote, QrCode, Upload,
-  Loader2, ChevronLeft, ChevronRight, Calendar, Camera
+  Briefcase, Cpu, HeartPulse, Banknote, Factory, Landmark, Quote, QrCode,
+  Loader2, ChevronLeft, ChevronRight, Calendar, XCircle, Download, Activity
 } from "lucide-react";
+import { verifyCertificate, type CertificateProfileResponse } from "../services/api/directory.api";
 import { useQuery } from "@tanstack/react-query";
 import CountUp from "react-countup";
 import { formatDistanceToNow, format } from "date-fns";
@@ -807,8 +808,44 @@ function ProblemSolution() {
 /* ----------------------------- SECURE CREDENTIAL VERIFICATION ----------------------------- */
 
 function SecureCredentialVerification() {
+  const [credentialInput, setCredentialInput] = useState("");
+  const [result, setResult] = useState<CertificateProfileResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleVerify = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = credentialInput.trim();
+    if (!trimmed) {
+      setError("Please enter a Certificate ID.");
+      setResult(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const data = await verifyCertificate(trimmed);
+      setResult(data);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      setError(
+        status === 404
+          ? "Certificate Not Found"
+          : err?.response?.data?.message || err?.message || "Verification failed."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rawStatus = (result?.status || "").toUpperCase();
+  const isActive = rawStatus === "ACTIVE" || rawStatus === "VALID";
+
   return (
-    <section className="py-16 md:py-20 bg-primary text-white relative overflow-hidden">
+    <section className="py-10 md:py-12 bg-primary text-white relative overflow-hidden">
       <div
         className="absolute inset-0 opacity-[0.05]"
         style={{
@@ -816,40 +853,28 @@ function SecureCredentialVerification() {
           backgroundSize: "56px 56px",
         }}
       />
-      <div className="container-x relative grid lg:grid-cols-2 gap-12 lg:gap-24 items-start pt-4">
+      <div className="container-x relative grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
         {/* Left Column */}
         <div className="max-w-[480px]">
           <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-gold border border-gold/30 rounded-full px-3.5 py-1 bg-gold/5">
             <span className="h-1.5 w-1.5 rounded-full bg-gold" />
             SECURE CREDENTIAL VERIFICATION
           </div>
-          <h2 className="mt-5 text-4xl md:text-5xl lg:text-[3.5rem] font-semibold leading-[1.05] tracking-tight">
+          <h2 className="mt-4 text-3xl md:text-4xl lg:text-[3.2rem] font-semibold leading-[1.08] tracking-tight">
             Instant, <span className="text-gold">Cryptographic</span> Verification
           </h2>
-          <p className="mt-5 text-white/75 text-[17px] leading-relaxed max-w-[440px]">
+          <p className="mt-4 text-white/75 text-[16px] leading-relaxed max-w-[440px]">
             Trust requires transparency. The open verification console allows anyone — regulators, employers, or partners — to instantly validate the authenticity and current status of any IUCB issued credential.
           </p>
-          <div className="mt-6 space-y-3">
+          <div className="mt-5 space-y-2.5">
             <div className="flex items-center gap-3 text-white/90">
               <ShieldCheck className="h-4 w-4 text-gold" />
               <span className="font-medium text-[15px]">Tamper-Proof Credentials</span>
             </div>
             <div className="flex items-center gap-3 text-white/90">
-              <QrCode className="h-4 w-4 text-gold" />
-              <span className="font-medium text-[15px]">QR Code Verification</span>
-            </div>
-            <div className="flex items-center gap-3 text-white/90">
               <CheckCircle2 className="h-4 w-4 text-gold" />
               <span className="font-medium text-[15px]">Real-Time Validation</span>
             </div>
-          </div>
-          <div className="mt-8">
-            <Link
-              to="/verify"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gold text-gold-foreground text-sm font-semibold hover:brightness-105 transition shadow-lg shadow-gold/20"
-            >
-              Verify a Credential <ArrowRight className="h-4 w-4" />
-            </Link>
           </div>
         </div>
 
@@ -873,64 +898,189 @@ function SecureCredentialVerification() {
               <p className="text-xs text-white/50 mt-0.5">Verify any IUCB issued credential directly.</p>
             </div>
 
-            {/* Inputs & Buttons */}
-            <div className="mt-5 space-y-2.5">
+            {/* Form */}
+            <form onSubmit={handleVerify} className="mt-5 space-y-2.5">
               <div>
                 <div className="text-[10px] font-bold tracking-[0.1em] uppercase text-white/50 mb-1.5">CREDENTIAL ID</div>
                 <input
                   type="text"
-                  placeholder="IUCB-ACB-0421 • ISO-27001-9842"
+                  value={credentialInput}
+                  onChange={(e) => setCredentialInput(e.target.value)}
+                  placeholder="Enter Certificate or Credential ID..."
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-gold/50 transition-colors font-mono"
-                  disabled
+                  disabled={loading}
                 />
               </div>
-              <button className="w-full flex items-center justify-center gap-2 bg-[#4273c5] hover:bg-[#325ca6] text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">
-                <ShieldCheck className="h-4 w-4" />
-                Verify Authenticity
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-[#4273c5] hover:bg-[#325ca6] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg py-2.5 text-sm font-semibold transition-colors"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4" />
+                    Verify Authenticity
+                  </>
+                )}
               </button>
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2 text-xs font-medium text-white transition-colors">
-                  <Upload className="h-3.5 w-3.5 opacity-70" />
-                  Upload PDF
-                </button>
-                <button className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2 text-xs font-medium text-white transition-colors">
-                  <Camera className="h-3.5 w-3.5 opacity-70" />
-                  Use Camera
-                </button>
+            </form>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 rounded-lg bg-red-500/10 border border-red-500/30 p-4 text-center">
+                <XCircle className="h-6 w-6 text-red-400 mx-auto mb-2" />
+                <h4 className="text-sm font-bold text-red-400">{error}</h4>
+                <p className="text-xs text-white/60 mt-1">
+                  {error === "Certificate Not Found"
+                    ? "This certificate could not be verified in the IUCB registry."
+                    : "Please check the Credential ID and try again."}
+                </p>
               </div>
-            </div>
+            )}
 
             {/* Verification Result Card */}
-            <div className="mt-4 rounded-lg bg-white/[0.03] border border-white/10 p-4">
-              <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.1em] uppercase text-[#34D399] mb-2">
-                <CheckCircle2 className="h-3 w-3" />
-                CREDENTIAL STATUS
+            {result ? (
+              <div className="mt-4 rounded-lg bg-white/[0.03] border border-white/10 p-4">
+                <div className={`flex items-center gap-2 text-[10px] font-bold tracking-[0.1em] uppercase ${isActive ? "text-[#34D399]" : "text-red-400"} mb-2`}>
+                  {isActive ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                  CREDENTIAL STATUS
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <h4 className="text-xl font-bold text-white">
+                      {isActive ? "Verified" : rawStatus}
+                    </h4>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isActive ? "bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/30" : "bg-red-500/20 text-red-400 border border-red-500/30"}`}>
+                      {rawStatus}
+                    </span>
+                  </div>
+                  {result.qrCode && (
+                    <img
+                      src={result.qrCode}
+                      alt="QR Code"
+                      className="h-10 w-10 object-contain rounded border border-white/10 bg-white p-0.5"
+                    />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-xs">
+                  <div>
+                    <div className="text-[10px] font-medium text-white/50 mb-0.5">Certificate ID</div>
+                    <div className="text-xs text-white font-mono">{result.certificateId || result.credentialId}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] font-medium text-white/50 mb-0.5">Credential ID</div>
+                    <div className="text-xs text-white font-mono">{result.credentialId}</div>
+                  </div>
+
+                  {result.candidateName && (
+                    <div>
+                      <div className="text-[10px] font-medium text-white/50 mb-0.5">Holder</div>
+                      <div className="text-xs text-white font-semibold">{result.candidateName}</div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="text-[10px] font-medium text-white/50 mb-0.5">Issuer / Organization</div>
+                    <div className="text-xs text-white font-semibold">{result.organizationName || result.instituteName || result.issuedBy || "IUCB"}</div>
+                  </div>
+
+                  {result.standard && (
+                    <div className="text-right">
+                      <div className="text-[10px] font-medium text-white/50 mb-0.5">Standard</div>
+                      <div className="text-xs text-gold font-semibold">{result.standard}</div>
+                    </div>
+                  )}
+
+                  {result.category && (
+                    <div>
+                      <div className="text-[10px] font-medium text-white/50 mb-0.5">Credential Type</div>
+                      <div className="text-xs text-white">{result.category}</div>
+                    </div>
+                  )}
+
+                  {result.registrationNumber && (
+                    <div className="text-right">
+                      <div className="text-[10px] font-medium text-white/50 mb-0.5">Certificate Number</div>
+                      <div className="text-xs text-white font-mono">{result.registrationNumber}</div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="text-[10px] font-medium text-white/50 mb-0.5">Issue Date</div>
+                    <div className="text-xs text-white">
+                      {result.issueDate ? format(new Date(result.issueDate), "dd MMM yyyy") : "—"}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-[10px] font-medium text-white/50 mb-0.5">Expiry Date</div>
+                    <div className="text-xs text-white">
+                      {result.expiryDate ? format(new Date(result.expiryDate), "dd MMM yyyy") : "—"}
+                    </div>
+                  </div>
+
+                  {result.country && (
+                    <div>
+                      <div className="text-[10px] font-medium text-white/50 mb-0.5">Country</div>
+                      <div className="text-xs text-white">{result.country}</div>
+                    </div>
+                  )}
+
+                  <div className="text-right">
+                    <div className="text-[10px] font-medium text-white/50 mb-0.5">Verification</div>
+                    <div className="text-xs text-white">Cryptographically Signed</div>
+                  </div>
+                </div>
+
+                {/* CERTIFICATE ACTIONS */}
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <div className="text-[10px] font-bold tracking-[0.1em] uppercase text-white/50 flex items-center gap-1.5 mb-3">
+                    <Activity className="h-3.5 w-3.5 text-gold" />
+                    CERTIFICATE ACTIONS
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => window.open(`http://localhost:5000/api/v1/verify/view?credential=${encodeURIComponent(result.certificateId || result.credentialId)}`, "_blank")}
+                      disabled={!result.hasPdf}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 text-white text-xs font-semibold hover:bg-white/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Eye className="h-3.5 w-3.5" /> View Certificate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => window.open(`http://localhost:5000/api/v1/verify/download?credential=${encodeURIComponent(result.certificateId || result.credentialId)}`, "_blank")}
+                      disabled={!result.hasPdf}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#4273c5] hover:bg-[#325ca6] text-white text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Download Certificate
+                    </button>
+                  </div>
+                  {!result.hasPdf && (
+                    <p className="mt-2.5 text-xs text-white/50">Certificate PDF not yet generated.</p>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-3 mb-4">
-                <h4 className="text-xl font-bold text-white">Verified</h4>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#34D399]/20 text-[#34D399] border border-[#34D399]/30">
-                  Active
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-y-3 gap-x-6">
-                <div>
-                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Issuer</div>
-                  <div className="text-xs text-white">IUCB</div>
+            ) : !error ? (
+              <div className="mt-4 rounded-lg bg-white/[0.03] border border-white/10 p-4">
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.1em] uppercase text-[#34D399] mb-2">
+                  <CheckCircle2 className="h-3 w-3" />
+                  CREDENTIAL STATUS
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Issue Date</div>
-                  <div className="text-xs text-white">12 March 2026</div>
+                <div className="flex items-center gap-3 mb-4">
+                  <h4 className="text-xl font-bold text-white">Ready to Verify</h4>
                 </div>
-                <div>
-                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Status</div>
-                  <div className="text-xs font-semibold text-[#34D399]">Active</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-medium text-white/50 mb-0.5">Verification</div>
-                  <div className="text-xs text-white">Cryptographically Signed</div>
+                <div className="text-xs text-white/60 leading-relaxed">
+                  Enter a valid Certificate ID or Credential ID above and click <span className="text-white font-medium">Verify Authenticity</span> to validate credential records against the official IUCB registry.
                 </div>
               </div>
-            </div>
+            ) : null}
 
             {/* Footer */}
             <div className="mt-4 flex items-center gap-2 text-[10px] text-white/40 border-t border-white/10 pt-3">

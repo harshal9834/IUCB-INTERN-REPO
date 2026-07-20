@@ -229,24 +229,195 @@ export const EmailService = {
     to: string;
     applicantName: string;
     role: string;
+    applicationNumber?: string;
   }) {
     const html = wrapTemplate(`
-      <h2>Welcome to IUCB, ${opts.applicantName}!</h2>
+      <h2>Congratulations, ${opts.applicantName}!</h2>
       <p>
-        We are thrilled to welcome you as a <strong>${opts.role}</strong> of the International Union 
-        for Certification Bodies.
+        Your application for the <strong>IUCB Advisory Board</strong> has been 
+        <span class="badge badge-approved">Approved</span>.
+      </p>
+      ${opts.applicationNumber ? `<table class="info-table"><tr><td>Application Number</td><td>${opts.applicationNumber}</td></tr><tr><td>Membership Role</td><td>${opts.role}</td></tr><tr><td>Status</td><td>Active Advisory Member</td></tr></table>` : ""}
+      <p>
+        We are thrilled to welcome you as a distinguished member of the International Union for Certification Bodies Advisory Board.
+        Your expertise and experience will play a vital role in shaping international certification standards.
       </p>
       <p>
-        Your profile is now live on our platform. You will receive further onboarding communications 
-        from our team shortly.
+        <strong>Next Steps:</strong> Our executive team will reach out with details regarding upcoming board sessions and committee assignments.
       </p>
-      <p>We look forward to your valued contributions.</p>
+      <p>Welcome to the IUCB Advisory Board.</p>
     `);
     await sendMail({
       to: opts.to,
-      subject: `Welcome to IUCB — ${opts.role}`,
+      subject: "Your IUCB Advisory Board Application Has Been Approved",
       html,
-      template: "WELCOME_EMAIL",
+      template: "ADVISORY_APPROVAL_EMAIL",
+    });
+  },
+
+  /**
+   * Sent when an Advisory Board member is suspended.
+   */
+  async sendAdvisorySuspensionEmail(opts: {
+    to: string;
+    memberName: string;
+    reason?: string;
+  }) {
+    const html = wrapTemplate(`
+      <h2>Advisory Board Membership Notice</h2>
+      <p>Dear ${opts.memberName},</p>
+      <p>
+        This is an official notification that your IUCB Advisory Board membership status has been set to 
+        <span class="badge badge-rejected">Suspended</span> effective immediately.
+      </p>
+      ${opts.reason ? `<p><strong>Reason:</strong> ${opts.reason}</p>` : ""}
+      <p>
+        Effective Date: <strong>${new Date().toLocaleDateString()}</strong>
+      </p>
+      <p>
+        If you have any questions or wish to appeal this status update, please contact our support team at 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: "Notice of Advisory Board Membership Suspension — IUCB",
+      html,
+      template: "ADVISORY_SUSPENSION_EMAIL",
+    });
+  },
+
+  /**
+   * Sent when an Advisory Board member status is set to Inactive / Deactivated.
+   */
+  async sendAdvisoryDeactivationEmail(opts: {
+    to: string;
+    memberName: string;
+    reason?: string;
+  }) {
+    const html = wrapTemplate(`
+      <h2>Advisory Board Membership Status Change</h2>
+      <p>Dear ${opts.memberName},</p>
+      <p>
+        Your IUCB Advisory Board membership status has been updated to <strong>Inactive</strong>.
+      </p>
+      ${opts.reason ? `<p><strong>Reason / Remarks:</strong> ${opts.reason}</p>` : ""}
+      <p>
+        Thank you for your service to the IUCB. For any inquiries, please contact 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: "Notice of Advisory Board Membership Status Change — IUCB",
+      html,
+      template: "ADVISORY_DEACTIVATION_EMAIL",
+    });
+  },
+
+  /**
+   * Sent when an Advisory Board membership is revoked.
+   */
+  async sendAdvisoryRevocationEmail(opts: {
+    to: string;
+    memberName: string;
+    reason?: string;
+  }) {
+    const html = wrapTemplate(`
+      <h2>Notice of Membership Revocation</h2>
+      <p>Dear ${opts.memberName},</p>
+      <p>
+        Please be advised that your appointment to the IUCB Advisory Board has been 
+        <span class="badge badge-rejected">Revoked</span>.
+      </p>
+      ${opts.reason ? `<p><strong>Reason:</strong> ${opts.reason}</p>` : ""}
+      <p>
+        If you require further information, please contact our office at 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: "Notice of Advisory Board Membership Revocation — IUCB",
+      html,
+      template: "ADVISORY_REVOCATION_EMAIL",
+    });
+  },
+
+  /**
+   * Sent when an Advisory Board member is reactivated.
+   */
+  async sendAdvisoryReactivationEmail(opts: {
+    to: string;
+    memberName: string;
+  }) {
+    const html = wrapTemplate(`
+      <h2>Welcome Back to IUCB Advisory Board</h2>
+      <p>Dear ${opts.memberName},</p>
+      <p>
+        We are pleased to inform you that your IUCB Advisory Board membership status has been 
+        <span class="badge badge-approved">Reactivated</span>.
+      </p>
+      <p>
+        Your profile is once again active. We look forward to your continued participation and guidance.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: "Your IUCB Advisory Board Membership Has Been Reactivated",
+      html,
+      template: "ADVISORY_REACTIVATION_EMAIL",
+    });
+  },
+
+  /**
+   * Sent to Admin when a user submits the Contact Us form on the website.
+   */
+  async sendContactMessageToAdmin(opts: {
+    name: string;
+    email: string;
+    org?: string;
+    subject: string;
+    message: string;
+  }) {
+    let adminEmail = process.env.ADMIN_EMAIL || process.env.MAIL_FROM || "admin@iucb.org";
+    try {
+      const admin = await prisma.admin.findFirst({
+        where: { status: "ACTIVE" },
+        select: { email: true },
+        orderBy: { createdAt: "asc" },
+      });
+      if (admin?.email) {
+        adminEmail = admin.email;
+      }
+    } catch (e) {
+      console.log("[EmailService] Failed to fetch admin email from DB, fallback to:", adminEmail);
+    }
+
+    const html = wrapTemplate(`
+      <h2>New Contact Form Inquiry</h2>
+      <p>A new contact message has been submitted on the IUCB website.</p>
+      <table class="info-table">
+        <tr><td>Sender Name</td><td>${opts.name}</td></tr>
+        <tr><td>Sender Email</td><td><a href="mailto:${opts.email}">${opts.email}</a></td></tr>
+        ${opts.org ? `<tr><td>Organization</td><td>${opts.org}</td></tr>` : ""}
+        <tr><td>Subject</td><td>${opts.subject}</td></tr>
+        <tr><td>Timestamp</td><td>${new Date().toLocaleString()}</td></tr>
+      </table>
+      <div style="background: #f8fafc; border-left: 4px solid #0F2942; padding: 16px; border-radius: 6px; margin: 20px 0;">
+        <p style="font-weight: 600; color: #0F2942; margin-bottom: 8px;">Message:</p>
+        <p style="white-space: pre-wrap; color: #4a5568; line-height: 1.6; margin: 0;">${opts.message}</p>
+      </div>
+      <p style="font-size: 13px; color: #718096;">
+        You can reply directly to the sender at <a href="mailto:${opts.email}">${opts.email}</a>.
+      </p>
+    `);
+
+    await sendMail({
+      to: adminEmail,
+      subject: `[IUCB Website Inquiry] ${opts.subject}`,
+      html,
+      template: "CONTACT_FORM_SUBMISSION",
     });
   },
 

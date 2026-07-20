@@ -62,22 +62,26 @@ export class BulkEmailController {
 
   public async generateCampaign(req: Request, res: Response) {
     try {
-      // In a real app we'd receive the raw data again or process from a stored temp location.
-      // Assuming frontend sends back the parsed rows and html for simplicity of stateless API
       const { campaignId, rows, templateHtml, baseUrl } = req.body;
 
       if (!campaignId || !rows || !templateHtml || !baseUrl) {
         return res.status(400).json({ success: false, message: 'Missing required parameters' });
       }
 
+      console.log('[BulkEmail] generateCampaign: Entering. campaignId:', campaignId, '| rows:', rows?.length, '| baseUrl:', baseUrl);
+
       const campaignDbId = await bulkEmailService.generateCampaign(campaignId, rows, templateHtml, baseUrl);
+
+      console.log('[BulkEmail] generateCampaign: Completed. campaignDbId:', campaignDbId);
 
       res.status(200).json({
         success: true,
         data: { campaignDbId }
       });
     } catch (err: any) {
-      res.status(500).json({ success: false, message: err.message });
+      console.error('[BulkEmail] generateCampaign ERROR:', err?.message);
+      console.error('[BulkEmail] generateCampaign STACK:', err?.stack);
+      res.status(500).json({ success: false, message: err.message, detail: err?.stack?.split('\n')?.slice(0, 5)?.join(' | ') });
     }
   }
 

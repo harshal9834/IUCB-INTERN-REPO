@@ -86,8 +86,78 @@ const buildWhere = (query: AnalyticsQuery, dateField: string, includeOrg = false
 };
 
 const cleanAuditDetails = (audit: any) => {
-  const details = audit.newData ?? audit.oldData ?? {};
-  return typeof details === "string" ? details : JSON.stringify(details);
+  if (audit.description) {
+    return audit.description;
+  }
+
+  const data = audit.newData ?? audit.oldData ?? {};
+  if (!data) return "N/A";
+
+  if (typeof data === "string") {
+    if (data.startsWith("{") && data.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(data);
+        return cleanAuditDetails({ ...audit, newData: parsed });
+      } catch {
+        return data.trim();
+      }
+    }
+    return data.trim();
+  }
+
+  if (typeof data === "object") {
+    const parts: string[] = [];
+
+    if (data.reason) {
+      parts.push(`Reason: ${String(data.reason).trim()}`);
+    }
+    if (data.status) {
+      parts.push(`Status: ${data.status}`);
+    }
+    if (data.subject) {
+      parts.push(`Subject: "${data.subject}"`);
+    }
+    if (data.recipient) {
+      parts.push(`Recipient: ${data.recipient}`);
+    }
+    if (data.applicationStatus) {
+      parts.push(`App Status: ${data.applicationStatus}`);
+    }
+    if (data.fullName) {
+      parts.push(`Name: ${data.fullName}`);
+    }
+    if (data.company || data.organization) {
+      parts.push(`Org: ${data.company || data.organization}`);
+    }
+    if (data.standard) {
+      parts.push(`Standard: ${data.standard}`);
+    }
+    if (data.credentialId) {
+      parts.push(`Credential: ${data.credentialId}`);
+    }
+    if (data.mappedTable) {
+      parts.push(`Mapped: ${data.mappedTable}`);
+    }
+    if (data.insertedId) {
+      parts.push(`ID: ${data.insertedId}`);
+    }
+    if (data.remarks) {
+      parts.push(`Remarks: ${data.remarks}`);
+    }
+
+    if (parts.length > 0) {
+      return parts.join(" • ");
+    }
+
+    const keys = Object.keys(data).filter((k) => data[k] !== null && data[k] !== undefined);
+    if (keys.length > 0) {
+      return keys
+        .map((k) => `${k}: ${typeof data[k] === "object" ? JSON.stringify(data[k]) : data[k]}`)
+        .join(", ");
+    }
+  }
+
+  return audit.action ? `${audit.action} on ${audit.entityType}` : "N/A";
 };
 
 const formatBucketLabel = (date: Date, groupByMonth: boolean) => {

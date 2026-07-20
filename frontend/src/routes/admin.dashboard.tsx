@@ -261,7 +261,7 @@ function DashboardComponent() {
             </div>
             <div className="divide-y divide-slate-100 flex-1">
               {overview.lists.pendingApplications.length > 0 ? overview.lists.pendingApplications.map((app: any) => (
-                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/applications/${app.id}` })}>
+                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: '/admin/applications/$id', params: { id: app.id } })}>
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-xs font-mono font-medium text-slate-500">{app.applicationNumber}</span>
                     <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded font-medium">Pending</span>
@@ -288,7 +288,7 @@ function DashboardComponent() {
             </div>
             <div className="divide-y divide-slate-100 flex-1">
               {overview.lists.pendingCredentials.length > 0 ? overview.lists.pendingCredentials.map((app: any) => (
-                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/credentials/pending` })}>
+                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: '/admin/credentials/pending' })}>
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-xs font-mono font-medium text-slate-500">{app.applicationNumber}</span>
                     <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded font-medium">Awaiting Generation</span>
@@ -312,7 +312,7 @@ function DashboardComponent() {
             </div>
             <div className="divide-y divide-slate-100 flex-1">
               {overview.lists.recentApprovals.length > 0 ? overview.lists.recentApprovals.map((app: any) => (
-                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/applications/${app.id}` })}>
+                <div key={app.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: '/admin/applications/$id', params: { id: app.id } })}>
                   <p className="text-sm font-medium text-slate-800">{app.company || app.fullName}</p>
                   <p className="text-xs text-slate-500 mt-0.5">Approved by {app.reviewedBy?.fullName || 'Admin'} • {new Date(app.reviewedAt).toLocaleDateString()}</p>
                 </div>
@@ -335,7 +335,7 @@ function DashboardComponent() {
             </div>
             <div className="divide-y divide-slate-100 flex-1">
               {overview.lists.recentCredentials.length > 0 ? overview.lists.recentCredentials.map((cred: any) => (
-                <div key={cred.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: `/admin/credentials/${cred.id}` })}>
+                <div key={cred.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate({ to: '/admin/credentials/$id', params: { id: cred.id } })}>
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-xs font-mono font-medium text-slate-800">{cred.credentialId}</span>
                     <StatusBadge status={cred.status} />

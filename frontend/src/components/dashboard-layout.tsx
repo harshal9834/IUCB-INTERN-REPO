@@ -60,7 +60,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     { name: "Credentials", href: "/admin/credentials", icon: <Award className="h-5 w-5" /> },
     { name: "Certificates", href: "/admin/certificates", icon: <FileCheck className="h-5 w-5" /> },
     { name: "Content", href: "/admin/content", icon: <Newspaper className="h-5 w-5" /> },
-    { name: "Templates", href: "/admin/certificate-templates", icon: <FileCode2 className="h-5 w-5" /> },
     { name: "Analytics", href: "/admin/analytics", icon: <BarChart3 className="h-5 w-5" /> },
     { name: "Audit Logs", href: "/admin/audit-logs", icon: <History className="h-5 w-5" /> },
     { name: "Settings", href: "/admin/settings", icon: <Settings className="h-5 w-5" /> },

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { LocationSelector } from "../components/LocationSelector";
 import { PageHeader } from "../components/reusable-components";
 import { DataTable, DataTableColumn } from "../components/data-table";
 import { StatusBadge } from "../components/status-badge";
@@ -48,6 +50,14 @@ interface Auditor {
   status: string;
   organizationId: string;
   organization?: { id: string; organizationName: string };
+  country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   createdAt: string;
 }
 
@@ -60,6 +70,14 @@ interface AuditorForm {
   specialization: string;
   experienceYears: number;
   status: string;
+  country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
 }
 
 const defaultForm: AuditorForm = {
@@ -71,6 +89,14 @@ const defaultForm: AuditorForm = {
   specialization: "",
   experienceYears: 0,
   status: "ACTIVE",
+  country: "",
+  countryCode: "",
+  phoneCode: "",
+  state: "",
+  city: "",
+  postalCode: "",
+  addressLine1: "",
+  addressLine2: "",
 };
 
 function AuditorsComponent() {
@@ -81,8 +107,11 @@ function AuditorsComponent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Auditor | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Auditor | null>(null);
-  const [form, setForm] = useState(defaultForm);
   const [formError, setFormError] = useState("");
+
+  const { register, handleSubmit, control, watch, setValue, reset, formState: { errors } } = useForm<AuditorForm>({
+    defaultValues: defaultForm,
+  });
 
   const queryKey = ["auditors", page, search, tierFilter];
 
@@ -137,13 +166,13 @@ function AuditorsComponent() {
 
   const openCreate = () => {
     setEditTarget(null);
-    setForm(defaultForm);
+    reset(defaultForm);
     setFormError("");
     setModalOpen(true);
   };
   const openEdit = (a: Auditor) => {
     setEditTarget(a);
-    setForm({
+    reset({
       fullName: a.fullName,
       email: a.email,
       phone: a.phone,
@@ -152,6 +181,14 @@ function AuditorsComponent() {
       specialization: a.specialization,
       experienceYears: a.experienceYears,
       status: a.status,
+      country: a.country || "",
+      countryCode: a.countryCode || "",
+      phoneCode: a.phoneCode || "",
+      state: a.state || "",
+      city: a.city || "",
+      postalCode: a.postalCode || "",
+      addressLine1: a.addressLine1 || "",
+      addressLine2: a.addressLine2 || "",
     });
     setFormError("");
     setModalOpen(true);
@@ -162,13 +199,12 @@ function AuditorsComponent() {
     setFormError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: AuditorForm) => {
     setFormError("");
     if (editTarget) {
-      updateMutation.mutate({ id: editTarget.id, payload: form });
+      updateMutation.mutate({ id: editTarget.id, payload: data });
     } else {
-      createMutation.mutate(form);
+      createMutation.mutate(data);
     }
   };
 
@@ -194,6 +230,14 @@ function AuditorsComponent() {
     },
     { header: "Tier", accessor: (r) => <StatusBadge status={r.tier} showDot={false} /> },
     { header: "Specialization", accessor: "specialization", className: "hidden lg:table-cell" },
+    {
+      header: "Location",
+      accessor: (r) => {
+        const loc = [r.city, r.state, r.country].filter(Boolean).join(", ");
+        return <span className="text-xs text-slate-600">{loc || "—"}</span>;
+      },
+      className: "hidden md:table-cell",
+    },
     {
       header: "Experience",
       accessor: (r) => (
@@ -282,7 +326,7 @@ function AuditorsComponent() {
           <DialogHeader>
             <DialogTitle>{editTarget ? "Edit Auditor" : "Add New Auditor"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
             {formError && (
               <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
                 {formError}
@@ -292,8 +336,8 @@ function AuditorsComponent() {
               <div className="space-y-1.5 sm:col-span-2">
                 <Label>Organization *</Label>
                 <Select
-                  value={form.organizationId}
-                  onValueChange={(v) => setForm((f) => ({ ...f, organizationId: v }))}
+                  value={watch("organizationId")}
+                  onValueChange={(v) => setValue("organizationId", v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select organization…" />
@@ -310,41 +354,33 @@ function AuditorsComponent() {
               <div className="space-y-1.5">
                 <Label>Full Name *</Label>
                 <Input
-                  value={form.fullName}
-                  onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
-                  required
+                  {...register("fullName", { required: true })}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Email *</Label>
                 <Input
                   type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  required
+                  {...register("email", { required: true })}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Phone *</Label>
                 <Input
-                  value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                  required
+                  {...register("phone", { required: true })}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Specialization *</Label>
                 <Input
-                  value={form.specialization}
-                  onChange={(e) => setForm((f) => ({ ...f, specialization: e.target.value }))}
-                  required
+                  {...register("specialization", { required: true })}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Tier</Label>
                 <Select
-                  value={form.tier}
-                  onValueChange={(v: any) => setForm((f) => ({ ...f, tier: v }))}
+                  value={watch("tier")}
+                  onValueChange={(v: any) => setValue("tier", v)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -361,10 +397,17 @@ function AuditorsComponent() {
                 <Input
                   type="number"
                   min={0}
-                  value={form.experienceYears}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, experienceYears: Number(e.target.value) }))
-                  }
+                  {...register("experienceYears", { valueAsNumber: true })}
+                />
+              </div>
+              
+              <div className="sm:col-span-2 pt-2 border-t mt-2">
+                <LocationSelector
+                  control={control}
+                  register={register}
+                  errors={errors}
+                  watch={watch}
+                  setValue={setValue}
                 />
               </div>
             </div>

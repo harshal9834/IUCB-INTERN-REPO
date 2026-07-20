@@ -17,7 +17,9 @@ import certificateTemplateRoutes from "./certificate-template.routes.js";
 import heroRoutes from "./hero.routes.js";
 import trainingInstitutesRoutes from "./training-institutes.routes.js";
 import trainingInstituteRoutes from "./training-institute.routes.js";
+import auditorRoutes from "./auditor.routes.js";
 import applicationsRoutes from "./applications.routes.js";
+import accreditationRoutes from "./accreditation.routes.js";
 import { AdvisoryController } from "../controllers/advisory.controller.js";
 import { StatisticsController } from "../controllers/statistics.controller.js";
 
@@ -43,6 +45,10 @@ rootRouter.use("/v1/credentials", credentialsRoutes);
 rootRouter.use("/v1/advisory", advisoryRoutes);
 rootRouter.use("/v1/analytics", analyticsRoutes);
 rootRouter.use("/v1/audit-logs", auditRoutes);
+rootRouter.use("/v1/auditor", auditorRoutes);
+rootRouter.use("/v1/applications", applicationsRoutes);
+rootRouter.use("/v1/training-institutes", trainingInstitutesRoutes);
+rootRouter.use("/v1/accreditation", accreditationRoutes);
 
 // Applications (Admin CRUD + approve/reject)
 rootRouter.use("/v1/applications", applicationsRoutes);

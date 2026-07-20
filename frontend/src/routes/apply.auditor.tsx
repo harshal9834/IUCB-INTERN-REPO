@@ -3,8 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
+import { OFFICIAL_STANDARDS } from "../constants/standards";
 import { Users, ArrowLeft, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import publicApplicationsApi from "../services/api/public-applications.api";
+import { LocationSelector } from "../components/LocationSelector";
 
 export const Route = createFileRoute("/apply/auditor")({
   head: () => ({
@@ -25,6 +28,14 @@ const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(5, "Phone number is required"),
   country: z.string().min(2, "Country is required"),
+  countryCode: z.string().min(2, "Country code is required"),
+  phoneCode: z.string().optional(),
+  state: z.string().min(2, "State/Province is required"),
+  city: z.string().min(2, "City is required"),
+  postalCode: z.string().optional(),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  address: z.string().optional(),
   company: z.string().min(2, "Current organization is required"),
   designation: z.string().min(2, "Designation is required"),
   experienceYears: z.coerce.number({ invalid_type_error: "Must be a number" }).int().min(0, "Cannot be negative"),
@@ -46,19 +57,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const EXPERTISE_AREAS = [
-  "ISO 27001 – Information Security",
-  "ISO 27701 – Privacy Management",
-  "ISO 9001 – Quality Management",
-  "ISO 14001 – Environmental Management",
-  "ISO 45001 – Occupational Health & Safety",
-  "ISO/IEC 17021 – Management Systems Certification",
-  "ISO/IEC 17024 – Personnel Certification",
-  "Cybersecurity & Risk Management",
-  "Governance, Risk & Compliance (GRC)",
-  "Data Protection & GDPR",
-  "Other",
-];
+
 
 const inputClass =
   "w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
@@ -94,11 +93,17 @@ function AuditorForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { agreement: false },
   });
+
+  const selectedStandardName = watch("appliedStandard");
+  const selectedStandard = OFFICIAL_STANDARDS.find(s => s.name === selectedStandardName);
 
   const onSubmit = async (data: FormData) => {
     setServerError(null);
@@ -111,6 +116,7 @@ function AuditorForm() {
         experienceYears: Number(payload.experienceYears),
       });
       const applicationNumber = res.data?.data?.application?.applicationNumber;
+      toast.success("Auditor application submitted successfully");
       navigate({
         to: "/apply/success",
         search: { applicationNumber, type: "auditor" },
@@ -172,11 +178,31 @@ function AuditorForm() {
                   <input {...register("email")} type="email" placeholder="you@example.com" className={inputClass} />
                 </Field>
                 <Field label="Phone Number" error={errors.phone?.message} required>
-                  <input {...register("phone")} placeholder="+1 234 567 8900" className={inputClass} />
+                  <div className="flex gap-2">
+                    <input
+                      value={watch("phoneCode") || ""}
+                      readOnly
+                      placeholder="+1"
+                      className="w-20 rounded-lg border border-border bg-slate-50 px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                    <input
+                      {...register("phone")}
+                      placeholder="234 567 8900"
+                      className={inputClass}
+                    />
+                  </div>
                 </Field>
-                <Field label="Country" error={errors.country?.message} required>
-                  <input {...register("country")} placeholder="e.g. India" className={inputClass} />
-                </Field>
+                <div className="sm:col-span-2">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-4 mt-2">Location Details</h3>
+                  <LocationSelector
+                    control={control}
+                    register={register}
+                    errors={errors}
+                    watch={watch}
+                    setValue={setValue}
+                    requireAddress={false}
+                  />
+                </div>
                 <Field label="LinkedIn Profile URL" error={errors.linkedinUrl?.message}>
                   <input {...register("linkedinUrl")} type="url" placeholder="https://linkedin.com/in/yourprofile" className={inputClass} />
                 </Field>
@@ -201,10 +227,17 @@ function AuditorForm() {
                 <Field label="Areas of Expertise" error={errors.appliedStandard?.message} required>
                   <select {...register("appliedStandard")} className={selectClass}>
                     <option value="">Select primary area…</option>
-                    {EXPERTISE_AREAS.map((a) => (
-                      <option key={a} value={a}>{a}</option>
+                    {OFFICIAL_STANDARDS.map((a) => (
+                      <option key={a.name} value={a.name}>{a.name}</option>
                     ))}
                   </select>
+                  {selectedStandard && (
+                    <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-700 space-y-1.5">
+                      <div><strong className="text-slate-900">Edition:</strong> {selectedStandard.edition}</div>
+                      <div><strong className="text-slate-900">Category:</strong> {selectedStandard.category}</div>
+                      <div><strong className="text-slate-900">Governing Document:</strong> {selectedStandard.governingDocument}</div>
+                    </div>
+                  )}
                 </Field>
                 <div className="sm:col-span-2">
                   <Field label="Professional Summary" error={errors.statementOfMerit?.message}>

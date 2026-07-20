@@ -167,6 +167,7 @@ export function SiteHeader() {
           <div className="hidden lg:flex items-center gap-4 py-2">
               <Link
                 to="/verify"
+                search={{ credential: "" }}
                 className="inline-flex items-center h-9 px-6 rounded-full border border-white/40 text-white text-[13px] font-semibold hover:bg-white/10 transition"
               >
                 Verify

@@ -8,6 +8,13 @@ export interface AccreditationPayload {
   organizationType: string;
   registrationNumber: string;
   country: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   address: string;
   website?: string;
   appliedStandard: string;
@@ -19,6 +26,13 @@ export interface AuditorPayload {
   email: string;
   phone: string;
   country: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   company: string;
   designation: string;
   experienceYears: number;
@@ -34,6 +48,13 @@ export interface TrainingInstitutePayload {
   company: string;
   organizationType: string;
   country: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   address: string;
   website?: string;
   appliedStandard: string;
@@ -42,6 +63,15 @@ export interface TrainingInstitutePayload {
 export interface AdvisoryPayload {
   fullName: string;
   email: string;
+  phone: string;
+  country: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   linkedinUrl?: string;
   company: string;
   designation: string;

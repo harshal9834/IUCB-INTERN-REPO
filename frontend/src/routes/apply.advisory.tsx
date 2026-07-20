@@ -4,7 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { Briefcase, ArrowLeft, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import publicApplicationsApi from "../services/api/public-applications.api";
+import { LocationSelector } from "../components/LocationSelector";
 
 export const Route = createFileRoute("/apply/advisory")({
   head: () => ({
@@ -25,6 +27,14 @@ const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(5, "Phone number is required"),
   country: z.string().min(2, "Country is required"),
+  countryCode: z.string().min(2, "Country code is required"),
+  phoneCode: z.string().optional(),
+  state: z.string().min(2, "State/Province is required"),
+  city: z.string().min(2, "City is required"),
+  postalCode: z.string().optional(),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  address: z.string().optional(),
   designation: z.string().min(2, "Current designation is required"),
   company: z.string().min(2, "Organization is required"),
   experienceYears: z.coerce.number({ invalid_type_error: "Must be a number" }).int().min(0, "Cannot be negative"),
@@ -97,6 +107,9 @@ function AdvisoryForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -106,7 +119,8 @@ function AdvisoryForm() {
   const onSubmit = async (data: FormData) => {
     setServerError(null);
     try {
-      const { agreement: _, phone: __, country: ___, ...payload } = data;
+      // Fix: we no longer drop phone and country from the payload
+      const { agreement: _, ...payload } = data;
       const res = await publicApplicationsApi.submitAdvisory({
         ...payload,
         linkedinUrl: payload.linkedinUrl || undefined,
@@ -175,11 +189,31 @@ function AdvisoryForm() {
                   <input {...register("email")} type="email" placeholder="you@example.com" className={inputClass} />
                 </Field>
                 <Field label="Phone Number" error={errors.phone?.message} required>
-                  <input {...register("phone")} placeholder="+1 234 567 8900" className={inputClass} />
+                  <div className="flex gap-2">
+                    <input
+                      value={watch("phoneCode") || ""}
+                      readOnly
+                      placeholder="+1"
+                      className="w-20 rounded-lg border border-border bg-slate-50 px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                    <input
+                      {...register("phone")}
+                      placeholder="234 567 8900"
+                      className={inputClass}
+                    />
+                  </div>
                 </Field>
-                <Field label="Country" error={errors.country?.message} required>
-                  <input {...register("country")} placeholder="e.g. United States" className={inputClass} />
-                </Field>
+                <div className="sm:col-span-2 mt-4">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-4">Location Details</h3>
+                  <LocationSelector
+                    control={control}
+                    register={register}
+                    errors={errors}
+                    watch={watch}
+                    setValue={setValue}
+                    requireAddress={false}
+                  />
+                </div>
                 <Field label="LinkedIn Profile URL" error={errors.linkedinUrl?.message}>
                   <input {...register("linkedinUrl")} type="url" placeholder="https://linkedin.com/in/yourprofile" className={inputClass} />
                 </Field>

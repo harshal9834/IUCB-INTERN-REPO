@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { LocationSelector } from "../components/ui/LocationSelector";
 import { Plus, MoreHorizontal, Pencil, Trash2, ToggleLeft, Eye, Building2, Globe, Phone, Mail, FileText, CheckCircle, Clock, XCircle, Filter } from "lucide-react";
 import { PageHeader } from "../components/reusable-components";
 import { DataTable, DataTableColumn } from "../components/data-table";
@@ -51,7 +53,13 @@ interface Organization {
   organizationName: string;
   registrationNumber: string;
   country: string;
-  address: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   email: string;
   phone: string;
   website?: string | null;
@@ -67,9 +75,13 @@ interface OrgForm {
   organizationName: string;
   registrationNumber: string;
   country: string;
-  address: string;
-  city: string;
+  countryCode?: string;
+  phoneCode?: string;
   state: string;
+  city: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   email: string;
   phone: string;
   website: string;
@@ -82,9 +94,13 @@ const defaultForm: OrgForm = {
   organizationName: "",
   registrationNumber: "",
   country: "",
-  address: "",
-  city: "",
+  countryCode: "",
+  phoneCode: "",
   state: "",
+  city: "",
+  postalCode: "",
+  addressLine1: "",
+  addressLine2: "",
   email: "",
   phone: "",
   website: "",
@@ -109,7 +125,7 @@ function OrganizationsComponent() {
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null);
   const [statusTarget, setStatusTarget] = useState<{ org: Organization; newStatus: string } | null>(null);
   
-  const [form, setForm] = useState(defaultForm);
+  const { register, control, handleSubmit: hookFormSubmit, reset, watch, setValue, formState: { errors } } = useForm<OrgForm>({ defaultValues: defaultForm });
   const [formError, setFormError] = useState("");
 
   const queryKey = ["organizations", page, limit, search, statusFilter, countryFilter];
@@ -193,34 +209,24 @@ function OrganizationsComponent() {
 
   const openCreate = () => {
     setEditTarget(null);
-    setForm(defaultForm);
+    reset(defaultForm);
     setFormError("");
     setModalOpen(true);
   };
 
   const openEdit = (org: Organization) => {
     setEditTarget(org);
-    // Attempt to parse city and state if they were concatenated
-    let parsedAddress = org.address;
-    let parsedCity = "";
-    let parsedState = "";
-    
-    if (org.address.includes(",")) {
-        const parts = org.address.split(",").map(p => p.trim());
-        if (parts.length >= 3) {
-            parsedState = parts.pop() || "";
-            parsedCity = parts.pop() || "";
-            parsedAddress = parts.join(", ");
-        }
-    }
-
-    setForm({
+    reset({
       organizationName: org.organizationName,
       registrationNumber: org.registrationNumber,
       country: org.country,
-      address: parsedAddress,
-      city: parsedCity,
-      state: parsedState,
+      countryCode: org.countryCode || "",
+      phoneCode: org.phoneCode || "",
+      state: org.state || "",
+      city: org.city || "",
+      postalCode: org.postalCode || "",
+      addressLine1: org.addressLine1 || "",
+      addressLine2: org.addressLine2 || "",
       email: org.email,
       phone: org.phone,
       website: org.website ?? "",
@@ -238,24 +244,26 @@ function OrganizationsComponent() {
     setFormError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onFormSubmit = (data: OrgForm) => {
     setFormError("");
     
-    // Concatenate address for schema compatibility
-    const fullAddress = [form.address, form.city, form.state].filter(Boolean).join(", ");
-    
     const payload = { 
-      organizationName: form.organizationName,
-      registrationNumber: form.registrationNumber,
-      country: form.country,
-      email: form.email,
-      phone: form.phone,
-      website: form.website || null,
-      address: fullAddress,
-      accreditationStatus: form.accreditationStatus,
-      accreditationDate: form.accreditationDate,
-      expiryDate: form.expiryDate,
+      organizationName: data.organizationName,
+      registrationNumber: data.registrationNumber,
+      country: data.country,
+      countryCode: data.countryCode,
+      phoneCode: data.phoneCode,
+      state: data.state,
+      city: data.city,
+      postalCode: data.postalCode,
+      addressLine1: data.addressLine1,
+      addressLine2: data.addressLine2,
+      email: data.email,
+      phone: data.phone,
+      website: data.website || null,
+      accreditationStatus: data.accreditationStatus,
+      accreditationDate: data.accreditationDate,
+      expiryDate: data.expiryDate,
     };
 
     if (editTarget) {
@@ -276,6 +284,8 @@ function OrganizationsComponent() {
       ),
     },
     { header: "Country", accessor: "country" },
+    { header: "State", accessor: "state", className: "hidden lg:table-cell" },
+    { header: "City", accessor: "city", className: "hidden lg:table-cell" },
     { header: "Email", accessor: "email", className: "hidden lg:table-cell" },
     { header: "Status", accessor: (r) => <StatusBadge status={r.accreditationStatus} /> },
     {
@@ -429,7 +439,7 @@ function OrganizationsComponent() {
           <DialogHeader>
             <DialogTitle>{editTarget ? "Edit Organization" : "Add New Organization"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <form onSubmit={hookFormSubmit(onFormSubmit)} className="space-y-4 mt-2">
             {formError && (
               <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
                 {formError}
@@ -438,54 +448,41 @@ function OrganizationsComponent() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="orgName">Organization Name *</Label>
-                <Input id="orgName" value={form.organizationName} onChange={(e) => setForm((f) => ({ ...f, organizationName: e.target.value }))} required />
+                <Input id="orgName" {...register("organizationName")} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="regNum">Registration Number *</Label>
-                <Input id="regNum" value={form.registrationNumber} onChange={(e) => setForm((f) => ({ ...f, registrationNumber: e.target.value }))} required />
+                <Input id="regNum" {...register("registrationNumber")} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email *</Label>
-                <Input id="email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
+                <Input id="email" type="email" {...register("email")} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone *</Label>
-                <Input id="phone" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} required />
+                <Input id="phone" {...register("phone")} required />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="website">Website</Label>
-                <Input id="website" type="url" value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="https://" />
+                <Input id="website" type="url" {...register("website")} placeholder="https://" />
               </div>
               
               {/* Address Fields */}
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="address">Street Address *</Label>
-                <Input id="address" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="city">City *</Label>
-                <Input id="city" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="state">State / Province *</Label>
-                <Input id="state" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} required />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="country">Country *</Label>
-                <Input id="country" value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} required />
+              <div className="sm:col-span-2 space-y-4">
+                <LocationSelector control={control} register={register} errors={errors} watch={watch} setValue={setValue} />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="accDate">Accreditation Date *</Label>
-                <Input id="accDate" type="date" value={form.accreditationDate} onChange={(e) => setForm((f) => ({ ...f, accreditationDate: e.target.value }))} required />
+                <Input id="accDate" type="date" {...register("accreditationDate")} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="expDate">Expiry Date *</Label>
-                <Input id="expDate" type="date" value={form.expiryDate} onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))} required />
+                <Input id="expDate" type="date" {...register("expiryDate")} required />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
                 <Label>Accreditation Status</Label>
-                <Select value={form.accreditationStatus} onValueChange={(v: any) => setForm((f) => ({ ...f, accreditationStatus: v }))}>
+                <Select value={watch("accreditationStatus")} onValueChange={(v: any) => setValue("accreditationStatus", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ACTIVE">Active</SelectItem>
@@ -538,8 +535,10 @@ function OrganizationsComponent() {
                   <div className="flex items-start gap-2 text-slate-600">
                     <Building2 className="h-4 w-4 mt-0.5" /> 
                     <span>
-                      {viewTarget.address}<br/>
-                      {viewTarget.country}
+                      {viewTarget.addressLine1} {viewTarget.addressLine2}<br/>
+                      {viewTarget.city}, {viewTarget.state} {viewTarget.postalCode}<br/>
+                      {viewTarget.country} ({viewTarget.countryCode})<br/>
+                      <span className="text-xs text-slate-400">Phone Code: {viewTarget.phoneCode}</span>
                     </span>
                   </div>
                 </div>

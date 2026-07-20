@@ -846,6 +846,7 @@ function SecureCredentialVerification() {
           <div className="mt-8">
             <Link
               to="/verify"
+              search={{ credential: "" }}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gold text-gold-foreground text-sm font-semibold hover:brightness-105 transition shadow-lg shadow-gold/20"
             >
               Verify a Credential <ArrowRight className="h-4 w-4" />

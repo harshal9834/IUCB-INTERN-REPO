@@ -81,10 +81,12 @@ export const errorHandler = (err: any, req: AuthenticatedRequest, res: Response,
       error: err.issues
     });
   }
-  
-  return res.status(500).json({ 
+  const statusCode = err.statusCode || err.status || 500;
+  const message = statusCode < 500 ? err.message : "Internal Server Error";
+
+  return res.status(statusCode).json({ 
     success: false, 
-    message: "Internal Server Error", 
+    message, 
     error: process.env.NODE_ENV === 'production' ? undefined : err.message
   });
 };

@@ -20,6 +20,13 @@ export interface Application {
   linkedinUrl?: string;
   registrationNumber?: string;
   country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   website?: string;
   appliedStandard?: string;
   internalNotes?: string;

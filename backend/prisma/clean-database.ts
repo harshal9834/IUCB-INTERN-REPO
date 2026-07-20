@@ -3,44 +3,61 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function cleanDatabase() {
-  console.log("🧹 Cleaning all dummy data from database...\n");
+  console.log("🧹 Cleaning all business data from database...\n");
 
   try {
     // Delete in proper order to respect foreign keys
-    await prisma.emailLog.deleteMany({});
-    console.log("✅ Deleted all email logs");
 
+    // 1. Bulk Email tables
+    await prisma.bulkEmailCredential.deleteMany({});
+    await prisma.bulkEmailCampaign.deleteMany({});
+    console.log("✅ Deleted Bulk Email data");
+
+    // 2. Audit system tables
+    await prisma.auditSnapshot.deleteMany({});
+    await prisma.auditAlert.deleteMany({});
     await prisma.auditLog.deleteMany({});
-    console.log("✅ Deleted all audit logs");
+    await prisma.auditEvent.deleteMany({});
+    await prisma.auditIntegrity.deleteMany({});
+    console.log("✅ Deleted Audit system data");
 
-    await prisma.resource.deleteMany({});
-    console.log("✅ Deleted all resources");
+    // 3. History & Export tables
+    await prisma.changeLog.deleteMany({});
+    await prisma.entityHistory.deleteMany({});
+    await prisma.archivedRecord.deleteMany({});
+    await prisma.dataExport.deleteMany({});
+    await prisma.complianceReport.deleteMany({});
+    console.log("✅ Deleted History and Export data");
 
-    await prisma.news.deleteMany({});
-    console.log("✅ Deleted all news articles");
+    // 4. Search & Analytics
+    await prisma.searchIndex.deleteMany({});
+    await prisma.savedSearch.deleteMany({});
+    await prisma.analyticsSnapshot.deleteMany({});
+    await prisma.activitySummary.deleteMany({});
+    console.log("✅ Deleted Search and Analytics data");
 
-    await prisma.advisor.deleteMany({});
-    console.log("✅ Deleted all advisors");
-
-    await prisma.application.deleteMany({});
-    console.log("✅ Deleted all applications");
-
+    // 5. Core business tables
+    await prisma.emailLog.deleteMany({});
     await prisma.credential.deleteMany({});
-    console.log("✅ Deleted all credentials");
-
+    await prisma.advisor.deleteMany({});
+    await prisma.application.deleteMany({});
     await prisma.auditor.deleteMany({});
-    console.log("✅ Deleted all auditors");
-
     await prisma.organization.deleteMany({});
-    console.log("✅ Deleted all organizations");
-
     await prisma.trainingInstitute.deleteMany({});
-    console.log("✅ Deleted all training institutes");
+    console.log("✅ Deleted Core Business data");
 
+    // 6. Content tables
+    await prisma.resource.deleteMany({});
+    await prisma.certificateTemplate.deleteMany({});
+    await prisma.news.deleteMany({});
+    console.log("✅ Deleted Content data");
+
+    // 7. System/Auth tables
     await prisma.refreshToken.deleteMany({});
-    console.log("✅ Deleted all refresh tokens");
+    await prisma.retentionPolicy.deleteMany({});
+    console.log("✅ Deleted System/Auth data");
 
-    // Keep only one Super Admin, delete all others
+    // 8. Keep only one Super Admin, delete all others
     const admins = await prisma.admin.findMany({});
     const superAdmin = admins.find(a => a.email === "admin@iucb.org");
     
@@ -59,7 +76,6 @@ async function cleanDatabase() {
     console.log("✅ Kept system settings");
 
     console.log("\n✅ Database cleaned successfully!");
-    console.log("📊 Remaining records:");
     
     const counts = {
       admins: await prisma.admin.count(),
@@ -71,8 +87,12 @@ async function cleanDatabase() {
       trainingInstitutes: await prisma.trainingInstitute.count(),
       news: await prisma.news.count(),
       resources: await prisma.resource.count(),
+      auditLogs: await prisma.auditLog.count(),
+      certificateTemplates: await prisma.certificateTemplate.count(),
+      activitySummaries: await prisma.activitySummary.count(),
     };
 
+    console.log("📊 Remaining records:");
     console.log(JSON.stringify(counts, null, 2));
 
   } catch (error) {

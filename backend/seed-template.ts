@@ -1,0 +1,1 @@
+import { PrismaClient } from "@prisma/client"; const prisma = new PrismaClient(); async function seed() { await prisma.certificateTemplate.create({ data: { name: "Auditor Template", filepath: "templates/auditor.html", detectedType: "AUDITOR", status: "ACTIVE", version: 1 } }); } seed().finally(() => prisma.$disconnect());

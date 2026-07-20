@@ -5,7 +5,13 @@ export interface TrainingInstitute {
   instituteName: string;
   registrationNumber: string;
   country: string;
-  address: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   email: string;
   phone: string;
   website?: string | null;

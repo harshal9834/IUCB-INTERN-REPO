@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { LocationSelector } from "../components/LocationSelector";
 import { 
   Building2, Globe, Phone, Mail, CheckCircle, Clock, ArrowLeft, 
   Pencil, Activity, MapPin, Save, X, Briefcase, FileText, Send,
@@ -26,7 +28,25 @@ function AdvisoryBoardDetailsComponent() {
   const queryClient = useQueryClient();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<any>({});
+  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm({
+    defaultValues: {
+      fullName: "",
+      organization: "",
+      designation: "",
+      expertiseArea: "",
+      experienceYears: 0,
+      bio: "",
+      linkedinUrl: "",
+      country: "",
+      countryCode: "",
+      phoneCode: "",
+      state: "",
+      city: "",
+      postalCode: "",
+      addressLine1: "",
+      addressLine2: "",
+    }
+  });
   const [statusDialog, setStatusDialog] = useState<{ status: string; reason: string } | null>(null);
   const [emailDialog, setEmailDialog] = useState(false);
 
@@ -82,20 +102,28 @@ function AdvisoryBoardDetailsComponent() {
   });
 
   const handleEditClick = () => {
-    setForm({
-      fullName: advisor.fullName,
-      organization: advisor.organization,
-      designation: advisor.designation,
-      expertiseArea: advisor.expertiseArea,
-      experienceYears: advisor.experienceYears,
+    reset({
+      fullName: advisor.fullName || "",
+      organization: advisor.organization || "",
+      designation: advisor.designation || "",
+      expertiseArea: advisor.expertiseArea || "",
+      experienceYears: advisor.experienceYears || 0,
       bio: advisor.bio || "",
       linkedinUrl: advisor.linkedinUrl || "",
+      country: advisor.country || "",
+      countryCode: advisor.countryCode || "",
+      phoneCode: advisor.phoneCode || "",
+      state: advisor.state || "",
+      city: advisor.city || "",
+      postalCode: advisor.postalCode || "",
+      addressLine1: advisor.addressLine1 || "",
+      addressLine2: advisor.addressLine2 || "",
     });
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    updateMutation.mutate(form);
+  const onSubmit = (data: any) => {
+    updateMutation.mutate(data);
   };
 
   if (isLoading) {
@@ -203,7 +231,7 @@ function AdvisoryBoardDetailsComponent() {
                 <Button variant="outline" className="bg-white" onClick={() => setIsEditing(false)}>
                   <X className="w-4 h-4 mr-2" /> Cancel
                 </Button>
-                <Button onClick={handleSave} className="bg-[#0F2942] text-white" disabled={updateMutation.isPending}>
+                <Button onClick={handleSubmit(onSubmit)} className="bg-[#0F2942] text-white" disabled={updateMutation.isPending}>
                   <Save className="w-4 h-4 mr-2" /> {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </>
@@ -228,10 +256,22 @@ function AdvisoryBoardDetailsComponent() {
             </CardHeader>
             <CardContent className="pt-6">
               {isEditing ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label>Full Name</Label>
-                    <Input value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} />
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label>Full Name</Label>
+                      <Input {...register("fullName")} />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-slate-900 mb-3 border-b border-slate-100 pb-2">Location Details</h3>
+                    <LocationSelector 
+                      control={control} 
+                      register={register} 
+                      errors={errors} 
+                      watch={watch} 
+                      setValue={setValue} 
+                    />
                   </div>
                 </div>
               ) : (
@@ -250,11 +290,25 @@ function AdvisoryBoardDetailsComponent() {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">Country</p>
-                    <p className="font-medium text-slate-900">{country}</p>
+                    <p className="font-medium text-slate-900">{advisor.country || country}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">State / Province</p>
+                    <p className="font-medium text-slate-900">{advisor.state || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">City</p>
+                    <p className="font-medium text-slate-900">{advisor.city || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">Postal Code</p>
+                    <p className="font-medium text-slate-900">{advisor.postalCode || "N/A"}</p>
                   </div>
                   <div className="md:col-span-2">
                     <p className="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">Address</p>
-                    <p className="font-medium text-slate-900">{address}</p>
+                    <p className="font-medium text-slate-900">
+                      {[advisor.addressLine1, advisor.addressLine2].filter(Boolean).join(", ") || address}
+                    </p>
                   </div>
                 </div>
               )}
@@ -273,30 +327,29 @@ function AdvisoryBoardDetailsComponent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <Label>Current Designation</Label>
-                    <Input value={form.designation} onChange={e => setForm({...form, designation: e.target.value})} />
+                    <Input {...register("designation")} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Organization</Label>
-                    <Input value={form.organization} onChange={e => setForm({...form, organization: e.target.value})} />
+                    <Input {...register("organization")} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Years of Experience</Label>
-                    <Input type="number" value={form.experienceYears} onChange={e => setForm({...form, experienceYears: parseInt(e.target.value) || 0})} />
+                    <Input type="number" {...register("experienceYears", { valueAsNumber: true })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Area of Expertise</Label>
-                    <Input value={form.expertiseArea} onChange={e => setForm({...form, expertiseArea: e.target.value})} />
+                    <Input {...register("expertiseArea")} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>LinkedIn Profile</Label>
-                    <Input value={form.linkedinUrl} onChange={e => setForm({...form, linkedinUrl: e.target.value})} placeholder="https://linkedin.com/in/..." />
+                    <Input {...register("linkedinUrl")} placeholder="https://linkedin.com/in/..." />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
                     <Label>Professional Biography</Label>
                     <textarea 
                       className="w-full min-h-[120px] rounded-md border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F2942]"
-                      value={form.bio} 
-                      onChange={e => setForm({...form, bio: e.target.value})}
+                      {...register("bio")}
                       placeholder="Brief professional background..."
                     />
                   </div>

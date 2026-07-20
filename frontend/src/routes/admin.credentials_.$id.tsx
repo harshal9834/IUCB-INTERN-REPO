@@ -138,7 +138,10 @@ function CredentialDetailComponent() {
       queryClient.invalidateQueries({ queryKey: ["credentials-issued"] });
       showToast("Certificate generated successfully.");
     },
-    onError: () => showToast("Failed to generate certificate.", "error"),
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || "Failed to generate certificate.";
+      showToast(msg, "error");
+    },
   });
 
   const revokeMutation = useMutation({
@@ -631,6 +634,37 @@ function CredentialDetailComponent() {
                 </p>
               </div>
             )}
+            <div className="col-span-2 mt-2 pt-4 border-t border-slate-100">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Location Details</h4>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                <div>
+                  <p className="text-slate-500 mb-1">Country</p>
+                  <p className="font-medium text-slate-800">
+                    {credential.country || "—"} {credential.countryCode ? `(${credential.countryCode})` : ""}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-1">State & City</p>
+                  <p className="font-medium text-slate-800">
+                    {credential.state || "—"}, {credential.city || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-1">Postal Code</p>
+                  <p className="font-medium text-slate-800">{credential.postalCode || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-1">Phone Code</p>
+                  <p className="font-medium text-slate-800">{credential.phoneCode || "—"}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-slate-500 mb-1">Full Address</p>
+                  <p className="font-medium text-slate-800">
+                    {[credential.addressLine1, credential.addressLine2, credential.city, credential.state, credential.country, credential.postalCode].filter(Boolean).join(", ") || "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

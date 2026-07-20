@@ -9,6 +9,15 @@ export const createAuditorSchema = z.object({
   specialization: z.string().min(2, "Specialization required"),
   experienceYears: z.coerce.number().int().min(0, "Experience must be 0 or more"),
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional().default("ACTIVE"),
+  country: z.string().optional(),
+  countryCode: z.string().optional().nullable(),
+  phoneCode: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  postalCode: z.string().optional().nullable(),
+  addressLine1: z.string().optional().nullable(),
+  addressLine2: z.string().optional().nullable(),
+  address: z.string().optional(),
 });
 
 export const updateAuditorSchema = createAuditorSchema.partial();
@@ -20,4 +29,7 @@ export const auditorQuerySchema = z.object({
   tier: z.enum(["ASSOCIATE", "SENIOR", "LEAD"]).optional(),
   status: z.string().optional(),
   search: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
 });

@@ -9,6 +9,15 @@ export const issueCredentialSchema = z.object({
   status: z.enum(["VALID", "REVOKED", "EXPIRED"]).optional().default("VALID"),
   auditorId: z.string().uuid("Invalid Auditor ID").optional(),
   internalNotes: z.string().optional(),
+  country: z.string().optional(),
+  countryCode: z.string().optional().nullable(),
+  phoneCode: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  postalCode: z.string().optional().nullable(),
+  addressLine1: z.string().optional().nullable(),
+  addressLine2: z.string().optional().nullable(),
+  address: z.string().optional(),
 });
 
 export const revokeCredentialSchema = z.object({
@@ -21,4 +30,7 @@ export const credentialQuerySchema = z.object({
   status: z.enum(["VALID", "REVOKED", "EXPIRED"]).optional(),
   organizationId: z.string().uuid().optional(),
   search: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
 });

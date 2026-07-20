@@ -165,12 +165,12 @@ export function SiteHeader() {
           </nav>
           
           <div className="hidden lg:flex items-center gap-4 py-2">
-              <Link
-                to="/services"
-                className="inline-flex items-center h-9 px-6 rounded-full bg-gold text-gold-foreground text-[13px] font-bold hover:brightness-105 transition shadow-sm"
-              >
-                Get Accredited
-              </Link>
+            <Link
+              to="/services"
+              className="inline-flex items-center h-9 px-6 rounded-full bg-gold text-gold-foreground text-[13px] font-bold hover:brightness-105 transition shadow-sm"
+            >
+              Get Accredited
+            </Link>
           </div>
         </div>
         {/* Subtle gold separator between header and page content */}

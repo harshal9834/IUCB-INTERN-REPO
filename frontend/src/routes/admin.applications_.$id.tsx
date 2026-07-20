@@ -273,6 +273,12 @@ function ApplicationDetailComponent() {
                     <InfoRow icon={Building2} label="Organization / Company" value={app.company} />
                     <InfoRow icon={Hash} label="Registration Number" value={app.registrationNumber} />
                     <InfoRow icon={MapPin} label="Country" value={app.country} />
+                    <InfoRow icon={MapPin} label="Country Code" value={app.countryCode} />
+                    <InfoRow icon={Phone} label="Phone Code" value={app.phoneCode} />
+                    <InfoRow icon={MapPin} label="State" value={app.state} />
+                    <InfoRow icon={MapPin} label="City" value={app.city} />
+                    <InfoRow icon={MapPin} label="Postal Code" value={app.postalCode} />
+                    <InfoRow icon={MapPin} label="Full Address" value={[app.addressLine1, app.addressLine2].filter(Boolean).join(", ")} />
                     <InfoRow icon={Globe} label="Website" value={app.website} />
                   </CardContent>
                 </Card>

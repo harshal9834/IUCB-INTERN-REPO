@@ -4,6 +4,7 @@ import authRoutes from "./auth.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import organizationsRoutes from "./organizations.routes.js";
 import auditorsRoutes from "./auditors.routes.js";
+import auditorRoutes from "./auditor.routes.js";
 import advisorsRoutes from "./advisors.routes.js";
 import credentialsRoutes from "./credentials.routes.js";
 import advisoryRoutes from "./advisory.routes.js";
@@ -19,7 +20,6 @@ import trainingInstitutesRoutes from "./training-institutes.routes.js";
 import trainingInstituteRoutes from "./training-institute.routes.js";
 import applicationsRoutes from "./applications.routes.js";
 import accreditationRoutes from "./accreditation.routes.js";
-import auditorRoutes from "./auditor.routes.js";
 import searchRoutes from "./search.routes.js";
 import advancedSearchRoutes from "./advanced-search.routes.js";
 import bulkOperationsRoutes from "./bulk-operations.routes.js";
@@ -45,7 +45,7 @@ rootRouter.get("/health", (req, res) => {
 rootRouter.use("/v1/auth", authRoutes);
 rootRouter.use("/admins", adminRoutes);
 
-// Phase 4: Feature Module Routes (PRD-compliant)
+// Feature Module Routes (PRD-compliant)
 rootRouter.use("/v1/dashboard", dashboardRoutes);
 rootRouter.use("/v1/organizations", organizationsRoutes);
 rootRouter.use("/v1/auditors", auditorsRoutes);
@@ -74,12 +74,11 @@ rootRouter.use("/v1/certificate-templates", certificateTemplateRoutes);
 // Training Institutes (protected CRUD + status)
 rootRouter.use("/v1/training-institutes", trainingInstitutesRoutes);
 
-// Training Institute public application
+// Public Applications
 rootRouter.use("/v1/training-institute", trainingInstituteRoutes);
-
-// Accreditation & Auditor public applications
 rootRouter.use("/v1/accreditation", accreditationRoutes);
 rootRouter.use("/v1/auditor", auditorRoutes);
+rootRouter.use("/v1/contact", contactRoutes);
 
 // Additional system routes
 rootRouter.use("/v1/search", searchRoutes);
@@ -90,18 +89,11 @@ rootRouter.use("/v1/data-retention", dataRetentionRoutes);
 rootRouter.use("/v1/history", historyRoutes);
 rootRouter.use("/v1/integrity-verification", integrityVerificationRoutes);
 rootRouter.use("/v1/security-monitoring", securityMonitoringRoutes);
-rootRouter.use("/v1/contact", contactRoutes);
 
-// PRD: GET /api/v1/public/advisors
+// PRD: Public endpoints
 rootRouter.get("/v1/public/advisors", advisoryCtrl.getPublicAdvisors);
-
-// PRD: GET /api/v1/public/statistics (completed-dash)
 rootRouter.get("/v1/public/statistics", statisticsCtrl.getPublicStatistics);
-
-// GET /api/v1/public/certificate/:credentialId/summary (completed-dash)
 rootRouter.get("/v1/public/certificate/:credentialId/summary", statisticsCtrl.getCertificateSummary);
-
-// GET /api/v1/public/certificate/:credentialId/insights (completed-dash)
 rootRouter.get("/v1/public/certificate/:credentialId/insights", statisticsCtrl.getCertificateInsights);
 
 rootRouter.use("/v1", heroRoutes);

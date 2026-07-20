@@ -5,4 +5,7 @@ export const trainingInstituteQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional().default(20),
   status: z.enum(["ACTIVE", "SUSPENDED", "REVOKED"]).optional(),
   search: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
 });

@@ -36,6 +36,13 @@ interface Advisor {
   organization: string;
   designation: string;
   country: string;
+  countryCode: string;
+  phoneCode: string;
+  state: string;
+  city: string;
+  postalCode: string;
+  addressLine1: string;
+  addressLine2: string;
   status: "ACTIVE" | "INACTIVE";
   createdAt: string;
 }
@@ -85,6 +92,8 @@ function AdvisoryBoardComponent() {
     },
     { header: "Organization", accessor: "organization" },
     { header: "Designation", accessor: "designation", className: "hidden md:table-cell" },
+    { header: "City", accessor: (r) => (r as any).application?.city || r.city || "—", className: "hidden lg:table-cell" },
+    { header: "State", accessor: (r) => (r as any).application?.state || r.state || "—", className: "hidden lg:table-cell" },
     { header: "Country", accessor: (r) => (r as any).application?.country || r.country || "—", className: "hidden lg:table-cell" },
     { header: "Status", accessor: (r) => <StatusBadge status={r.status} /> },
     {

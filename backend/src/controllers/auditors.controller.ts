@@ -26,8 +26,12 @@ export class AuditorsController {
         { fullName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
         { specialization: { contains: search, mode: "insensitive" } },
+        { country: { contains: search, mode: "insensitive" } },
       ];
     }
+    if (query.country) where.country = query.country;
+    if (query.state) where.state = query.state;
+    if (query.city) where.city = query.city;
 
     const [auditors, total] = await Promise.all([
       prisma.auditor.findMany({

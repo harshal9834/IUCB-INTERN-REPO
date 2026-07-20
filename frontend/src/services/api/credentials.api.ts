@@ -7,6 +7,14 @@ export interface GenerateCredentialDto {
   issueDate: string;
   expiryDate: string;
   internalNotes?: string;
+  country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
 }
 
 export interface Credential {
@@ -29,6 +37,15 @@ export interface Credential {
   emailSentBy?: string | null;
   createdAt: string;
   updatedAt: string;
+  
+  country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
 
   // Relations
   organization?: any;

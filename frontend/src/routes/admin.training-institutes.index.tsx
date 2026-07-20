@@ -33,7 +33,13 @@ interface TrainingInstitute {
   instituteName: string;
   registrationNumber: string;
   country: string;
-  address: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   email: string;
   phone: string;
   website?: string | null;
@@ -86,6 +92,8 @@ function TrainingInstitutesListComponent() {
     },
     { header: "Email", accessor: "email", className: "hidden lg:table-cell" },
     { header: "Country", accessor: "country" },
+    { header: "State", accessor: "state", className: "hidden lg:table-cell" },
+    { header: "City", accessor: "city", className: "hidden lg:table-cell" },
     { 
       header: "Standards", 
       accessor: () => <span className="text-xs text-slate-500">ISO 9001, ISO 27001</span>,

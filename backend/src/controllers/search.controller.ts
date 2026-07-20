@@ -31,13 +31,13 @@ export class SearchController {
       throw new ApiError(400, "Validation failed", errors.array());
     }
 
-    const { text, entityType, entityId, action, changedBy, dateFrom, dateTo, limit, page } = req.body;
+    const { text, entityType, entityId, action, changedBy, dateFrom, dateTo, limit, page, country, state, city } = req.body;
 
     if (!text) {
       throw new ApiError(400, "Search text is required");
     }
 
-    const searchQuery: SearchQuery = {
+    const searchQuery: any = {
       text,
       entityType,
       entityId,
@@ -46,7 +46,10 @@ export class SearchController {
       dateFrom: dateFrom ? new Date(dateFrom) : undefined,
       dateTo: dateTo ? new Date(dateTo) : undefined,
       limit: Math.min(limit || 50, 100),
-      page: Math.max(page || 1, 1)
+      page: Math.max(page || 1, 1),
+      country,
+      state,
+      city
     };
 
     const results = await this.searchService.searchEntityHistory(searchQuery);

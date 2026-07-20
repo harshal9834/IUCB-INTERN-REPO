@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
+import { OFFICIAL_STANDARDS } from "../constants/standards";
 import {
   Building2,
   ArrowLeft,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import publicApplicationsApi from "../services/api/public-applications.api";
+import { LocationSelector } from "../components/LocationSelector";
 
 export const Route = createFileRoute("/apply/accreditation")({
   head: () => ({
@@ -32,7 +34,14 @@ const schema = z.object({
   company: z.string().min(2, "Organization name is required"),
   organizationType: z.string().min(2, "Organization type is required"),
   country: z.string().min(2, "Country is required"),
-  address: z.string().min(5, "Address is required"),
+  countryCode: z.string().min(2, "Country code is required"),
+  phoneCode: z.string().optional(),
+  state: z.string().min(2, "State/Province is required"),
+  city: z.string().min(2, "City is required"),
+  postalCode: z.string().optional(),
+  addressLine1: z.string().min(5, "Address line 1 is required"),
+  addressLine2: z.string().optional(),
+  address: z.string().optional(),
   website: z
     .string()
     .url("Please enter a valid URL (e.g. https://example.com)")
@@ -60,18 +69,7 @@ const ORG_TYPES = [
   "Other",
 ];
 
-const STANDARDS = [
-  "ISO/IEC 17021-1 (Management Systems Certification)",
-  "ISO/IEC 17024 (Personnel Certification)",
-  "ISO/IEC 17025 (Testing & Calibration)",
-  "ISO/IEC 17020 (Inspection Bodies)",
-  "ISO/IEC 17065 (Product Certification)",
-  "ISO/IEC 27001 (Information Security)",
-  "ISO/IEC 27701 (Privacy Management)",
-  "ISO 9001 (Quality Management)",
-  "ISO 14001 (Environmental Management)",
-  "Other",
-];
+
 
 function Field({
   label,
@@ -107,18 +105,28 @@ function AccreditationForm() {
   const {
     register,
     handleSubmit,
+    watch,
+    control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { agreement: false },
   });
 
+  const selectedStandardName = watch("appliedStandard");
+  const selectedStandard = OFFICIAL_STANDARDS.find(s => s.name === selectedStandardName);
+
   const onSubmit = async (data: FormData) => {
     setServerError(null);
     try {
       const { agreement: _, ...payload } = data;
+      // Reconstruct address for fallback compatibility if needed, though backend will now use individual fields
+      const combinedAddress = [data.addressLine1, data.addressLine2, data.city, data.state, data.postalCode, data.country].filter(Boolean).join(", ");
+      
       const res = await publicApplicationsApi.submitAccreditation({
         ...payload,
+        address: combinedAddress,
         website: payload.website || undefined,
       });
       const applicationNumber = res.data?.data?.application?.applicationNumber;
@@ -208,13 +216,6 @@ function AccreditationForm() {
                     className={inputClass}
                   />
                 </Field>
-                <Field label="Country" error={errors.country?.message} required>
-                  <input
-                    {...register("country")}
-                    placeholder="e.g. India"
-                    className={inputClass}
-                  />
-                </Field>
                 <Field label="Website" error={errors.website?.message}>
                   <input
                     {...register("website")}
@@ -223,15 +224,16 @@ function AccreditationForm() {
                     className={inputClass}
                   />
                 </Field>
-                <div className="sm:col-span-2">
-                  <Field label="Address" error={errors.address?.message} required>
-                    <textarea
-                      {...register("address")}
-                      rows={2}
-                      placeholder="Full registered address"
-                      className={inputClass}
-                    />
-                  </Field>
+                
+                <div className="sm:col-span-2 mt-4">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-4">Location Details</h3>
+                  <LocationSelector
+                    control={control}
+                    register={register}
+                    errors={errors}
+                    watch={watch}
+                    setValue={setValue}
+                  />
                 </div>
               </div>
             </div>
@@ -260,11 +262,19 @@ function AccreditationForm() {
                   />
                 </Field>
                 <Field label="Phone Number" error={errors.phone?.message} required>
-                  <input
-                    {...register("phone")}
-                    placeholder="+1 234 567 8900"
-                    className={inputClass}
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      value={watch("phoneCode") || ""}
+                      readOnly
+                      placeholder="+1"
+                      className="w-20 rounded-lg border border-border bg-slate-50 px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                    <input
+                      {...register("phone")}
+                      placeholder="234 567 8900"
+                      className={inputClass}
+                    />
+                  </div>
                 </Field>
               </div>
             </div>
@@ -279,10 +289,17 @@ function AccreditationForm() {
                   <Field label="ISO Standard Applying For" error={errors.appliedStandard?.message} required>
                     <select {...register("appliedStandard")} className={selectClass}>
                       <option value="">Select standard…</option>
-                      {STANDARDS.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                      {OFFICIAL_STANDARDS.map((s) => (
+                        <option key={s.name} value={s.name}>{s.name}</option>
                       ))}
                     </select>
+                    {selectedStandard && (
+                      <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-700 space-y-1.5">
+                        <div><strong className="text-slate-900">Edition:</strong> {selectedStandard.edition}</div>
+                        <div><strong className="text-slate-900">Category:</strong> {selectedStandard.category}</div>
+                        <div><strong className="text-slate-900">Governing Document:</strong> {selectedStandard.governingDocument}</div>
+                      </div>
+                    )}
                   </Field>
                 </div>
                 <div className="sm:col-span-2">

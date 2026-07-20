@@ -26,7 +26,7 @@ export class AdminController {
 
   createAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { fullName, email, password, role } = req.body;
+      const { fullName, email, password, role, country, countryCode, phoneCode, state, city, postalCode, addressLine1, addressLine2, address } = req.body;
       if (!fullName || !email || !password) {
         res.status(400).json({ error: "Missing required fields" });
         return;
@@ -41,6 +41,7 @@ export class AdminController {
         email,
         password: hashedPassword,
         role: role || "ADMIN",
+        country, countryCode, phoneCode, state, city, postalCode, addressLine1, addressLine2, address,
       });
 
 

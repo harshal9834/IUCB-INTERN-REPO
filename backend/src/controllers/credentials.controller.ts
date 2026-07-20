@@ -10,14 +10,15 @@ import * as fs from "fs";
 import * as path from "path";
 import { IdGeneratorService } from "../services/id-generator.service.js";
 import { certificateGeneratorService } from "../services/bulk-email/certificate-generator.service.js";
+import QRCode from "qrcode";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const TYPE_STANDARD: Record<string, string> = {
-  ACCREDITATION:     "ISO/IEC 17021-1:2015",
-  AUDITOR:           "ISO/IEC 17024:2012",
-  TRAINING_INSTITUTE:"ISO 9001:2015",
-  ADVISORY:          "IUCB Advisory Board",
+  ACCREDITATION:     "ISO/IEC 17021-1",
+  AUDITOR:           "ISO/IEC 27001",
+  TRAINING_INSTITUTE:"ISO 9001",
+  ADVISORY:          "SOC 2",
 };
 
 function getStorageDir(): string {
@@ -92,8 +93,29 @@ export class CredentialsController {
 
   // GET /api/v1/credentials
   getIssuedCredentials = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { credentialQuerySchema } = await import("../validators/credentials.validators.js");
+    const query = credentialQuerySchema.parse(req.query);
+    const { page, limit, status, organizationId, search, country, state, city } = query;
+    const skip = (page - 1) * limit;
+
+    const where: any = { deletedAt: null };
+    if (status) where.status = status;
+    if (organizationId) where.organizationId = organizationId;
+    if (search) {
+      where.OR = [
+        { credentialId: { contains: search, mode: "insensitive" } },
+        { candidateName: { contains: search, mode: "insensitive" } },
+        { organizationName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    if (country) where.country = country;
+    if (state) where.state = state;
+    if (city) where.city = city;
+
     const credentials = await prisma.credential.findMany({
-      where: { deletedAt: null },
+      where,
+      skip,
+      take: limit,
       orderBy: { createdAt: "desc" },
       include: {
         organization: { select: { id: true, organizationName: true, country: true } },
@@ -167,6 +189,18 @@ export class CredentialsController {
     // Generate sequential IDs
     const { credentialId, certificateId, registrationNumber } = await IdGeneratorService.generateAllIds(application.applicationType);
 
+    const verificationUrl = `${baseUrl}/verify?credential=${credentialId}`;
+    let qrCode = "";
+    try {
+      qrCode = await QRCode.toDataURL(verificationUrl, {
+        errorCorrectionLevel: 'H',
+        margin: 1,
+        width: 150
+      });
+    } catch (err) {
+      console.error('Error generating QR code:', err);
+    }
+
     const credential = await prisma.credential.create({
       data: {
         credentialId,
@@ -181,7 +215,8 @@ export class CredentialsController {
         organizationId,
         auditorId,
         applicationId,
-        verificationUrl: `${baseUrl}/verify?credential=${credentialId}`,
+        verificationUrl,
+        qrCode,
       },
     });
 
@@ -237,6 +272,15 @@ export class CredentialsController {
 
     const htmlContent = await fs.promises.readFile(path.resolve(process.cwd(), template.filepath), 'utf-8');
 
+    let finalQrCode = credential.qrCode;
+    if (!finalQrCode) {
+      try {
+        finalQrCode = await QRCode.toDataURL(credential.verificationUrl, { errorCorrectionLevel: 'H', margin: 1, width: 150 });
+      } catch (e) {
+        console.error("QR Code fallback failed:", e);
+      }
+    }
+
     const templateData = {
       CANDIDATE_NAME: credential.application?.fullName || "",
       ORGANIZATION_NAME: orgName,
@@ -247,8 +291,9 @@ export class CredentialsController {
       ISSUE_DATE: credential.issueDate.toLocaleDateString(),
       EXPIRY_DATE: credential.expiryDate.toLocaleDateString(),
       STANDARD: credential.standard,
-      QR_CODE: credential.qrCode || "",
-      VERIFICATION_URL: credential.verificationUrl
+      QR_CODE: finalQrCode || "",
+      VERIFICATION_URL: credential.verificationUrl,
+      STANDARD_SCOPE: credential.application?.expertiseArea || credential.standard || ""
     };
 
     const populatedHtml = certificateGeneratorService.populateTemplate(htmlContent, templateData);

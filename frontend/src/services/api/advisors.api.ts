@@ -10,6 +10,14 @@ export interface Advisor {
   experienceYears: number;
   profilePhoto?: string | null;
   bio?: string | null;
+  country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
   createdAt: string;
   updatedAt: string;

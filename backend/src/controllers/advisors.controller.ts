@@ -22,18 +22,30 @@ export class AdvisorsController {
         { fullName: { contains: search, mode: "insensitive" } },
         { organization: { contains: search, mode: "insensitive" } },
         { designation: { contains: search, mode: "insensitive" } },
+        { country: { contains: search, mode: "insensitive" } },
       ];
     }
+    if (query.country) where.country = query.country;
+    if (query.state) where.state = query.state;
+    if (query.city) where.city = query.city;
 
-    const [advisors, total] = await Promise.all([
+    const [rawAdvisors, total] = await Promise.all([
       prisma.advisor.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
+        include: { application: true },
       }),
       prisma.advisor.count({ where }),
     ]);
+
+    const advisors = rawAdvisors.map((adv: any) => ({
+      ...adv,
+      email: adv.application?.email || "N/A",
+      phone: adv.application?.phone || "N/A",
+      country: adv.application?.country || "N/A",
+    }));
 
     res.status(200).json(
       new ApiResponse(
@@ -53,6 +65,7 @@ export class AdvisorsController {
 
     const advisor = await prisma.advisor.findFirst({
       where: { id, deletedAt: null },
+      include: { application: true },
     });
 
     if (!advisor) throw new ApiError(404, "Advisor not found");
@@ -107,7 +120,7 @@ export class AdvisorsController {
   updateAdvisor = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const id = String(req.params.id);
-      const { fullName, organization, designation, expertiseArea, experienceYears, bio, linkedinUrl } = req.body;
+      const { fullName, organization, designation, expertiseArea, experienceYears, bio, linkedinUrl, country, countryCode, phoneCode, state, city, postalCode, addressLine1, addressLine2, address } = req.body;
 
       if (!req.admin) throw new ApiError(401, "Not authenticated");
 
@@ -126,6 +139,7 @@ export class AdvisorsController {
           experienceYears,
           bio,
           linkedinUrl,
+          country, countryCode, phoneCode, state, city, postalCode, addressLine1, addressLine2, address,
         },
       });
 

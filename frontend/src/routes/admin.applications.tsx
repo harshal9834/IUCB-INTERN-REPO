@@ -124,6 +124,15 @@ function ApplicationsComponent() {
       className: "hidden lg:table-cell",
     },
     {
+      header: "Location",
+      accessor: (r) => (
+        <span className="text-sm text-slate-600">
+          {[r.city, r.state, r.country].filter(Boolean).join(", ") || "—"}
+        </span>
+      ),
+      className: "hidden md:table-cell",
+    },
+    {
       header: "Status",
       accessor: (r) => <StatusBadge status={r.applicationStatus} />,
     },

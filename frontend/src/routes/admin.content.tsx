@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   FileText,
@@ -43,6 +43,7 @@ function Layers(props: React.SVGProps<SVGSVGElement>) {
 }
 
 function ContentManagement() {
+  const navigate = useNavigate();
   const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -132,15 +133,23 @@ function ContentManagement() {
         title="Document Content Management"
         description="Manage manuals, policies, procedures, templates, and guidance documents."
         action={
-          <Button
-            className="bg-[#0F2942] hover:bg-[#1a446c] text-white"
-            onClick={() => {
-              setEditingResource(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add Document
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              className="bg-[#0F2942] hover:bg-[#1a446c] text-white"
+              onClick={() => navigate({ to: "/admin/certificate-templates" })}
+            >
+              ➕ Manage Certificate Templates
+            </Button>
+            <Button
+              className="bg-[#0F2942] hover:bg-[#1a446c] text-white"
+              onClick={() => {
+                setEditingResource(null);
+                setIsModalOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add Document
+            </Button>
+          </div>
         }
       />
 

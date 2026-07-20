@@ -24,6 +24,9 @@ export class TrainingInstitutesController {
         { country: { contains: search, mode: "insensitive" } },
       ];
     }
+    if (query.country) where.country = query.country;
+    if (query.state) where.state = query.state;
+    if (query.city) where.city = query.city;
 
     const [trainingInstitutes, total] = await Promise.all([
       prisma.trainingInstitute.findMany({

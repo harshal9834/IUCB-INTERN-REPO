@@ -68,9 +68,10 @@ const content: Record<
 
     standards: [
       "ISO/IEC 17021-1",
-      "ISO/IEC 17065",
-      "ISO/IEC 17024",
-      "ISO/IEC 17020",
+      "ISO/IEC 27001",
+      "ISO/IEC 27701",
+      "ISO 9001",
+      "SOC 2",
     ],
   },
   auditors: {
@@ -96,10 +97,11 @@ const content: Record<
     ],
 
     standards: [
-      "ISO 19011",
-      "ISO 9001 Lead Auditor",
-      "ISO/IEC 27001 Lead Auditor",
-      "ISO 14001 Lead Auditor",
+      "ISO/IEC 17021-1",
+      "ISO/IEC 27001",
+      "ISO/IEC 27701",
+      "ISO 9001",
+      "SOC 2",
     ],
 
     extra: {
@@ -152,9 +154,11 @@ const content: Record<
     ],
 
     standards: [
-      "ISO 21001",
-      "ISO 29993",
-      "IUCB Training Requirements",
+      "ISO/IEC 17021-1",
+      "ISO/IEC 27001",
+      "ISO/IEC 27701",
+      "ISO 9001",
+      "SOC 2",
     ],
   },
   advisory: {
@@ -174,7 +178,13 @@ const content: Record<
       "Demonstrated commitment to quality and integrity",
       "Ability to participate in quarterly board meetings",
     ],
-    standards: ["ISO/IEC 17021", "ISO 19011", "IUCB Advisory Charter v2.0"],
+    standards: [
+      "ISO/IEC 17021-1",
+      "ISO/IEC 27001",
+      "ISO/IEC 27701",
+      "ISO 9001",
+      "SOC 2",
+    ],
   },
 };
 

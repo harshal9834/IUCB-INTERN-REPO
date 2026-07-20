@@ -31,10 +31,10 @@ export const Route = createFileRoute("/admin/credentials/generate/$applicationId
 
 // Map application types to display labels and auto-derived info
 const TYPE_META: Record<string, { label: string; prefix: string; standard: string; color: string }> = {
-  ACCREDITATION:      { label: "Organization Accreditation", prefix: "IUCB-ORG-XXXXXX", standard: "ISO/IEC 17021-1:2015",   color: "text-blue-700 bg-blue-50 border-blue-200" },
-  AUDITOR:            { label: "Auditor Certification",      prefix: "IUCB-AUD-XXXXXX", standard: "ISO/IEC 17024:2012",      color: "text-violet-700 bg-violet-50 border-violet-200" },
-  TRAINING_INSTITUTE: { label: "Training Institute",         prefix: "IUCB-TI-XXXXXX",  standard: "ISO 9001:2015",           color: "text-amber-700 bg-amber-50 border-amber-200" },
-  ADVISORY:           { label: "Advisory Board Member",      prefix: "IUCB-ADV-XXXXXX", standard: "IUCB Advisory Board",     color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+  ACCREDITATION:      { label: "Organization Accreditation", prefix: "IUCB-ORG-XXXXXX", standard: "ISO/IEC 17021-1",   color: "text-blue-700 bg-blue-50 border-blue-200" },
+  AUDITOR:            { label: "Auditor Certification",      prefix: "IUCB-AUD-XXXXXX", standard: "ISO/IEC 27001",      color: "text-violet-700 bg-violet-50 border-violet-200" },
+  TRAINING_INSTITUTE: { label: "Training Institute",         prefix: "IUCB-TI-XXXXXX",  standard: "ISO 9001",           color: "text-amber-700 bg-amber-50 border-amber-200" },
+  ADVISORY:           { label: "Advisory Board Member",      prefix: "IUCB-ADV-XXXXXX", standard: "SOC 2",     color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
 };
 
 function ReadOnlyField({ label, value, icon: Icon, mono = false }: { label: string; value?: string; icon?: any; mono?: boolean }) {

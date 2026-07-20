@@ -284,6 +284,8 @@ function OrganizationsComponent() {
       ),
     },
     { header: "Country", accessor: "country" },
+    { header: "State", accessor: "state", className: "hidden lg:table-cell" },
+    { header: "City", accessor: "city", className: "hidden lg:table-cell" },
     { header: "Email", accessor: "email", className: "hidden lg:table-cell" },
     { header: "Status", accessor: (r) => <StatusBadge status={r.accreditationStatus} /> },
     {
@@ -533,8 +535,10 @@ function OrganizationsComponent() {
                   <div className="flex items-start gap-2 text-slate-600">
                     <Building2 className="h-4 w-4 mt-0.5" /> 
                     <span>
-                      {viewTarget.address}<br/>
-                      {viewTarget.country}
+                      {viewTarget.addressLine1} {viewTarget.addressLine2}<br/>
+                      {viewTarget.city}, {viewTarget.state} {viewTarget.postalCode}<br/>
+                      {viewTarget.country} ({viewTarget.countryCode})<br/>
+                      <span className="text-xs text-slate-400">Phone Code: {viewTarget.phoneCode}</span>
                     </span>
                   </div>
                 </div>

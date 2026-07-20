@@ -338,6 +338,15 @@ export class AdminApplicationsController {
           designation: application.designation ?? "N/A",
           expertiseArea: application.expertiseArea ?? "General",
           experienceYears: application.experienceYears ?? 0,
+          country: application.country ?? "N/A",
+          countryCode: application.countryCode,
+          phoneCode: application.phoneCode,
+          state: application.state,
+          city: application.city,
+          postalCode: application.postalCode,
+          addressLine1: application.addressLine1,
+          addressLine2: application.addressLine2,
+          address: application.address ?? "N/A",
           status: "ACTIVE" as const,
         };
         console.log(`[DEBUG] Mapped table: ${mappedTable}`);
@@ -432,6 +441,15 @@ export class AdminApplicationsController {
           tier: "ASSOCIATE" as const,
           specialization: application.appliedStandard ?? "General",
           experienceYears: application.experienceYears ?? 0,
+          country: application.country ?? "N/A",
+          countryCode: application.countryCode,
+          phoneCode: application.phoneCode,
+          state: application.state,
+          city: application.city,
+          postalCode: application.postalCode,
+          addressLine1: application.addressLine1,
+          addressLine2: application.addressLine2,
+          address: application.address ?? "N/A",
           status: "ACTIVE",
         };
         console.log(`[DEBUG] Mapped table: ${mappedTable}`);

@@ -141,6 +141,20 @@ export class TrainingInstitutesController {
     },
   );
 
+  // PUT /api/v1/training-institutes/:id
+  updateTrainingInstitute = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const id = String(req.params.id);
+    const { updateTrainingInstituteSchema } = await import("../validators/training-institutes.validators.js");
+    const body = updateTrainingInstituteSchema.parse(req.body);
+
+    const existing = await prisma.trainingInstitute.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new ApiError(404, "Training Institute not found");
+
+    const trainingInstitute = await prisma.trainingInstitute.update({ where: { id }, data: body });
+
+    res.status(200).json(new ApiResponse(200, { trainingInstitute }, "Training Institute updated successfully"));
+  });
+
   // GET /api/v1/training-institutes/:id/audit-logs
   getTrainingInstituteAuditLogs = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {

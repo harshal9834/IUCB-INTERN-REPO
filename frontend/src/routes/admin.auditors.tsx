@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { LocationSelector } from "../components/LocationSelector";
 import { PageHeader } from "../components/reusable-components";
@@ -193,6 +193,11 @@ function AuditorsComponent() {
     setFormError("");
     setModalOpen(true);
   };
+  const navigate = Route.useNavigate();
+  const openView = (a: Auditor) => {
+    navigate({ to: '/admin/auditors/$id' as any, params: { id: a.id } });
+  };
+
   const closeModal = () => {
     setModalOpen(false);
     setEditTarget(null);
@@ -305,6 +310,9 @@ function AuditorsComponent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => openView(a)}>
+                <Eye className="mr-2 h-3.5 w-3.5" /> View Details
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openEdit(a)}>
                 <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
               </DropdownMenuItem>

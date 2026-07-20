@@ -50,9 +50,11 @@ import { Route as AdminAdvisorsRouteImport } from './routes/admin.advisors'
 import { Route as AdminTrainingInstitutesIndexRouteImport } from './routes/admin.training-institutes.index'
 import { Route as AdminTrainingInstitutesBulkEmailRouteImport } from './routes/admin.training-institutes.bulk-email'
 import { Route as AdminTrainingInstitutesIdRouteImport } from './routes/admin.training-institutes.$id'
+import { Route as AdminOrganizationsIdRouteImport } from './routes/admin.organizations_.$id'
 import { Route as AdminCredentialsIdRouteImport } from './routes/admin.credentials_.$id'
 import { Route as AdminCredentialsPendingRouteImport } from './routes/admin.credentials.pending'
 import { Route as AdminCredentialsGeneratedRouteImport } from './routes/admin.credentials.generated'
+import { Route as AdminAuditorsIdRouteImport } from './routes/admin.auditors_.$id'
 import { Route as AdminApplicationsIdRouteImport } from './routes/admin.applications_.$id'
 import { Route as AdminAdvisoryIdRouteImport } from './routes/admin.advisory_.$id'
 import { Route as AdminCredentialsGenerateApplicationIdRouteImport } from './routes/admin.credentials.generate.$applicationId'
@@ -266,6 +268,11 @@ const AdminTrainingInstitutesIdRoute =
     path: '/$id',
     getParentRoute: () => AdminTrainingInstitutesRoute,
   } as any)
+const AdminOrganizationsIdRoute = AdminOrganizationsIdRouteImport.update({
+  id: '/admin/organizations_/$id',
+  path: '/admin/organizations/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCredentialsIdRoute = AdminCredentialsIdRouteImport.update({
   id: '/admin/credentials_/$id',
   path: '/admin/credentials/$id',
@@ -282,6 +289,11 @@ const AdminCredentialsGeneratedRoute =
     path: '/generated',
     getParentRoute: () => AdminCredentialsRoute,
   } as any)
+const AdminAuditorsIdRoute = AdminAuditorsIdRouteImport.update({
+  id: '/admin/auditors_/$id',
+  path: '/admin/auditors/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminApplicationsIdRoute = AdminApplicationsIdRouteImport.update({
   id: '/admin/applications_/$id',
   path: '/admin/applications/$id',
@@ -340,9 +352,11 @@ export interface FileRoutesByFullPath {
   '/directory/': typeof DirectoryIndexRoute
   '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications/$id': typeof AdminApplicationsIdRoute
+  '/admin/auditors/$id': typeof AdminAuditorsIdRoute
   '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
   '/admin/credentials/pending': typeof AdminCredentialsPendingRoute
   '/admin/credentials/$id': typeof AdminCredentialsIdRoute
+  '/admin/organizations/$id': typeof AdminOrganizationsIdRoute
   '/admin/training-institutes/$id': typeof AdminTrainingInstitutesIdRoute
   '/admin/training-institutes/bulk-email': typeof AdminTrainingInstitutesBulkEmailRoute
   '/admin/training-institutes/': typeof AdminTrainingInstitutesIndexRoute
@@ -388,9 +402,11 @@ export interface FileRoutesByTo {
   '/directory': typeof DirectoryIndexRoute
   '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications/$id': typeof AdminApplicationsIdRoute
+  '/admin/auditors/$id': typeof AdminAuditorsIdRoute
   '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
   '/admin/credentials/pending': typeof AdminCredentialsPendingRoute
   '/admin/credentials/$id': typeof AdminCredentialsIdRoute
+  '/admin/organizations/$id': typeof AdminOrganizationsIdRoute
   '/admin/training-institutes/$id': typeof AdminTrainingInstitutesIdRoute
   '/admin/training-institutes/bulk-email': typeof AdminTrainingInstitutesBulkEmailRoute
   '/admin/training-institutes': typeof AdminTrainingInstitutesIndexRoute
@@ -438,9 +454,11 @@ export interface FileRoutesById {
   '/directory/': typeof DirectoryIndexRoute
   '/admin/advisory_/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications_/$id': typeof AdminApplicationsIdRoute
+  '/admin/auditors_/$id': typeof AdminAuditorsIdRoute
   '/admin/credentials/generated': typeof AdminCredentialsGeneratedRoute
   '/admin/credentials/pending': typeof AdminCredentialsPendingRoute
   '/admin/credentials_/$id': typeof AdminCredentialsIdRoute
+  '/admin/organizations_/$id': typeof AdminOrganizationsIdRoute
   '/admin/training-institutes/$id': typeof AdminTrainingInstitutesIdRoute
   '/admin/training-institutes/bulk-email': typeof AdminTrainingInstitutesBulkEmailRoute
   '/admin/training-institutes/': typeof AdminTrainingInstitutesIndexRoute
@@ -489,9 +507,11 @@ export interface FileRouteTypes {
     | '/directory/'
     | '/admin/advisory/$id'
     | '/admin/applications/$id'
+    | '/admin/auditors/$id'
     | '/admin/credentials/generated'
     | '/admin/credentials/pending'
     | '/admin/credentials/$id'
+    | '/admin/organizations/$id'
     | '/admin/training-institutes/$id'
     | '/admin/training-institutes/bulk-email'
     | '/admin/training-institutes/'
@@ -537,9 +557,11 @@ export interface FileRouteTypes {
     | '/directory'
     | '/admin/advisory/$id'
     | '/admin/applications/$id'
+    | '/admin/auditors/$id'
     | '/admin/credentials/generated'
     | '/admin/credentials/pending'
     | '/admin/credentials/$id'
+    | '/admin/organizations/$id'
     | '/admin/training-institutes/$id'
     | '/admin/training-institutes/bulk-email'
     | '/admin/training-institutes'
@@ -586,9 +608,11 @@ export interface FileRouteTypes {
     | '/directory/'
     | '/admin/advisory_/$id'
     | '/admin/applications_/$id'
+    | '/admin/auditors_/$id'
     | '/admin/credentials/generated'
     | '/admin/credentials/pending'
     | '/admin/credentials_/$id'
+    | '/admin/organizations_/$id'
     | '/admin/training-institutes/$id'
     | '/admin/training-institutes/bulk-email'
     | '/admin/training-institutes/'
@@ -631,7 +655,9 @@ export interface RootRouteChildren {
   DirectoryIndexRoute: typeof DirectoryIndexRoute
   AdminAdvisoryIdRoute: typeof AdminAdvisoryIdRoute
   AdminApplicationsIdRoute: typeof AdminApplicationsIdRoute
+  AdminAuditorsIdRoute: typeof AdminAuditorsIdRoute
   AdminCredentialsIdRoute: typeof AdminCredentialsIdRoute
+  AdminOrganizationsIdRoute: typeof AdminOrganizationsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -923,6 +949,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTrainingInstitutesIdRouteImport
       parentRoute: typeof AdminTrainingInstitutesRoute
     }
+    '/admin/organizations_/$id': {
+      id: '/admin/organizations_/$id'
+      path: '/admin/organizations/$id'
+      fullPath: '/admin/organizations/$id'
+      preLoaderRoute: typeof AdminOrganizationsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/credentials_/$id': {
       id: '/admin/credentials_/$id'
       path: '/admin/credentials/$id'
@@ -943,6 +976,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/credentials/generated'
       preLoaderRoute: typeof AdminCredentialsGeneratedRouteImport
       parentRoute: typeof AdminCredentialsRoute
+    }
+    '/admin/auditors_/$id': {
+      id: '/admin/auditors_/$id'
+      path: '/admin/auditors/$id'
+      fullPath: '/admin/auditors/$id'
+      preLoaderRoute: typeof AdminAuditorsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/applications_/$id': {
       id: '/admin/applications_/$id'
@@ -1057,7 +1097,9 @@ const rootRouteChildren: RootRouteChildren = {
   DirectoryIndexRoute: DirectoryIndexRoute,
   AdminAdvisoryIdRoute: AdminAdvisoryIdRoute,
   AdminApplicationsIdRoute: AdminApplicationsIdRoute,
+  AdminAuditorsIdRoute: AdminAuditorsIdRoute,
   AdminCredentialsIdRoute: AdminCredentialsIdRoute,
+  AdminOrganizationsIdRoute: AdminOrganizationsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

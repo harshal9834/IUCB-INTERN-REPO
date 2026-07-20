@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCountries, getStates, getCities } from '../services/location.service';
+import { getCountries, getStates, getCities } from '../services/location.service.js';
 
 const router = Router();
 

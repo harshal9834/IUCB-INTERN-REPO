@@ -4,7 +4,7 @@ import { Country, State, City } from 'country-state-city';
  * Returns all countries with name, ISO code, phone code, flag, currency, timezones.
  */
 export const getCountries = () =>
-  Country.getAllCountries().map((c) => ({
+  Country.getAllCountries().map((c: any) => ({
     name: c.name,
     isoCode: c.isoCode,
     phonecode: c.phonecode.startsWith('+') ? c.phonecode : `+${c.phonecode}`,
@@ -17,7 +17,7 @@ export const getCountries = () =>
  * Returns all states/provinces for a given country ISO code.
  */
 export const getStates = (countryCode: string) =>
-  State.getStatesOfCountry(countryCode).map((s) => ({
+  State.getStatesOfCountry(countryCode).map((s: any) => ({
     name: s.name,
     isoCode: s.isoCode,
     countryCode: s.countryCode,
@@ -27,7 +27,7 @@ export const getStates = (countryCode: string) =>
  * Returns all cities for a given country ISO code and state ISO code.
  */
 export const getCities = (countryCode: string, stateCode: string) =>
-  City.getCitiesOfState(countryCode, stateCode).map((c) => ({
+  City.getCitiesOfState(countryCode, stateCode).map((c: any) => ({
     name: c.name,
     stateCode: c.stateCode,
     countryCode: c.countryCode,
@@ -47,6 +47,6 @@ export const getPhoneCode = (countryCode: string): string => {
  */
 export const getCountryISO = (name: string): string => {
   const all = Country.getAllCountries();
-  const match = all.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  const match = all.find((c: any) => c.name.toLowerCase() === name.toLowerCase());
   return match?.isoCode ?? '';
 };

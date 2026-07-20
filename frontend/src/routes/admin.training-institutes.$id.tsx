@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { LocationSelector } from "../components/ui/LocationSelector";
 import { 
   Building2, Globe, Phone, Mail, CheckCircle, Clock, ArrowLeft, 
   Pencil, Calendar, Activity, MapPin, ToggleLeft, Save, X
@@ -25,7 +27,7 @@ function TrainingInstituteDetailsComponent() {
   const queryClient = useQueryClient();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<any>({});
+  const { register, control, formState: { errors }, watch, setValue, getValues, reset } = useForm<any>();
   const [statusDialog, setStatusDialog] = useState<string | null>(null);
 
   const { data: institute, isLoading } = useQuery({
@@ -61,11 +63,17 @@ function TrainingInstituteDetailsComponent() {
   });
 
   const handleEditClick = () => {
-    setForm({
+    reset({
       instituteName: institute.instituteName,
       registrationNumber: institute.registrationNumber,
       country: institute.country,
-      address: institute.address,
+      countryCode: institute.countryCode || "",
+      phoneCode: institute.phoneCode || "",
+      state: institute.state || "",
+      city: institute.city || "",
+      postalCode: institute.postalCode || "",
+      addressLine1: institute.addressLine1 || "",
+      addressLine2: institute.addressLine2 || "",
       email: institute.email,
       phone: institute.phone,
       website: institute.website || "",
@@ -74,7 +82,7 @@ function TrainingInstituteDetailsComponent() {
   };
 
   const handleSave = () => {
-    updateMutation.mutate(form);
+    updateMutation.mutate(getValues());
   };
 
   if (isLoading) {
@@ -151,31 +159,26 @@ function TrainingInstituteDetailsComponent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Institute Name</Label>
-                    <Input value={form.instituteName} onChange={e => setForm({...form, instituteName: e.target.value})} />
+                    <Input {...register("instituteName")} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Registration Number</Label>
-                    <Input value={form.registrationNumber} onChange={e => setForm({...form, registrationNumber: e.target.value})} />
+                    <Input {...register("registrationNumber")} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Email Address</Label>
-                    <Input value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                    <Input type="email" {...register("email")} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Phone Number</Label>
-                    <Input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                    <Input {...register("phone")} />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
                     <Label>Website</Label>
-                    <Input value={form.website} onChange={e => setForm({...form, website: e.target.value})} />
+                    <Input type="url" {...register("website")} />
                   </div>
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label>Address</Label>
-                    <Input value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Country</Label>
-                    <Input value={form.country} onChange={e => setForm({...form, country: e.target.value})} />
+                  <div className="md:col-span-2 space-y-4">
+                    <LocationSelector control={control} register={register} errors={errors} watch={watch} setValue={setValue} />
                   </div>
                 </div>
               ) : (

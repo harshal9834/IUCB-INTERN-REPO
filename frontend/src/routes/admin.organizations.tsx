@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { LocationSelector } from "../components/ui/LocationSelector";
+import { LocationSelector } from "../components/LocationSelector";
 import { Plus, MoreHorizontal, Pencil, Trash2, ToggleLeft, Eye, Building2, Globe, Phone, Mail, FileText, CheckCircle, Clock, XCircle, Filter } from "lucide-react";
 import { PageHeader } from "../components/reusable-components";
 import { DataTable, DataTableColumn } from "../components/data-table";
@@ -32,13 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "../components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Skeleton } from "../components/ui/skeleton";
 import organizationsApi from "../services/api/organizations.api";
@@ -120,8 +113,6 @@ function OrganizationsComponent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Organization | null>(null);
   
-  const [viewTarget, setViewTarget] = useState<Organization | null>(null);
-  
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null);
   const [statusTarget, setStatusTarget] = useState<{ org: Organization; newStatus: string } | null>(null);
   
@@ -167,7 +158,6 @@ function OrganizationsComponent() {
     mutationFn: ({ id, payload }: { id: string; payload: any }) => organizationsApi.updateOrganization(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      if (viewTarget) fetchOrganizationDetails(viewTarget.id);
       closeModal();
     },
     onError: (err: any) => setFormError(err?.response?.data?.message ?? "Failed to update organization"),
@@ -178,7 +168,6 @@ function OrganizationsComponent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-      if (viewTarget) fetchOrganizationDetails(viewTarget.id);
       setStatusTarget(null);
     },
   });
@@ -189,22 +178,12 @@ function OrganizationsComponent() {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
       setDeleteTarget(null);
-      setViewTarget(null);
     },
   });
 
-  const fetchOrganizationDetails = async (id: string) => {
-    try {
-      const res = await organizationsApi.getOrganizationById(id);
-      setViewTarget(res.data.data.organization);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
+  const navigate = Route.useNavigate();
   const openView = (org: Organization) => {
-    setViewTarget(org);
-    fetchOrganizationDetails(org.id);
+    navigate({ to: '/admin/organizations/$id' as any, params: { id: org.id } });
   };
 
   const openCreate = () => {
@@ -501,99 +480,6 @@ function OrganizationsComponent() {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* View Drawer */}
-      <Sheet open={!!viewTarget} onOpenChange={(open) => !open && setViewTarget(null)}>
-        <SheetContent className="sm:max-w-md md:max-w-lg w-full overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Organization Details</SheetTitle>
-            <SheetDescription>View complete accreditation profile and status.</SheetDescription>
-          </SheetHeader>
-          
-          {viewTarget && (
-            <div className="mt-6 space-y-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-[#0F2942]">{viewTarget.organizationName}</h3>
-                  <p className="text-sm text-slate-500">Reg: {viewTarget.registrationNumber}</p>
-                </div>
-                <StatusBadge status={viewTarget.accreditationStatus} />
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-slate-900 border-b pb-2">Contact Information</h4>
-                <div className="grid grid-cols-1 gap-3 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Globe className="h-4 w-4" /> {viewTarget.website || "N/A"}
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Mail className="h-4 w-4" /> {viewTarget.email}
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Phone className="h-4 w-4" /> {viewTarget.phone}
-                  </div>
-                  <div className="flex items-start gap-2 text-slate-600">
-                    <Building2 className="h-4 w-4 mt-0.5" /> 
-                    <span>
-                      {viewTarget.addressLine1} {viewTarget.addressLine2}<br/>
-                      {viewTarget.city}, {viewTarget.state} {viewTarget.postalCode}<br/>
-                      {viewTarget.country} ({viewTarget.countryCode})<br/>
-                      <span className="text-xs text-slate-400">Phone Code: {viewTarget.phoneCode}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-slate-900 border-b pb-2">Accreditation Details</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-slate-500 mb-1">Issue Date</p>
-                    <p className="font-medium">{new Date(viewTarget.accreditationDate).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 mb-1">Expiry Date</p>
-                    <p className={`font-medium ${new Date(viewTarget.expiryDate) < new Date() ? "text-red-600" : ""}`}>
-                      {new Date(viewTarget.expiryDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-slate-900 border-b pb-2">Assigned Auditors ({viewTarget.auditors?.length || 0})</h4>
-                {viewTarget.auditors && viewTarget.auditors.length > 0 ? (
-                  <ul className="space-y-2">
-                    {viewTarget.auditors.map((auditor: any) => (
-                      <li key={auditor.id} className="text-sm flex justify-between items-center bg-slate-50 p-2 rounded">
-                        <span>{auditor.fullName} ({auditor.tier})</span>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{auditor.status}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-slate-500">No auditors assigned.</p>
-                )}
-              </div>
-
-              <div className="pt-4 flex gap-2">
-                <Button className="flex-1 bg-[#0F2942] hover:bg-[#1a446c]" onClick={() => openEdit(viewTarget)}>
-                  <Pencil className="mr-2 h-4 w-4" /> Edit Profile
-                </Button>
-                {viewTarget.accreditationStatus === "ACTIVE" ? (
-                  <Button variant="outline" className="flex-1 text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => { setViewTarget(null); setStatusTarget({ org: viewTarget, newStatus: "SUSPENDED" }); }}>
-                    <Clock className="mr-2 h-4 w-4" /> Suspend
-                  </Button>
-                ) : (
-                  <Button variant="outline" className="flex-1 text-green-600 border-green-200 hover:bg-green-50" onClick={() => { setViewTarget(null); setStatusTarget({ org: viewTarget, newStatus: "ACTIVE" }); }}>
-                    <CheckCircle className="mr-2 h-4 w-4" /> Activate
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
       {/* Status Change Confirm */}
       <ConfirmDialog

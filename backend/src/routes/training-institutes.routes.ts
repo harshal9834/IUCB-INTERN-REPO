@@ -23,6 +23,9 @@ router.get("/:id", ctrl.getTrainingInstituteById);
 // PATCH /api/v1/training-institutes/:id/status - Status update with automatic audit logging
 router.patch("/:id/status", auditTrainingInstitutes, ctrl.updateTrainingInstituteStatus);
 
+// PUT /api/v1/training-institutes/:id - Update details
+router.put("/:id", auditTrainingInstitutes, ctrl.updateTrainingInstitute);
+
 // DELETE /api/v1/training-institutes/:id - Delete with automatic audit logging
 router.delete("/:id", auditTrainingInstitutes, ctrl.deleteTrainingInstitute);
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { LocationSelector } from "../components/ui/LocationSelector";
+import { LocationSelector } from "../components/LocationSelector";
 import { 
   Building2, Globe, Phone, Mail, CheckCircle, Clock, ArrowLeft, 
   Pencil, Calendar, Activity, MapPin, ToggleLeft, Save, X

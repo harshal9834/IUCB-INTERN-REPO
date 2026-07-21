@@ -14,7 +14,7 @@ export interface AuditOptions {
   module: string;
   getEntityId?: (req: Request) => string | string[];
   getDescription?: (req: Request) => string;
-  severity?: AuditSeverity;
+  severity?: AuditSeverity | string | any;
   captureBody?: boolean;
   captureResponse?: boolean;
 }
@@ -324,7 +324,7 @@ export interface AuditMiddlewareOptions {
   entityType: string;
   module: string;
   getEntityId?: (req: Request, result?: any) => string;
-  severity?: AuditSeverity;
+  severity?: AuditSeverity | string | any;
   description?: string;
 }
 

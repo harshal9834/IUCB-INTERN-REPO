@@ -65,24 +65,28 @@ export const errorHandler = (err: any, req: AuthenticatedRequest, res: Response,
     });
   }
 
-  // Handle different error types
-  if (err instanceof ApiError) {
-    return res.status(err.statusCode).json({ 
+  // Handle Zod Validation Errors
+  if (err instanceof ZodError || err?.name === "ZodError" || Array.isArray(err?.issues)) {
+    const issues = err.issues || [];
+    const firstMsg = issues[0]?.message || "Validation Error";
+    return res.status(400).json({ 
+      success: false, 
+      message: firstMsg, 
+      error: issues
+    });
+  }
+
+  // Handle ApiError
+  if (err instanceof ApiError || err?.statusCode) {
+    return res.status(err.statusCode || 400).json({ 
       success: false, 
       message: err.message, 
       error: process.env.NODE_ENV === 'production' ? undefined : err.stack 
     });
   }
   
-  if (err instanceof ZodError) {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Validation Error", 
-      error: err.issues
-    });
-  }
-  const statusCode = err.statusCode || err.status || 500;
-  const message = statusCode < 500 ? err.message : "Internal Server Error";
+  const statusCode = typeof err.statusCode === 'number' ? err.statusCode : (typeof err.status === 'number' ? err.status : 500);
+  const message = err.message || "Internal Server Error";
 
   return res.status(statusCode).json({ 
     success: false, 

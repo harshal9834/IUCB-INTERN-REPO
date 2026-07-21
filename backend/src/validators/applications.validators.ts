@@ -81,7 +81,7 @@ export const applyAdvisorySchema = z.object({
   designation: z.string().min(2, "Designation required"),
   expertiseArea: z.string().min(2, "Expertise area required"),
   experienceYears: z.coerce.number().int().min(0),
-  statementOfMerit: z.string().min(50, "Statement must be at least 50 characters"),
+  statementOfMerit: z.string().min(5, "Statement of merit required"),
   resumeUrl: z.string().url("Invalid resume URL").optional().nullable(),
 });
 

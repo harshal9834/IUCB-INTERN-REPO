@@ -1,21 +1,28 @@
 import React, { useState } from "react";
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { LocationSelector } from "../components/LocationSelector";
 import { 
-  Building2, Globe, Phone, Mail, CheckCircle, Clock, ArrowLeft, 
-  Pencil, Calendar, Activity, MapPin, ToggleLeft, Save, X
+  Building2, Globe, CheckCircle, Clock, Award
 } from "lucide-react";
-import { PageHeader } from "../components/reusable-components";
-import { StatusBadge } from "../components/status-badge";
-import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import trainingInstitutesApi from "../services/api/training-institutes.api";
+import {
+  DetailLayout,
+  DetailContent,
+  ProfileHeader,
+  SectionCard,
+  DataField,
+  DataGrid,
+  StatusPanel,
+  QuickActionsPanel,
+  ActivityLogPanel,
+  LocationSection
+} from "../components/admin-details";
 
 export const Route = createFileRoute("/admin/training-institutes/$id")({
   component: TrainingInstituteDetailsComponent,
@@ -27,8 +34,8 @@ function TrainingInstituteDetailsComponent() {
   const queryClient = useQueryClient();
   
   const [isEditing, setIsEditing] = useState(false);
-  const { register, control, formState: { errors }, watch, setValue, getValues, reset } = useForm<any>();
-  const [statusDialog, setStatusDialog] = useState<string | null>(null);
+  const { register, control, watch, setValue, getValues, reset, formState: { errors } } = useForm<any>();
+  const [statusDialog, setStatusDialog] = useState<{ status: string; reason: string } | null>(null);
 
   const { data: institute, isLoading } = useQuery({
     queryKey: ["training-institute", id],
@@ -55,7 +62,8 @@ function TrainingInstituteDetailsComponent() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: (status: string) => trainingInstitutesApi.updateTrainingInstituteStatus(id, status),
+    mutationFn: (data: { status: string; reason?: string }) => 
+      trainingInstitutesApi.updateTrainingInstituteStatus(id, data.status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["training-institute", id] });
       setStatusDialog(null);
@@ -88,8 +96,17 @@ function TrainingInstituteDetailsComponent() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-12 w-1/3" />
-        <Skeleton className="h-[400px] w-full" />
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2 space-y-6">
+            <Skeleton className="h-[300px] rounded-xl" />
+            <Skeleton className="h-[300px] rounded-xl" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-[200px] rounded-xl" />
+            <Skeleton className="h-[400px] rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -98,200 +115,139 @@ function TrainingInstituteDetailsComponent() {
     return <div>Training Institute not found.</div>;
   }
 
+  const avatarText = institute.instituteName?.substring(0, 2).toUpperCase() || "TI";
+  const address = [
+    institute.addressLine1, 
+    institute.addressLine2, 
+    institute.city, 
+    institute.state, 
+    institute.postalCode, 
+    institute.country
+  ].filter(Boolean).join(", ");
+  
+  const fb = (val: any) => val || "Not Provided";
+
   return (
-    <div className="space-y-6 pb-12">
-      <div className="flex items-center gap-4 text-sm text-slate-500 mb-2">
-        <button 
-          onClick={() => navigate({ to: "/admin/training-institutes" })}
-          className="flex items-center hover:text-[#0F2942] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Institutes
-        </button>
-      </div>
+    <DetailLayout backTo="/admin/training-institutes" backLabel="Back to Institutes">
+      <ProfileHeader
+        name={institute.instituteName}
+        avatarText={avatarText}
+        status={institute.status}
+        subtitle={
+          <>
+            <Building2 className="w-4 h-4 text-slate-400" /> Authorized Training Center
+          </>
+        }
+        metadata={{
+          id: institute.registrationNumber,
+          email: institute.email,
+          phone: institute.phone,
+          country: institute.country,
+          joinedDate: new Date(institute.createdAt).toLocaleDateString(),
+        }}
+        actions={{
+          isEditing,
+          onEditClick: handleEditClick,
+          onCancelEdit: () => setIsEditing(false),
+          onSave: handleSave,
+          isSaving: updateMutation.isPending,
+          onStatusChange: (status) => setStatusDialog({ status, reason: "" }),
+        }}
+      />
 
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">{institute.instituteName}</h1>
-          <div className="flex items-center gap-3 mt-2 text-slate-500">
-            <span className="text-sm font-mono bg-slate-100 px-2 py-0.5 rounded">
-              {institute.registrationNumber}
-            </span>
-            <StatusBadge status={institute.status} />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isEditing ? (
-            <>
-              <Button variant="outline" className="gap-2" onClick={handleEditClick}>
-                <Pencil className="w-4 h-4" /> Edit Profile
-              </Button>
-              {institute.status === "ACTIVE" ? (
-                <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => setStatusDialog("SUSPENDED")}>
-                  <Clock className="w-4 h-4 mr-2" /> Suspend
-                </Button>
-              ) : (
-                <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50" onClick={() => setStatusDialog("ACTIVE")}>
-                  <CheckCircle className="w-4 h-4 mr-2" /> Activate
-                </Button>
-              )}
-            </>
-          ) : (
-            <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                <X className="w-4 h-4 mr-2" /> Cancel
-              </Button>
-              <Button onClick={handleSave} className="bg-[#0F2942] text-white" disabled={updateMutation.isPending}>
-                <Save className="w-4 h-4 mr-2" /> {updateMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Institute Information</CardTitle>
-            </CardHeader>
-            <CardContent>
+      <DetailContent 
+        left={
+          <>
+            <SectionCard title="Institute Information" icon={<Building2 className="w-5 h-5 text-slate-400" />}>
               {isEditing ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Institute Name</Label>
-                    <Input {...register("instituteName")} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Registration Number</Label>
-                    <Input {...register("registrationNumber")} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Email Address</Label>
-                    <Input type="email" {...register("email")} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Phone Number</Label>
-                    <Input {...register("phone")} />
-                  </div>
-                  <div className="space-y-1.5 md:col-span-2">
-                    <Label>Website</Label>
-                    <Input type="url" {...register("website")} />
-                  </div>
-                  <div className="md:col-span-2 space-y-4">
-                    <LocationSelector control={control} register={register} errors={errors} watch={watch} setValue={setValue} />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
-                  <div>
-                    <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5"><Mail className="w-4 h-4"/> Email</p>
-                    <p className="font-medium">{institute.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5"><Phone className="w-4 h-4"/> Phone</p>
-                    <p className="font-medium">{institute.phone}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5"><Globe className="w-4 h-4"/> Website</p>
-                    <p className="font-medium text-blue-600 hover:underline">
-                      <a href={institute.website} target="_blank" rel="noreferrer">{institute.website || "N/A"}</a>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5"><MapPin className="w-4 h-4"/> Location</p>
-                    <div className="font-medium">
-                      {institute.addressLine1} {institute.addressLine2}<br/>
-                      {institute.city}, {institute.state} {institute.postalCode}<br/>
-                      {institute.country} ({institute.countryCode})<br/>
-                      <span className="text-xs text-slate-400 font-normal">Phone Code: {institute.phoneCode}</span>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <Label>Institute Name</Label>
+                      <Input {...register("instituteName")} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Registration Number</Label>
+                      <Input {...register("registrationNumber")} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Email Address</Label>
+                      <Input type="email" {...register("email")} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Phone Number</Label>
+                      <Input {...register("phone")} />
+                    </div>
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label>Website</Label>
+                      <Input type="url" {...register("website")} />
                     </div>
                   </div>
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-slate-900 mb-3 border-b border-slate-100 pb-2">Location Details</h3>
+                    <LocationSelector 
+                      control={control} 
+                      register={register} 
+                      errors={errors} 
+                      watch={watch} 
+                      setValue={setValue} 
+                    />
+                  </div>
                 </div>
+              ) : (
+                <DataGrid>
+                  <DataField label="Institute Name" value={institute.instituteName} />
+                  <DataField label="Registration Number" value={institute.registrationNumber} />
+                  <DataField label="Institute Type" value="Authorized Training Center" />
+                  <DataField label="Email Address" value={institute.email} />
+                  <DataField label="Phone Number" value={institute.phone} />
+                  <DataField label="Website">
+                    {institute.website ? (
+                      <a href={institute.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                        {institute.website} <Globe className="w-3 h-3" />
+                      </a>
+                    ) : "N/A"}
+                  </DataField>
+                  <LocationSection location={institute} />
+                </DataGrid>
               )}
-            </CardContent>
-          </Card>
+            </SectionCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Authorized Standards</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <SectionCard title="Authorized Standards" icon={<Award className="w-5 h-5 text-slate-400" />}>
               <div className="flex flex-wrap gap-2">
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">ISO 9001:2015</span>
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">ISO 27001:2022</span>
-                <span className="px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-sm font-medium border border-slate-200 border-dashed">+ Add Standard</span>
+                <span className="px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-sm font-medium border border-slate-200 border-dashed cursor-pointer hover:bg-slate-100">+ Add Standard</span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2"><Activity className="w-5 h-5 text-slate-400" /> Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left border-collapse">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold border-b border-slate-200">
-                    <tr>
-                      <th className="px-6 py-3 whitespace-nowrap">Date</th>
-                      <th className="px-6 py-3 whitespace-nowrap">Action</th>
-                      <th className="px-6 py-3 whitespace-nowrap">Performed By</th>
-                      <th className="px-6 py-3 whitespace-nowrap w-full">Details</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
-                    {auditLogsData && auditLogsData.length > 0 ? (
-                      auditLogsData.map((log: any) => (
-                        <tr key={log.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-slate-600">
-                            {new Date(log.timestamp).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2.5 py-1 rounded-md font-medium text-xs border ${
-                              log.action.includes('CREATE') || log.action.includes('ACTIVE') ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                              log.action.includes('UPDATE') ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                              log.action.includes('DELETE') || log.action.includes('INACTIVE') ? 'bg-red-50 text-red-700 border-red-100' :
-                              log.action.includes('SUSPEND') ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                              'bg-slate-50 text-slate-700 border-slate-100'
-                            }`}>
-                              {log.action.replace(/_/g, ' ')}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-slate-900 font-medium">
-                            {log.admin?.fullName || 'System'}
-                          </td>
-                          <td className="px-6 py-4 text-slate-600">
-                            {log.newData?.reason || 'Automated action'}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                          No activity logs found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </SectionCard>
+          </>
+        }
+        right={
+          <>
+            <StatusPanel 
+              memberStatus={institute.status} 
+              profileCompletion={100}
+            />
+            <QuickActionsPanel 
+              status={institute.status}
+              onEditClick={handleEditClick}
+              onStatusChange={(status) => setStatusDialog({ status, reason: "" })}
+            />
+            <ActivityLogPanel logs={auditLogsData || []} />
+          </>
+        }
+      />
 
       <ConfirmDialog
         open={!!statusDialog}
         onOpenChange={() => setStatusDialog(null)}
-        title={statusDialog === "ACTIVE" ? "Activate Training Institute" : "Suspend Training Institute"}
-        description={`Are you sure you want to ${statusDialog === "ACTIVE" ? "activate" : "suspend"} this training institute?`}
-        confirmLabel={statusDialog === "ACTIVE" ? "Activate" : "Suspend"}
-        variant={statusDialog === "ACTIVE" ? "default" : "destructive"}
-        onConfirm={() => statusMutation.mutate(statusDialog!)}
+        title={`${statusDialog?.status === "SUSPENDED" ? "Suspend" : statusDialog?.status === "INACTIVE" ? "Deactivate" : "Activate"} Training Institute`}
+        description={`Are you sure you want to ${statusDialog?.status === "SUSPENDED" ? "suspend" : statusDialog?.status === "INACTIVE" ? "deactivate" : "activate"} this training institute?`}
+        confirmLabel={statusDialog?.status === "SUSPENDED" ? "Suspend" : statusDialog?.status === "INACTIVE" ? "Deactivate" : "Activate"}
+        variant={statusDialog?.status === "ACTIVE" ? "default" : "destructive"}
+        onConfirm={() => statusMutation.mutate({ status: statusDialog!.status, reason: statusDialog!.reason })}
         isLoading={statusMutation.isPending}
       />
-    </div>
+    </DetailLayout>
   );
 }

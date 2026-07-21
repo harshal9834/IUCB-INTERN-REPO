@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "../components/reusable-components";
 import { StatusBadge } from "../components/status-badge";
+import { LocationSection } from "../components/admin-details";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { Button } from "../components/ui/button";
 import {
@@ -634,37 +635,7 @@ function CredentialDetailComponent() {
                 </p>
               </div>
             )}
-            <div className="col-span-2 mt-2 pt-4 border-t border-slate-100">
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Location Details</h4>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-                <div>
-                  <p className="text-slate-500 mb-1">Country</p>
-                  <p className="font-medium text-slate-800">
-                    {credential.country || "—"} {credential.countryCode ? `(${credential.countryCode})` : ""}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-500 mb-1">State & City</p>
-                  <p className="font-medium text-slate-800">
-                    {credential.state || "—"}, {credential.city || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-slate-500 mb-1">Postal Code</p>
-                  <p className="font-medium text-slate-800">{credential.postalCode || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 mb-1">Phone Code</p>
-                  <p className="font-medium text-slate-800">{credential.phoneCode || "—"}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-slate-500 mb-1">Full Address</p>
-                  <p className="font-medium text-slate-800">
-                    {[credential.addressLine1, credential.addressLine2, credential.city, credential.state, credential.country, credential.postalCode].filter(Boolean).join(", ") || "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <LocationSection location={credential} className="col-span-2 mt-2 pt-4" />
           </div>
         </div>
 

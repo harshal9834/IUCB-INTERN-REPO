@@ -12,6 +12,7 @@ import {
   Globe,
   Linkedin,
   MapPin,
+  Map,
   Award,
   Clock,
   CheckCircle,
@@ -20,6 +21,8 @@ import {
   FileText,
   CalendarDays,
   StickyNote,
+  MapPinned,
+  BadgeCheck,
   Hash,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -75,14 +78,15 @@ const TYPE_CONFIG: Record<ApplicationType, { label: string; icon: any; color: st
   },
 };
 
-function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | number | null }) {
-  if (!value && value !== 0) return null;
+function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value?: React.ReactNode }) {
+  if (!value && value !== 0 && value !== "") return null;
+  const displayValue = !value || value === "" ? "Not Provided" : value;
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-slate-100 last:border-0">
       <Icon className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
-        <p className="text-sm text-slate-800 mt-0.5 break-words">{value}</p>
+        <div className="text-sm text-slate-800 mt-0.5 break-words flex items-center gap-2">{displayValue}</div>
       </div>
     </div>
   );
@@ -123,6 +127,18 @@ function TimelineStep({
     </div>
   );
 }
+
+const getCountryFlag = (countryCode: string | null | undefined) => {
+  if (!countryCode) return null;
+  const code = countryCode.toUpperCase();
+  if (code.length !== 2) return null;
+  const flagOffset = 0x1F1E6;
+  const asciiOffset = 0x41;
+  return String.fromCodePoint(
+    code.charCodeAt(0) - asciiOffset + flagOffset,
+    code.charCodeAt(1) - asciiOffset + flagOffset
+  );
+};
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -272,13 +288,13 @@ function ApplicationDetailComponent() {
                   <CardContent className="space-y-0">
                     <InfoRow icon={Building2} label="Organization / Company" value={app.company} />
                     <InfoRow icon={Hash} label="Registration Number" value={app.registrationNumber} />
-                    <InfoRow icon={MapPin} label="Country" value={app.country} />
-                    <InfoRow icon={MapPin} label="Country Code" value={app.countryCode} />
+                    <InfoRow icon={Globe} label="Country" value={app.country ? <>{getCountryFlag(app.countryCode)} {app.country}</> : null} />
+                    <InfoRow icon={BadgeCheck} label="ISO Code" value={app.countryCode} />
                     <InfoRow icon={Phone} label="Phone Code" value={app.phoneCode} />
-                    <InfoRow icon={MapPin} label="State" value={app.state} />
-                    <InfoRow icon={MapPin} label="City" value={app.city} />
-                    <InfoRow icon={MapPin} label="Postal Code" value={app.postalCode} />
-                    <InfoRow icon={MapPin} label="Full Address" value={[app.addressLine1, app.addressLine2].filter(Boolean).join(", ")} />
+                    <InfoRow icon={Map} label="State" value={app.state} />
+                    <InfoRow icon={Building2} label="City" value={app.city} />
+                    <InfoRow icon={Mail} label="Postal Code" value={app.postalCode} />
+                    <InfoRow icon={MapPinned} label="Full Address" value={[app.addressLine1, app.addressLine2, app.city, app.state, app.postalCode, app.country].filter(Boolean).join(", ")} />
                     <InfoRow icon={Globe} label="Website" value={app.website} />
                   </CardContent>
                 </Card>

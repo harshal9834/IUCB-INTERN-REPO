@@ -228,13 +228,7 @@ function Directory() {
                 </select>
               </div>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Globe2 className="h-3.5 w-3.5" /> {results.length} of {entries.length} entries
-              </span>
-              <span>•</span>
-              <span>Updated daily from the IUCB registry</span>
-            </div>
+
           </div>
 
           <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-5">

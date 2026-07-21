@@ -14,8 +14,16 @@ export const auditorsApi = {
     return axiosInstance.put(`/auditors/${id}`, payload);
   },
 
+  updateAuditorStatus: async (id: string, status: string) => {
+    return axiosInstance.put(`/auditors/${id}/status`, { status });
+  },
+
   deleteAuditor: async (id: string) => {
     return axiosInstance.delete(`/auditors/${id}`);
+  },
+
+  getAuditorById: async (id: string) => {
+    return axiosInstance.get(`/auditors/${id}`);
   },
 };
 export default auditorsApi;

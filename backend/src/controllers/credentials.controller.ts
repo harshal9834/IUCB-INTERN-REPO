@@ -467,7 +467,10 @@ export class CredentialsController {
       throw new ApiError(400, "Invalid status");
     }
 
-    const credential = await prisma.credential.findFirst({ where: { id, deletedAt: null } });
+    const credential = await prisma.credential.findFirst({
+      where: { id, deletedAt: null },
+      include: { organization: true, auditor: true, application: true },
+    });
     if (!credential) throw new ApiError(404, "Credential not found");
 
     const updated = await prisma.credential.update({ where: { id }, data: { status } });
@@ -484,6 +487,23 @@ export class CredentialsController {
         userAgent: typeof req.headers["user-agent"] === "string" ? req.headers["user-agent"] : undefined,
       },
     });
+
+    const recipientEmail = credential.organization?.email || credential.auditor?.email || credential.application?.email;
+    const recipientName = credential.candidateName || credential.organizationName || credential.application?.fullName || "Credential Holder";
+
+    if (recipientEmail) {
+      try {
+        await EmailService.sendCredentialStatusEmail({
+          to: recipientEmail,
+          recipientName,
+          credentialId: credential.credentialId,
+          status: updated.status,
+          reason: req.body.reason || req.body.remarks,
+        });
+      } catch (e) {
+        console.error(`[CredentialsController] Failed to send status email for credential ${credential.credentialId}:`, e);
+      }
+    }
 
     res.status(200).json(new ApiResponse(200, { credential: updated }, "Credential status updated successfully"));
   });

@@ -4,6 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/AsyncHandler.js";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
+import { EmailService } from "../services/email.service.js";
 import {
   createOrganizationSchema,
   updateOrganizationSchema,
@@ -101,14 +102,18 @@ export class OrganizationsController {
       data: { accreditationStatus: body.status },
     });
 
-    await prisma.emailLog.create({
-      data: {
-        recipient: organization.email,
-        subject: `IUCB Accreditation Status Updated to ${organization.accreditationStatus}`,
-        template: "ORGANIZATION_STATUS_UPDATE",
-        status: "SENT",
-      },
-    });
+    if (organization.email) {
+      try {
+        await EmailService.sendOrganizationStatusEmail({
+          to: organization.email,
+          orgName: organization.organizationName,
+          status: organization.accreditationStatus,
+          reason: (req.body as any).remarks || (req.body as any).reason,
+        });
+      } catch (e) {
+        console.error(`[OrganizationsController] Failed to send status email to ${organization.email}:`, e);
+      }
+    }
 
     res.status(200).json(new ApiResponse(200, { organization }, "Organization status updated successfully"));
   });

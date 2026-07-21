@@ -14,10 +14,10 @@ const cols = [
   {
     title: "Trust & Governance",
     links: [
-      { to: "/governance", label: "Governance" },
-      { to: "/governance", label: "Policies" },
-      { to: "/documentation", label: "Documentation" },
-      { to: "/verify", label: "Verify Certificate" },
+      { to: "/resources/governance", label: "Governance" },
+      { to: "/resources/transparency", label: "Policies" },
+      { to: "/resources/documentation", label: "Documentation" },
+      { to: "/directory#verify", label: "Verify Certificate" },
     ],
   },
   {
@@ -26,7 +26,7 @@ const cols = [
       { to: "/about", label: "About IUCB" },
       { to: "/directory", label: "Accredited Directory" },
       { to: "/contact", label: "Contact" },
-      { to: "/documentation", label: "Resources" },
+      { to: "/resources/documentation", label: "Resources" },
     ],
   },
 ];
@@ -64,7 +64,7 @@ export function SiteFooter() {
             <ul className="space-y-2.5">
               {c.links.map((l) => (
                 <li key={l.label}>
-                  <Link to={l.to as any} className="text-sm text-white/80 hover:text-white">
+                  <Link to={l.to as any} className="text-sm text-white/80 hover:text-white transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -79,7 +79,7 @@ export function SiteFooter() {
           </div>
           <ul className="space-y-2.5 text-sm text-white/80">
             <li className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <Mail className="h-3.5 w-3.5 shrink-0 text-gold" />
               <a
                 href="mailto:info@iucb.org"
                 className="hover:text-white transition-colors"
@@ -88,7 +88,7 @@ export function SiteFooter() {
               </a>
             </li>
             <li className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <Mail className="h-3.5 w-3.5 shrink-0 text-gold" />
               <a
                 href="mailto:accreditations@iucb.org"
                 className="hover:text-white transition-colors"
@@ -97,7 +97,7 @@ export function SiteFooter() {
               </a>
             </li>
             <li className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <Mail className="h-3.5 w-3.5 shrink-0 text-gold" />
               <a
                 href="mailto:connect@iucb.org"
                 className="hover:text-white transition-colors"
@@ -107,8 +107,8 @@ export function SiteFooter() {
             </li>
           </ul>
           <Link
-            to={"/verify" as any}
-            className="inline-flex mt-5 px-3 py-2 text-xs font-semibold rounded-md bg-gold text-gold-foreground"
+            to={"/directory#verify" as any}
+            className="inline-flex mt-5 px-4 py-2.5 text-xs font-semibold rounded-md bg-gold text-gold-foreground hover:brightness-105 transition shadow-sm"
           >
             Verify Credentials
           </Link>
@@ -121,12 +121,12 @@ export function SiteFooter() {
             © 2026 International Union for Certification & Benchmarking. All rights reserved.
           </div>
           <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-white">
+            <Link to={"/resources/transparency" as any} className="hover:text-white transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white">
+            </Link>
+            <Link to={"/resources/governance" as any} className="hover:text-white transition-colors">
               Terms of Service
-            </a>
+            </Link>
             <button
               onClick={() =>
                 typeof window !== "undefined" && window.scrollTo({ top: 0, behavior: "smooth" })

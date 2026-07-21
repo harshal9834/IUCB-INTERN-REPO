@@ -371,6 +371,139 @@ export const EmailService = {
   },
 
   /**
+   * Sent when an Organization status is updated (ACTIVE, SUSPENDED, REVOKED).
+   */
+  async sendOrganizationStatusEmail(opts: {
+    to: string;
+    orgName: string;
+    status: string;
+    reason?: string;
+  }) {
+    const isPositive = opts.status === "ACTIVE";
+    const badgeClass = isPositive ? "badge-approved" : "badge-rejected";
+    const html = wrapTemplate(`
+      <h2>Accreditation Status Update</h2>
+      <p>Dear ${opts.orgName},</p>
+      <p>
+        The accreditation status for <strong>${opts.orgName}</strong> has been updated to 
+        <span class="badge ${badgeClass}">${opts.status}</span>.
+      </p>
+      ${opts.reason ? `<p><strong>Remarks / Reason:</strong> ${opts.reason}</p>` : ""}
+      <p>Effective Date: <strong>${new Date().toLocaleDateString()}</strong></p>
+      <p>
+        If you have any questions or require further assistance, please contact our support team at 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: `IUCB Accreditation Status Update — ${opts.status}`,
+      html,
+      template: "ORGANIZATION_STATUS_UPDATE",
+    });
+  },
+
+  /**
+   * Sent when an Auditor status is updated (ACTIVE, SUSPENDED, REVOKED, INACTIVE).
+   */
+  async sendAuditorStatusEmail(opts: {
+    to: string;
+    auditorName: string;
+    status: string;
+    reason?: string;
+  }) {
+    const isPositive = opts.status === "ACTIVE";
+    const badgeClass = isPositive ? "badge-approved" : "badge-rejected";
+    const html = wrapTemplate(`
+      <h2>Auditor Registration Status Update</h2>
+      <p>Dear ${opts.auditorName},</p>
+      <p>
+        Your IUCB Auditor registration status has been updated to 
+        <span class="badge ${badgeClass}">${opts.status}</span>.
+      </p>
+      ${opts.reason ? `<p><strong>Remarks / Reason:</strong> ${opts.reason}</p>` : ""}
+      <p>Effective Date: <strong>${new Date().toLocaleDateString()}</strong></p>
+      <p>
+        For inquiries regarding your certification status, please contact 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: `IUCB Auditor Status Update — ${opts.status}`,
+      html,
+      template: "AUDITOR_STATUS_UPDATE",
+    });
+  },
+
+  /**
+   * Sent when a Training Institute status is updated (ACTIVE, SUSPENDED, REVOKED).
+   */
+  async sendTrainingInstituteStatusEmail(opts: {
+    to: string;
+    instituteName: string;
+    status: string;
+    reason?: string;
+  }) {
+    const isPositive = opts.status === "ACTIVE";
+    const badgeClass = isPositive ? "badge-approved" : "badge-rejected";
+    const html = wrapTemplate(`
+      <h2>Training Institute Status Update</h2>
+      <p>Dear ${opts.instituteName},</p>
+      <p>
+        The status for Training Institute <strong>${opts.instituteName}</strong> has been set to 
+        <span class="badge ${badgeClass}">${opts.status}</span>.
+      </p>
+      ${opts.reason ? `<p><strong>Remarks / Reason:</strong> ${opts.reason}</p>` : ""}
+      <p>Effective Date: <strong>${new Date().toLocaleDateString()}</strong></p>
+      <p>
+        For questions or appeals, please contact our support team at 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: `IUCB Training Institute Status Update — ${opts.status}`,
+      html,
+      template: "TRAINING_INSTITUTE_STATUS_UPDATE",
+    });
+  },
+
+  /**
+   * Sent when a Credential status is updated (VALID, SUSPENDED, REVOKED, EXPIRED).
+   */
+  async sendCredentialStatusEmail(opts: {
+    to: string;
+    recipientName: string;
+    credentialId: string;
+    status: string;
+    reason?: string;
+  }) {
+    const isPositive = opts.status === "VALID" || opts.status === "ACTIVE";
+    const badgeClass = isPositive ? "badge-approved" : "badge-rejected";
+    const html = wrapTemplate(`
+      <h2>Credential Status Update</h2>
+      <p>Dear ${opts.recipientName},</p>
+      <p>
+        The status of your IUCB Credential (<strong>${opts.credentialId}</strong>) has been updated to 
+        <span class="badge ${badgeClass}">${opts.status}</span>.
+      </p>
+      ${opts.reason ? `<p><strong>Remarks / Reason:</strong> ${opts.reason}</p>` : ""}
+      <p>Effective Date: <strong>${new Date().toLocaleDateString()}</strong></p>
+      <p>
+        You can verify credential details on the IUCB Portal or contact 
+        <a href="mailto:accreditation@iucb.org">accreditation@iucb.org</a>.
+      </p>
+    `);
+    await sendMail({
+      to: opts.to,
+      subject: `IUCB Credential Status Update — ${opts.credentialId}`,
+      html,
+      template: "CREDENTIAL_STATUS_UPDATE",
+    });
+  },
+
+  /**
    * Sent to Admin when a user submits the Contact Us form on the website.
    */
   async sendContactMessageToAdmin(opts: {

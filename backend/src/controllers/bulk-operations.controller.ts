@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError.js';
 import BulkOperationsService from '../services/bulk-operations.service.js';
 import { AuditSeverity } from '../types/audit-enums.js';
 import Database from '../config/Database.js';
+import { EmailService } from '../services/email.service.js';
 import { z } from 'zod';
 
 const db = Database;
@@ -135,6 +136,18 @@ export class BulkOperationsController {
       }
     );
 
+    // Send email notifications asynchronously
+    for (const org of existingOrgs) {
+      const update = updates.find(u => u.id === org.id);
+      if (update && org.email) {
+        EmailService.sendOrganizationStatusEmail({
+          to: org.email,
+          orgName: org.organizationName,
+          status: update.status,
+        }).catch(e => console.error(`[BulkOperations] Organization status email failed for ${org.email}:`, e));
+      }
+    }
+
     res.json(new ApiResponse(200, { organizations: results, count: results.length }, 'Organization statuses updated successfully'));
   });
 
@@ -178,6 +191,19 @@ export class BulkOperationsController {
         return await db.application.findUnique({ where: { id } });
       }
     );
+
+    db.application.findMany({ where: { id: { in: ids } } }).then(apps => {
+      for (const app of apps) {
+        if (app.email) {
+          EmailService.sendApprovalEmail({
+            to: app.email,
+            applicantName: app.fullName,
+            applicationType: app.applicationType,
+            applicationNumber: app.applicationNumber ?? undefined,
+          }).catch(e => console.error(`[BulkOperations] Approval email failed for ${app.email}:`, e));
+        }
+      }
+    }).catch(console.error);
 
     res.json(new ApiResponse(200, { applications: results, count: results.length }, 'Applications approved successfully'));
   });
@@ -224,6 +250,19 @@ export class BulkOperationsController {
         return await db.application.findUnique({ where: { id } });
       }
     );
+
+    db.application.findMany({ where: { id: { in: ids } } }).then(apps => {
+      for (const app of apps) {
+        if (app.email) {
+          EmailService.sendRejectionEmail({
+            to: app.email,
+            applicantName: app.fullName,
+            applicationType: app.applicationType,
+            reason: reason,
+          }).catch(e => console.error(`[BulkOperations] Rejection email failed for ${app.email}:`, e));
+        }
+      }
+    }).catch(console.error);
 
     res.json(new ApiResponse(200, { applications: results, count: results.length }, 'Applications rejected successfully'));
   });
@@ -325,16 +364,40 @@ export class BulkOperationsController {
       },
       emailOperations,
       async (operation) => {
-        // Create email log
-        await db.emailLog.create({
-          data: {
-            credentialId: operation.entityId,
-            recipient: operation.recipient,
-            subject: operation.subject,
-            template: operation.template,
-            status: 'SENT',
-          },
-        });
+        const cred = credentials.find(c => c.id === operation.entityId);
+        if (cred && operation.recipient) {
+          try {
+            let pdfBuffer: Buffer | undefined;
+            if (cred.certificatePath) {
+              const fs = await import("fs");
+              const path = await import("path");
+              const absolutePath = path.join(process.cwd(), cred.certificatePath.replace(/^\//, ""));
+              if (fs.existsSync(absolutePath)) {
+                pdfBuffer = fs.readFileSync(absolutePath);
+              }
+            }
+            if (pdfBuffer) {
+              await EmailService.sendCertificateEmail({
+                to: operation.recipient,
+                applicantName: cred.candidateName || cred.organizationName || "Credential Holder",
+                credentialId: cred.credentialId,
+                issueDate: cred.issueDate.toLocaleDateString(),
+                expiryDate: cred.expiryDate.toLocaleDateString(),
+                verificationLink: cred.verificationUrl,
+                pdfBuffer,
+              });
+            } else {
+              await EmailService.sendCredentialStatusEmail({
+                to: operation.recipient,
+                recipientName: cred.candidateName || cred.organizationName || "Credential Holder",
+                credentialId: cred.credentialId,
+                status: cred.status,
+              });
+            }
+          } catch (e) {
+            console.error(`[BulkOperations] Bulk credential email failed for ${operation.recipient}:`, e);
+          }
+        }
       }
     );
 
@@ -391,6 +454,24 @@ export class BulkOperationsController {
       }
     );
 
+    db.advisor.findMany({ where: { id: { in: updates.map(u => u.id) } }, include: { application: true } }).then(advisors => {
+      for (const adv of advisors) {
+        const update = updates.find(u => u.id === adv.id);
+        const email = adv.application?.email;
+        if (update && email) {
+          if (update.status === "SUSPENDED") {
+            EmailService.sendAdvisorySuspensionEmail({ to: email, memberName: adv.fullName }).catch(console.error);
+          } else if (update.status === "INACTIVE") {
+            EmailService.sendAdvisoryDeactivationEmail({ to: email, memberName: adv.fullName }).catch(console.error);
+          } else if (update.status === "REVOKED") {
+            EmailService.sendAdvisoryRevocationEmail({ to: email, memberName: adv.fullName }).catch(console.error);
+          } else if (update.status === "ACTIVE") {
+            EmailService.sendAdvisoryReactivationEmail({ to: email, memberName: adv.fullName }).catch(console.error);
+          }
+        }
+      }
+    }).catch(console.error);
+
     res.json(new ApiResponse(200, { advisors: results, count: results.length }, 'Advisor statuses updated successfully'));
   });
 
@@ -443,6 +524,22 @@ export class BulkOperationsController {
         });
       }
     );
+
+    db.credential.findMany({ where: { id: { in: updates.map(u => u.id) } }, include: { organization: true, auditor: true, application: true } }).then(credentials => {
+      for (const cred of credentials) {
+        const update = updates.find(u => u.id === cred.id);
+        const email = cred.organization?.email || cred.auditor?.email || cred.application?.email;
+        const name = cred.candidateName || cred.organizationName || "Credential Holder";
+        if (update && email) {
+          EmailService.sendCredentialStatusEmail({
+            to: email,
+            recipientName: name,
+            credentialId: cred.credentialId,
+            status: update.status,
+          }).catch(console.error);
+        }
+      }
+    }).catch(console.error);
 
     res.json(new ApiResponse(200, { credentials: results, count: results.length }, 'Credential statuses updated successfully'));
   });

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import {
   Building2,
   Users,
@@ -189,7 +189,21 @@ const content: Record<
 };
 
 function Services() {
+  const search = useSearch({ strict: false }) as { tab?: string };
+  const navigate = useNavigate();
   const [active, setActive] = useState<TabId>("cb");
+
+  useEffect(() => {
+    if (search.tab && ["cb", "auditors", "training", "advisory"].includes(search.tab)) {
+      setActive(search.tab as TabId);
+    }
+  }, [search.tab]);
+
+  const handleTabChange = (tabId: TabId) => {
+    setActive(tabId);
+    navigate({ to: "/services", search: { tab: tabId } });
+  };
+
   const c = content[active];
 
   return (
@@ -215,7 +229,7 @@ function Services() {
             {tabs.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setActive(t.id)}
+                onClick={() => handleTabChange(t.id)}
                 className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-semibold transition ${active === t.id
                     ? "bg-primary text-primary-foreground shadow"
                     : "text-navy hover:bg-white"

@@ -34,7 +34,7 @@ export function QuickActionsPanel({ status, onEditClick, onStatusChange, onEmail
             <Send className="w-4 h-4 mr-3" /> Send Email
           </Button>
         )}
-        {status === "ACTIVE" ? (
+        {status === "ACTIVE" && (
           <>
             <Button variant="outline" className="w-full justify-start text-left font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200" onClick={() => onStatusChange("SUSPENDED")}>
               <ShieldAlert className="w-4 h-4 mr-3" /> Suspend
@@ -43,10 +43,26 @@ export function QuickActionsPanel({ status, onEditClick, onStatusChange, onEmail
               <XCircle className="w-4 h-4 mr-3" /> Deactivate
             </Button>
           </>
-        ) : (
-          <Button variant="outline" className="w-full justify-start text-left font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200" onClick={() => onStatusChange("ACTIVE")}>
-            <CheckCircle className="w-4 h-4 mr-3" /> Activate
-          </Button>
+        )}
+        {status === "SUSPENDED" && (
+          <>
+            <Button variant="outline" className="w-full justify-start text-left font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200" onClick={() => onStatusChange("ACTIVE")}>
+              <CheckCircle className="w-4 h-4 mr-3" /> Activate
+            </Button>
+            <Button variant="outline" className="w-full justify-start text-left font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => onStatusChange("INACTIVE")}>
+              <XCircle className="w-4 h-4 mr-3" /> Deactivate
+            </Button>
+          </>
+        )}
+        {(status === "INACTIVE" || status === "REVOKED") && (
+          <>
+            <Button variant="outline" className="w-full justify-start text-left font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200" onClick={() => onStatusChange("ACTIVE")}>
+              <CheckCircle className="w-4 h-4 mr-3" /> Activate
+            </Button>
+            <Button variant="outline" className="w-full justify-start text-left font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200" onClick={() => onStatusChange("SUSPENDED")}>
+              <ShieldAlert className="w-4 h-4 mr-3" /> Suspend
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>

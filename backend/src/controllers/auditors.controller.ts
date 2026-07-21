@@ -118,7 +118,55 @@ export class AuditorsController {
       data: body,
       include: { organization: { select: { id: true, organizationName: true } } },
     });
+
+    if (body.status && body.status !== existing.status && auditor.email) {
+      const EmailService = (await import("../services/email.service.js")).EmailService;
+      try {
+        await EmailService.sendAuditorStatusEmail({
+          to: auditor.email,
+          auditorName: auditor.fullName,
+          status: auditor.status,
+          reason: (req.body as any).remarks || (req.body as any).reason,
+        });
+      } catch (e) {
+        console.error(`[AuditorsController] Failed to send status email to ${auditor.email}:`, e);
+      }
+    }
+
     res.status(200).json(new ApiResponse(200, { auditor }, "Auditor updated successfully"));
+  });
+
+  // PUT / PATCH /api/v1/auditors/:id/status
+  updateAuditorStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const id = String(req.params.id);
+    const { status, reason, remarks } = req.body;
+
+    if (!status) throw new ApiError(400, "Status is required");
+
+    const existing = await prisma.auditor.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new ApiError(404, "Auditor not found");
+
+    const auditor = await prisma.auditor.update({
+      where: { id },
+      data: { status },
+      include: { organization: { select: { id: true, organizationName: true } } },
+    });
+
+    if (auditor.email) {
+      const EmailService = (await import("../services/email.service.js")).EmailService;
+      try {
+        await EmailService.sendAuditorStatusEmail({
+          to: auditor.email,
+          auditorName: auditor.fullName,
+          status: auditor.status,
+          reason: reason || remarks,
+        });
+      } catch (e) {
+        console.error(`[AuditorsController] Failed to send status email to ${auditor.email}:`, e);
+      }
+    }
+
+    res.status(200).json(new ApiResponse(200, { auditor }, "Auditor status updated successfully"));
   });
 
   // DELETE /api/v1/auditors/:id

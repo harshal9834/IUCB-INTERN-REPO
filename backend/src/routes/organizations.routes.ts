@@ -14,6 +14,7 @@ router.use(setupAuditContext);
 router.get("/", protect, ctrl.getOrganizations);
 router.post("/", protect, auditOrganizations, ctrl.createOrganization);
 router.patch("/:id/status", protect, auditOrganizations, ctrl.updateOrganizationStatus);
+router.put("/:id/status", protect, auditOrganizations, ctrl.updateOrganizationStatus);
 
 // Extended CRUD with automatic audit logging  
 router.get("/:id", protect, ctrl.getOrganizationById);

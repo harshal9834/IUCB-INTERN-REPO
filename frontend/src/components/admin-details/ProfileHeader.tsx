@@ -72,7 +72,7 @@ export function ProfileHeader({ name, avatarText, status, subtitle, metadata, ac
               <Button variant="outline" className="bg-white" onClick={actions.onEditClick}>
                 <Pencil className="w-4 h-4 mr-2" /> Edit Profile
               </Button>
-              {status === "ACTIVE" ? (
+              {status === "ACTIVE" && (
                 <>
                   <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 bg-white" onClick={() => actions.onStatusChange("SUSPENDED")}>
                     <ShieldAlert className="w-4 h-4 mr-2" /> Suspend
@@ -81,10 +81,26 @@ export function ProfileHeader({ name, avatarText, status, subtitle, metadata, ac
                     <XCircle className="w-4 h-4 mr-2" /> Deactivate
                   </Button>
                 </>
-              ) : (
-                <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50 bg-white" onClick={() => actions.onStatusChange("ACTIVE")}>
-                  <CheckCircle className="w-4 h-4 mr-2" /> Activate
-                </Button>
+              )}
+              {status === "SUSPENDED" && (
+                <>
+                  <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50 bg-white" onClick={() => actions.onStatusChange("ACTIVE")}>
+                    <CheckCircle className="w-4 h-4 mr-2" /> Activate
+                  </Button>
+                  <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 bg-white" onClick={() => actions.onStatusChange("INACTIVE")}>
+                    <XCircle className="w-4 h-4 mr-2" /> Deactivate
+                  </Button>
+                </>
+              )}
+              {(status === "INACTIVE" || status === "REVOKED") && (
+                <>
+                  <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50 bg-white" onClick={() => actions.onStatusChange("ACTIVE")}>
+                    <CheckCircle className="w-4 h-4 mr-2" /> Activate
+                  </Button>
+                  <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 bg-white" onClick={() => actions.onStatusChange("SUSPENDED")}>
+                    <ShieldAlert className="w-4 h-4 mr-2" /> Suspend
+                  </Button>
+                </>
               )}
               {metadata.applicationId && (
                 <Button variant="default" className="bg-[#0F2942] text-white" onClick={() => navigate({ to: `/admin/applications/${metadata.applicationId}` as any })}>

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, ShieldCheck, Award, FileText, Scale, Building2, Users, GraduationCap, Briefcase } from "lucide-react";
 import { useState } from "react";
 
 type NavItem = { to: string; label: string; hasMenu?: "programs" | "resources" };
@@ -8,54 +8,66 @@ const nav: NavItem[] = [
   { to: "/about", label: "About Us" },
   { to: "/services", label: "Accreditation", hasMenu: "programs" },
   { to: "/directory", label: "Directory" },
-  { to: "/documentation", label: "Resources", hasMenu: "resources" },
+  { to: "/resources/documentation", label: "Resources", hasMenu: "resources" },
 ];
 
-type MegaCol = { title: string; links: { to: string; label: string }[] };
+type MegaCol = { title: string; to?: string; desc?: string; icon?: any; links?: { to: string; label: string }[] };
 
 const programsMega: MegaCol[] = [
   {
-    title: "Accreditation Programs",
-    links: [
-      { to: "/services", label: "Auditor Accreditation" },
-      { to: "/services", label: "Certification Body Accreditation" },
-      { to: "/services", label: "Training Provider Accreditation" },
-    ],
+    title: "Certification Bodies",
+    to: "/services?tab=cb",
+    desc: "Organizational accreditation for ISO/IEC 17021-1 audit bodies.",
+    icon: Building2,
+  },
+  {
+    title: "Individual Auditors",
+    to: "/services?tab=auditors",
+    desc: "Credential certification across Associate, Lead, and Principal tiers.",
+    icon: Users,
+  },
+  {
+    title: "Training Providers",
+    to: "/services?tab=training",
+    desc: "Course frameworks and examination accreditation.",
+    icon: GraduationCap,
+  },
+  {
+    title: "Advisory Board",
+    to: "/services?tab=advisory",
+    desc: "Honorary expert committee shaping compliance frameworks.",
+    icon: Briefcase,
   },
 ];
 
 const resourcesMega: MegaCol[] = [
   {
     title: "Governance",
-    links: [
-      { to: "/governance", label: "Board & Council" },
-      { to: "/governance", label: "Technical Committee" },
-      { to: "/governance", label: "Impartiality Committee" },
-    ],
+    to: "/resources/governance",
+    desc: "Board oversight, leadership, and committee standards.",
+    icon: ShieldCheck,
+    links: [],
   },
   {
     title: "Trust Center",
-    links: [
-      { to: "/governance", label: "International Recognition" },
-      { to: "/governance", label: "Standards Followed" },
-      { to: "/governance", label: "Quality Assurance" },
-    ],
+    to: "/resources/trust-center",
+    desc: "International recognition, standards matrix, and QA.",
+    icon: Award,
+    links: [],
   },
   {
     title: "Documentation",
-    links: [
-      { to: "/documentation", label: "Manuals & Forms" },
-      { to: "/documentation", label: "Templates" },
-      { to: "/documentation", label: "Publications" },
-    ],
+    to: "/resources/documentation",
+    desc: "Accreditation manuals, policies, forms, and templates.",
+    icon: FileText,
+    links: [],
   },
   {
     title: "Transparency",
-    links: [
-      { to: "/governance", label: "Appeals Process" },
-      { to: "/governance", label: "Complaints Handling" },
-      { to: "/governance", label: "Code of Ethics" },
-    ],
+    to: "/resources/transparency",
+    desc: "Appeals process, complaints handling, and code of ethics.",
+    icon: Scale,
+    links: [],
   },
 ];
 
@@ -134,26 +146,56 @@ export function SiteHeader() {
                     <div className="absolute left-0 top-full w-screen">
                       <div className="bg-white border-b-4 border-gold shadow-2xl">
                         <div className="w-full max-w-[1550px] mx-auto px-6 md:px-12 xl:px-20 py-10 grid grid-cols-4 gap-10">
-                          {(item.hasMenu === "programs" ? programsMega : resourcesMega).map(
-                            (col) => (
-                              <div key={col.title}>
-                                <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-primary mb-4 pb-2 border-b border-light-blue">
-                                  {col.title}
+                           {(item.hasMenu === "programs" ? programsMega : resourcesMega).map(
+                            (col) => {
+                              const Icon = col.icon;
+                              if (Icon) {
+                                return (
+                                  <Link
+                                    key={col.title}
+                                    to={col.to as never}
+                                    onClick={() => setMenu(null)}
+                                    className="group flex items-start gap-4 p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-gold/5 hover:border-gold hover:shadow-lg transition-all duration-300"
+                                  >
+                                    <div className="h-10 w-10 shrink-0 rounded-xl bg-gold/10 border border-gold/30 text-gold-foreground grid place-items-center group-hover:scale-110 transition-transform duration-300">
+                                      <Icon className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <div className="text-sm font-bold text-navy group-hover:text-gold transition-colors tracking-tight uppercase">
+                                        {col.title}
+                                      </div>
+                                      {col.desc && (
+                                        <p className="text-xs text-muted-foreground leading-normal font-medium">
+                                          {col.desc}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </Link>
+                                );
+                              }
+
+                              return (
+                                <div key={col.title}>
+                                  <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-primary mb-4 pb-2 border-b border-light-blue">
+                                    {col.title}
+                                  </div>
+                                  {col.links && col.links.length > 0 && (
+                                    <ul className="space-y-2.5">
+                                      {col.links.map((l) => (
+                                        <li key={l.label}>
+                                          <Link
+                                            to={l.to as never}
+                                            className="group inline-flex items-center text-[14px] font-medium text-navy-deep hover:text-secondary transition-all hover:translate-x-[3px]"
+                                          >
+                                            {l.label}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
                                 </div>
-                                <ul className="space-y-2.5">
-                                  {col.links.map((l) => (
-                                    <li key={l.label}>
-                                      <Link
-                                        to={l.to as never}
-                                        className="group inline-flex items-center text-[14px] font-medium text-navy-deep hover:text-secondary transition-all hover:translate-x-[3px]"
-                                      >
-                                        {l.label}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ),
+                              );
+                            }
                           )}
                         </div>
                       </div>

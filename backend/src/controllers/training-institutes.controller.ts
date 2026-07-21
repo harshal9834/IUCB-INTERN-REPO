@@ -100,6 +100,20 @@ export class TrainingInstitutesController {
         },
       });
 
+      if (updated.email) {
+        const EmailService = (await import("../services/email.service.js")).EmailService;
+        try {
+          await EmailService.sendTrainingInstituteStatusEmail({
+            to: updated.email,
+            instituteName: updated.instituteName,
+            status: updated.status,
+            reason: req.body.reason || req.body.remarks,
+          });
+        } catch (e) {
+          console.error(`[TrainingInstitutesController] Failed to send status email to ${updated.email}:`, e);
+        }
+      }
+
       res.status(200).json(
         new ApiResponse(200, { trainingInstitute: updated }, "Training Institute status updated"),
       );

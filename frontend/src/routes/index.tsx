@@ -78,7 +78,7 @@ const paths = [
     icon: Search,
     title: "Verification Console",
     desc: "Instantly verify the authenticity and current status of any IUCB-issued credential.",
-    to: "/verify",
+    to: "/directory#verify",
   },
 ];
 

@@ -267,7 +267,7 @@ function TrainingInstituteForm() {
                 />
                 <span className="text-sm text-slate-600 leading-relaxed">
                   I confirm that the information provided is accurate. I agree to IUCB's{" "}
-                  <Link to="/governance" className="text-primary underline underline-offset-2">terms of service</Link>{" "}
+                  <Link to="/resources/governance" className="text-primary underline underline-offset-2">terms of service</Link>{" "}
                   and understand that false information may result in rejection.
                 </span>
               </label>

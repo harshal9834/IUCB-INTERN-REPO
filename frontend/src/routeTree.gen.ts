@@ -14,13 +14,15 @@ import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ProcessRouteImport } from './routes/process'
 import { Route as NotFoundRouteImport } from './routes/not-found'
-import { Route as GovernanceRouteImport } from './routes/governance'
-import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DirectoryIndexRouteImport } from './routes/directory.index'
+import { Route as ResourcesTrustCenterRouteImport } from './routes/resources.trust-center'
+import { Route as ResourcesTransparencyRouteImport } from './routes/resources.transparency'
+import { Route as ResourcesGovernanceRouteImport } from './routes/resources.governance'
+import { Route as ResourcesDocumentationRouteImport } from './routes/resources.documentation'
 import { Route as DirectoryUuidRouteImport } from './routes/directory.$uuid'
 import { Route as ApplyTrainingInstituteRouteImport } from './routes/apply.training-institute'
 import { Route as ApplySuccessRouteImport } from './routes/apply.success'
@@ -84,16 +86,6 @@ const NotFoundRoute = NotFoundRouteImport.update({
   path: '/not-found',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GovernanceRoute = GovernanceRouteImport.update({
-  id: '/governance',
-  path: '/governance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocumentationRoute = DocumentationRouteImport.update({
-  id: '/documentation',
-  path: '/documentation',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -117,6 +109,26 @@ const IndexRoute = IndexRouteImport.update({
 const DirectoryIndexRoute = DirectoryIndexRouteImport.update({
   id: '/directory/',
   path: '/directory/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesTrustCenterRoute = ResourcesTrustCenterRouteImport.update({
+  id: '/resources/trust-center',
+  path: '/resources/trust-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesTransparencyRoute = ResourcesTransparencyRouteImport.update({
+  id: '/resources/transparency',
+  path: '/resources/transparency',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesGovernanceRoute = ResourcesGovernanceRouteImport.update({
+  id: '/resources/governance',
+  path: '/resources/governance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesDocumentationRoute = ResourcesDocumentationRouteImport.update({
+  id: '/resources/documentation',
+  path: '/resources/documentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectoryUuidRoute = DirectoryUuidRouteImport.update({
@@ -316,8 +328,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
-  '/documentation': typeof DocumentationRoute
-  '/governance': typeof GovernanceRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
@@ -349,6 +359,10 @@ export interface FileRoutesByFullPath {
   '/apply/success': typeof ApplySuccessRoute
   '/apply/training-institute': typeof ApplyTrainingInstituteRoute
   '/directory/$uuid': typeof DirectoryUuidRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
+  '/resources/governance': typeof ResourcesGovernanceRoute
+  '/resources/transparency': typeof ResourcesTransparencyRoute
+  '/resources/trust-center': typeof ResourcesTrustCenterRoute
   '/directory/': typeof DirectoryIndexRoute
   '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications/$id': typeof AdminApplicationsIdRoute
@@ -367,8 +381,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
-  '/documentation': typeof DocumentationRoute
-  '/governance': typeof GovernanceRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
@@ -399,6 +411,10 @@ export interface FileRoutesByTo {
   '/apply/success': typeof ApplySuccessRoute
   '/apply/training-institute': typeof ApplyTrainingInstituteRoute
   '/directory/$uuid': typeof DirectoryUuidRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
+  '/resources/governance': typeof ResourcesGovernanceRoute
+  '/resources/transparency': typeof ResourcesTransparencyRoute
+  '/resources/trust-center': typeof ResourcesTrustCenterRoute
   '/directory': typeof DirectoryIndexRoute
   '/admin/advisory/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications/$id': typeof AdminApplicationsIdRoute
@@ -418,8 +434,6 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/apply': typeof ApplyRouteWithChildren
   '/contact': typeof ContactRoute
-  '/documentation': typeof DocumentationRoute
-  '/governance': typeof GovernanceRoute
   '/not-found': typeof NotFoundRoute
   '/process': typeof ProcessRoute
   '/services': typeof ServicesRoute
@@ -451,6 +465,10 @@ export interface FileRoutesById {
   '/apply/success': typeof ApplySuccessRoute
   '/apply/training-institute': typeof ApplyTrainingInstituteRoute
   '/directory/$uuid': typeof DirectoryUuidRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
+  '/resources/governance': typeof ResourcesGovernanceRoute
+  '/resources/transparency': typeof ResourcesTransparencyRoute
+  '/resources/trust-center': typeof ResourcesTrustCenterRoute
   '/directory/': typeof DirectoryIndexRoute
   '/admin/advisory_/$id': typeof AdminAdvisoryIdRoute
   '/admin/applications_/$id': typeof AdminApplicationsIdRoute
@@ -471,8 +489,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/apply'
     | '/contact'
-    | '/documentation'
-    | '/governance'
     | '/not-found'
     | '/process'
     | '/services'
@@ -504,6 +520,10 @@ export interface FileRouteTypes {
     | '/apply/success'
     | '/apply/training-institute'
     | '/directory/$uuid'
+    | '/resources/documentation'
+    | '/resources/governance'
+    | '/resources/transparency'
+    | '/resources/trust-center'
     | '/directory/'
     | '/admin/advisory/$id'
     | '/admin/applications/$id'
@@ -522,8 +542,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/apply'
     | '/contact'
-    | '/documentation'
-    | '/governance'
     | '/not-found'
     | '/process'
     | '/services'
@@ -554,6 +572,10 @@ export interface FileRouteTypes {
     | '/apply/success'
     | '/apply/training-institute'
     | '/directory/$uuid'
+    | '/resources/documentation'
+    | '/resources/governance'
+    | '/resources/transparency'
+    | '/resources/trust-center'
     | '/directory'
     | '/admin/advisory/$id'
     | '/admin/applications/$id'
@@ -572,8 +594,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/apply'
     | '/contact'
-    | '/documentation'
-    | '/governance'
     | '/not-found'
     | '/process'
     | '/services'
@@ -605,6 +625,10 @@ export interface FileRouteTypes {
     | '/apply/success'
     | '/apply/training-institute'
     | '/directory/$uuid'
+    | '/resources/documentation'
+    | '/resources/governance'
+    | '/resources/transparency'
+    | '/resources/trust-center'
     | '/directory/'
     | '/admin/advisory_/$id'
     | '/admin/applications_/$id'
@@ -624,8 +648,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ApplyRoute: typeof ApplyRouteWithChildren
   ContactRoute: typeof ContactRoute
-  DocumentationRoute: typeof DocumentationRoute
-  GovernanceRoute: typeof GovernanceRoute
   NotFoundRoute: typeof NotFoundRoute
   ProcessRoute: typeof ProcessRoute
   ServicesRoute: typeof ServicesRoute
@@ -652,6 +674,10 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTrainingInstitutesRoute: typeof AdminTrainingInstitutesRouteWithChildren
   DirectoryUuidRoute: typeof DirectoryUuidRoute
+  ResourcesDocumentationRoute: typeof ResourcesDocumentationRoute
+  ResourcesGovernanceRoute: typeof ResourcesGovernanceRoute
+  ResourcesTransparencyRoute: typeof ResourcesTransparencyRoute
+  ResourcesTrustCenterRoute: typeof ResourcesTrustCenterRoute
   DirectoryIndexRoute: typeof DirectoryIndexRoute
   AdminAdvisoryIdRoute: typeof AdminAdvisoryIdRoute
   AdminApplicationsIdRoute: typeof AdminApplicationsIdRoute
@@ -697,20 +723,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotFoundRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/governance': {
-      id: '/governance'
-      path: '/governance'
-      fullPath: '/governance'
-      preLoaderRoute: typeof GovernanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/documentation': {
-      id: '/documentation'
-      path: '/documentation'
-      fullPath: '/documentation'
-      preLoaderRoute: typeof DocumentationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -744,6 +756,34 @@ declare module '@tanstack/react-router' {
       path: '/directory'
       fullPath: '/directory/'
       preLoaderRoute: typeof DirectoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/trust-center': {
+      id: '/resources/trust-center'
+      path: '/resources/trust-center'
+      fullPath: '/resources/trust-center'
+      preLoaderRoute: typeof ResourcesTrustCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/transparency': {
+      id: '/resources/transparency'
+      path: '/resources/transparency'
+      fullPath: '/resources/transparency'
+      preLoaderRoute: typeof ResourcesTransparencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/governance': {
+      id: '/resources/governance'
+      path: '/resources/governance'
+      fullPath: '/resources/governance'
+      preLoaderRoute: typeof ResourcesGovernanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/documentation': {
+      id: '/resources/documentation'
+      path: '/resources/documentation'
+      fullPath: '/resources/documentation'
+      preLoaderRoute: typeof ResourcesDocumentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/directory/$uuid': {
@@ -1066,8 +1106,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ApplyRoute: ApplyRouteWithChildren,
   ContactRoute: ContactRoute,
-  DocumentationRoute: DocumentationRoute,
-  GovernanceRoute: GovernanceRoute,
   NotFoundRoute: NotFoundRoute,
   ProcessRoute: ProcessRoute,
   ServicesRoute: ServicesRoute,
@@ -1094,6 +1132,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTrainingInstitutesRoute: AdminTrainingInstitutesRouteWithChildren,
   DirectoryUuidRoute: DirectoryUuidRoute,
+  ResourcesDocumentationRoute: ResourcesDocumentationRoute,
+  ResourcesGovernanceRoute: ResourcesGovernanceRoute,
+  ResourcesTransparencyRoute: ResourcesTransparencyRoute,
+  ResourcesTrustCenterRoute: ResourcesTrustCenterRoute,
   DirectoryIndexRoute: DirectoryIndexRoute,
   AdminAdvisoryIdRoute: AdminAdvisoryIdRoute,
   AdminApplicationsIdRoute: AdminApplicationsIdRoute,

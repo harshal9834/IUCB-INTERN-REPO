@@ -129,6 +129,12 @@ export class AdvisorsController {
               memberName: advisor.fullName,
               reason,
             });
+          } else if (status === "REVOKED") {
+            await EmailService.sendAdvisoryRevocationEmail({
+              to: recipientEmail,
+              memberName: advisor.fullName,
+              reason,
+            });
           } else if (status === "ACTIVE" && oldStatus !== "ACTIVE") {
             await EmailService.sendAdvisoryReactivationEmail({
               to: recipientEmail,

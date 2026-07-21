@@ -14,24 +14,24 @@ export const Route = createFileRoute("/about")({
 
 const milestones = [
   {
-    year: "2019",
-    title: "IUCB Established",
-    desc: "Founded in Tallinn, Estonia as an independent international accreditation body.",
+    year: "2018",
+    title: "Estonia Foundation",
+    desc: "Foundation established in Tallinn, Estonia, focusing on European cybersecurity frameworks.",
   },
   {
     year: "2021",
-    title: "International Expansion",
-    desc: "Expanded accreditation activities across multiple global regions.",
+    title: "ISO Management Systems",
+    desc: "Expansion into ISO management systems and establishment of the Independent Oversight Council.",
   },
   {
     year: "2024",
-    title: "Global Recognition",
-    desc: "Supporting certification bodies, auditors, and training providers worldwide.",
+    title: "Cryptographic Credential Ledger",
+    desc: "Launch of the cryptographic credential ledger, revolutionizing how certificates are issued and verified.",
   },
   {
-    year: "2026",
-    title: "Digital Trust Platform",
-    desc: "Introduced secure QR-enabled and cryptographic credential verification.",
+    year: "Present",
+    title: "Global International Authority",
+    desc: "Serving over 500 accredited organizations across 80+ signatory nations worldwide.",
   },
 ];
 

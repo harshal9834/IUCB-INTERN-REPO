@@ -4,6 +4,17 @@ import { getCountries, getStates, getCities } from '../services/location.service
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Input } from './ui/input';
 
+export interface LocationData {
+  country?: string;
+  countryCode?: string;
+  phoneCode?: string;
+  state?: string;
+  city?: string;
+  postalCode?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+}
+
 interface LocationSelectorProps<T extends FieldValues> {
   control: Control<T>;
   register: UseFormRegister<T>;

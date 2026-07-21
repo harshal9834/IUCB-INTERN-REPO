@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   MapPin,
@@ -107,6 +107,24 @@ function Directory() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const paramCert = searchParams.get("certId") || searchParams.get("id") || searchParams.get("credential");
+      if (paramCert) {
+        setCertId(paramCert);
+      }
+      if (window.location.hash === "#verify" || searchParams.get("tab") === "verify" || paramCert) {
+        setTimeout(() => {
+          const el = document.getElementById("verify-section");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 150);
+      }
+    }
+  }, []);
+
   const handleVerify = async () => {
     console.log("Verify Clicked");
     console.log(certId);
@@ -164,7 +182,7 @@ function Directory() {
       />
 
       {/* Verification Section */}
-      <section className="py-12 bg-light-blue/20">
+      <section id="verify-section" className="py-12 bg-light-blue/20">
         <div className="container-x">
           <div className="rounded-2xl border border-border bg-white p-8 shadow-sm">
             <label className="text-[12px] font-semibold uppercase tracking-wider text-primary">

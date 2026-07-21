@@ -262,7 +262,7 @@ function AuditorForm() {
                 />
                 <span className="text-sm text-slate-600 leading-relaxed">
                   I confirm that all information provided is accurate. I agree to IUCB's{" "}
-                  <Link to="/governance" className="text-primary underline underline-offset-2">terms of service</Link>{" "}
+                  <Link to="/resources/governance" className="text-primary underline underline-offset-2">terms of service</Link>{" "}
                   and code of conduct for registered auditors.
                 </span>
               </label>

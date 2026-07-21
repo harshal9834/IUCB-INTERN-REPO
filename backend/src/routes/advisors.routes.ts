@@ -29,6 +29,7 @@ router.patch("/:id", auditAdvisors, ctrl.updateAdvisor);
 
 // PATCH /api/v1/advisors/:id/status - Status change with automatic audit logging
 router.patch("/:id/status", auditAdvisors, ctrl.updateAdvisorStatus);
+router.put("/:id/status", auditAdvisors, ctrl.updateAdvisorStatus);
 
 // POST /api/v1/advisors/:id/send-email - Email sending with audit logging
 router.post("/:id/send-email", 

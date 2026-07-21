@@ -20,7 +20,8 @@ import {
   DataGrid,
   StatusPanel,
   QuickActionsPanel,
-  ActivityLogPanel
+  ActivityLogPanel,
+  LocationSection
 } from "../components/admin-details";
 
 export const Route = createFileRoute("/admin/auditors_/$id")({
@@ -185,18 +186,7 @@ function AuditorDetailsComponent() {
                   <DataField label="Email" value={auditor.email} />
                   <DataField label="Phone" value={auditor.phone} />
                   
-                  <div className="md:col-span-3 pt-4 border-t border-slate-100">
-                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Location Information</h4>
-                    <DataGrid>
-                      <DataField label="Country" value={fb(auditor.country)} />
-                      <DataField label="State / Province" value={fb(auditor.state)} />
-                      <DataField label="City" value={fb(auditor.city)} />
-                      <DataField label="Postal Code" value={fb(auditor.postalCode)} />
-                      <DataField label="ISO Code" value={fb(auditor.countryCode)} />
-                      <DataField label="Phone Code" value={fb(auditor.phoneCode)} />
-                      <DataField label="Full Address" fullWidth value={fb(address)} />
-                    </DataGrid>
-                  </div>
+                  <LocationSection location={auditor} />
                 </DataGrid>
               )}
             </SectionCard>

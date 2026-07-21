@@ -20,6 +20,7 @@ import {
   DataGrid,
   StatusPanel,
   QuickActionsPanel,
+  LocationSection
 } from "../components/admin-details";
 
 export const Route = createFileRoute("/admin/organizations_/$id")({
@@ -202,18 +203,7 @@ function OrganizationDetailsComponent() {
                       </a>
                     ) : "N/A"}
                   </DataField>
-                  <div className="md:col-span-3 pt-4 border-t border-slate-100">
-                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Location Information</h4>
-                    <DataGrid>
-                      <DataField label="Country" value={fb(organization.country)} />
-                      <DataField label="State / Province" value={fb(organization.state)} />
-                      <DataField label="City" value={fb(organization.city)} />
-                      <DataField label="Postal Code" value={fb(organization.postalCode)} />
-                      <DataField label="ISO Code" value={fb(organization.countryCode)} />
-                      <DataField label="Phone Code" value={fb(organization.phoneCode)} />
-                      <DataField label="Full Address" fullWidth value={fb(address)} />
-                    </DataGrid>
-                  </div>
+                  <LocationSection location={organization} />
                 </DataGrid>
               )}
             </SectionCard>

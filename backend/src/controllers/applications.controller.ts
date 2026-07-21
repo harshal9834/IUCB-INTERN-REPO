@@ -311,263 +311,237 @@ export class AdminApplicationsController {
 
     console.log("[DEBUG] Application received for approval. ID:", id);
 
-    const application = await prisma.application.findFirst({
-      where: { id, deletedAt: null },
-    });
-    if (!application) throw new ApiError(404, "Application not found");
-    if (application.applicationStatus !== "PENDING") {
-      throw new ApiError(400, "This application has already been reviewed");
-    }
+    let emailType = "";
+    let emailPayload: any = null;
 
-    console.log("[DEBUG] Application type:", application.applicationType);
+    const result = await prisma.$transaction(async (tx) => {
+      const application = await tx.application.findFirst({
+        where: { id, deletedAt: null },
+      });
+      if (!application) throw new ApiError(404, "Application not found");
+      if (application.applicationStatus !== "PENDING") {
+        throw new ApiError(400, "This application has already been reviewed");
+      }
 
-    const typeLabel = TYPE_LABELS[application.applicationType] ?? "Application";
-    let insertedId = "";
-    let mappedTable = "";
-    let insertedRecord: any = null;
+      console.log("[DEBUG] Application type:", application.applicationType);
 
-    try {
-      // ── Type-specific record creation ────────────────────────────────────────
-      if (application.applicationType === "ADVISORY") {
-        mappedTable = "Advisor";
-        const advisorData = {
-          applicationId: application.id,
-          fullName: application.fullName,
-          linkedinUrl: application.linkedinUrl ?? null,
-          organization: application.company ?? "N/A",
-          designation: application.designation ?? "N/A",
-          expertiseArea: application.expertiseArea ?? "General",
-          experienceYears: application.experienceYears ?? 0,
-          country: application.country ?? "N/A",
-          countryCode: application.countryCode,
-          phoneCode: application.phoneCode,
-          state: application.state,
-          city: application.city,
-          postalCode: application.postalCode,
-          addressLine1: application.addressLine1,
-          addressLine2: application.addressLine2,
-          address: application.address ?? "N/A",
-          status: "ACTIVE" as const,
-        };
-        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
-        console.log(`[DEBUG] Data before insertion:`, advisorData);
+      const typeLabel = TYPE_LABELS[application.applicationType] ?? "Application";
+      let insertedId = "";
+      let mappedTable = "";
+      let insertedRecord: any = null;
 
-        insertedRecord = await prisma.advisor.create({ data: advisorData });
-        insertedId = insertedRecord.id;
-        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
-
-        // Try sending email, catch so it doesn't break insertion
-        try {
-          await EmailService.sendWelcomeEmail({
+      try {
+        // ── Type-specific record creation ────────────────────────────────────────
+        if (application.applicationType === "ADVISORY") {
+          mappedTable = "Advisor";
+          const advisorData = {
+            applicationId: application.id,
+            fullName: application.fullName,
+            linkedinUrl: application.linkedinUrl ?? null,
+            organization: application.company ?? "N/A",
+            designation: application.designation ?? "N/A",
+            expertiseArea: application.expertiseArea ?? "General",
+            experienceYears: application.experienceYears ?? 0,
+            country: application.country ?? "N/A",
+            countryCode: application.countryCode,
+            phoneCode: application.phoneCode,
+            state: application.state,
+            city: application.city,
+            postalCode: application.postalCode,
+            addressLine1: application.addressLine1,
+            addressLine2: application.addressLine2,
+            address: application.address ?? "N/A",
+            status: "ACTIVE" as const,
+          };
+          
+          insertedRecord = await tx.advisor.create({ data: advisorData });
+          
+          emailType = "WELCOME_ADVISORY";
+          emailPayload = {
             to: application.email,
             applicantName: application.fullName,
             role: "Advisory Board Member",
+          };
+        } else if (application.applicationType === "ACCREDITATION") {
+          mappedTable = "Organization";
+          const accDate = new Date();
+          const expDate = new Date();
+          expDate.setFullYear(expDate.getFullYear() + 5);
+
+          const registrationNum = application.registrationNumber ?? `AUTO-${Date.now()}`;
+          
+          let org = await tx.organization.findUnique({
+            where: { registrationNumber: registrationNum }
           });
-        } catch (e) {
-          console.log("[DEBUG] Email send failed (Advisory), but proceeding.", e);
-        }
-      } else if (application.applicationType === "ACCREDITATION") {
-        mappedTable = "Organization";
-        const accDate = new Date();
-        const expDate = new Date();
-        expDate.setFullYear(expDate.getFullYear() + 5);
 
-        const orgData = {
-          organizationName: application.company ?? application.fullName,
-          registrationNumber: application.registrationNumber ?? `AUTO-${Date.now()}`,
-          country: application.country ?? "N/A",
-          countryCode: application.countryCode,
-          phoneCode: application.phoneCode,
-          state: application.state,
-          city: application.city,
-          postalCode: application.postalCode,
-          addressLine1: application.addressLine1,
-          addressLine2: application.addressLine2,
-          address: application.address ?? "N/A", // Fixed from country to address
-          email: application.email,
-          phone: application.phone ?? "N/A",
-          website: application.website ?? null,
-          accreditationStatus: "ACTIVE" as const,
-          accreditationDate: accDate,
-          expiryDate: expDate,
-        };
-        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
-        console.log(`[DEBUG] Data before insertion:`, orgData);
+          if (!org) {
+            const orgData = {
+              organizationName: application.company ?? application.fullName,
+              registrationNumber: registrationNum,
+              country: application.country ?? "N/A",
+              countryCode: application.countryCode,
+              phoneCode: application.phoneCode,
+              state: application.state,
+              city: application.city,
+              postalCode: application.postalCode,
+              addressLine1: application.addressLine1,
+              addressLine2: application.addressLine2,
+              address: application.address ?? "N/A",
+              email: application.email,
+              phone: application.phone ?? "N/A",
+              website: application.website ?? null,
+              accreditationStatus: "ACTIVE" as const,
+              accreditationDate: accDate,
+              expiryDate: expDate,
+            };
+            org = await tx.organization.create({ data: orgData });
+          }
+          
+          insertedRecord = org;
 
-        insertedRecord = await prisma.organization.create({ data: orgData });
-        insertedId = insertedRecord.id;
-        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
-
-        try {
-          await EmailService.sendApprovalEmail({
+          emailType = "APPROVAL_ACCREDITATION";
+          emailPayload = {
             to: application.email,
             applicantName: application.fullName,
             applicationType: typeLabel,
             applicationNumber: application.applicationNumber ?? undefined,
+          };
+        } else if (application.applicationType === "AUDITOR") {
+          mappedTable = "Auditor";
+          let org = await tx.organization.findFirst({
+            where: { deletedAt: null, accreditationStatus: "ACTIVE" },
           });
-        } catch (e) {
-          console.log("[DEBUG] Email send failed (Accreditation), but proceeding.", e);
-        }
-      } else if (application.applicationType === "AUDITOR") {
-        mappedTable = "Auditor";
-        // Auto-create Auditor profile (linked to first available org for now)
-        let org = await prisma.organization.findFirst({
-          where: { deletedAt: null, accreditationStatus: "ACTIVE" },
-        });
 
-        // Fallback: create a system default org if none exist, because organizationId is required.
-        if (!org) {
-           org = await prisma.organization.create({
-             data: {
-               organizationName: "System Default Organization",
-               registrationNumber: `DEFAULT-ORG-${Date.now()}`,
-               country: "System",
-               address: "System",
-               email: "admin@iucb.org",
-               phone: "N/A",
-               accreditationStatus: "ACTIVE",
-               accreditationDate: new Date(),
-               expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
-             }
-           });
-           console.log("[DEBUG] Created System Default Organization since no active orgs were found.");
-        }
+          if (!org) {
+             org = await tx.organization.create({
+               data: {
+                 organizationName: "System Default Organization",
+                 registrationNumber: `DEFAULT-ORG-${Date.now()}`,
+                 country: "System",
+                 address: "System",
+                 email: "admin@iucb.org",
+                 phone: "N/A",
+                 accreditationStatus: "ACTIVE",
+                 accreditationDate: new Date(),
+                 expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
+               }
+             });
+          }
 
-        const auditorData = {
-          fullName: application.fullName,
-          email: application.email,
-          phone: application.phone ?? "N/A",
-          organizationId: org.id,
-          tier: "ASSOCIATE" as const,
-          specialization: application.appliedStandard ?? "General",
-          experienceYears: application.experienceYears ?? 0,
-          country: application.country ?? "N/A",
-          countryCode: application.countryCode,
-          phoneCode: application.phoneCode,
-          state: application.state,
-          city: application.city,
-          postalCode: application.postalCode,
-          addressLine1: application.addressLine1,
-          addressLine2: application.addressLine2,
-          address: application.address ?? "N/A",
-          status: "ACTIVE",
-        };
-        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
-        console.log(`[DEBUG] Data before insertion:`, auditorData);
+          const auditorData = {
+            fullName: application.fullName,
+            email: application.email,
+            phone: application.phone ?? "N/A",
+            organizationId: org.id,
+            tier: "ASSOCIATE" as const,
+            specialization: application.appliedStandard ?? "General",
+            experienceYears: application.experienceYears ?? 0,
+            country: application.country ?? "N/A",
+            countryCode: application.countryCode,
+            phoneCode: application.phoneCode,
+            state: application.state,
+            city: application.city,
+            postalCode: application.postalCode,
+            addressLine1: application.addressLine1,
+            addressLine2: application.addressLine2,
+            address: application.address ?? "N/A",
+            status: "ACTIVE",
+          };
+          
+          insertedRecord = await tx.auditor.create({ data: auditorData });
 
-        insertedRecord = await prisma.auditor.create({ data: auditorData });
-        insertedId = insertedRecord.id;
-        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
-
-        try {
-          await EmailService.sendWelcomeEmail({
+          emailType = "WELCOME_AUDITOR";
+          emailPayload = {
             to: application.email,
             applicantName: application.fullName,
             role: "IUCB Certified Auditor",
+          };
+        } else if (application.applicationType === "TRAINING_INSTITUTE") {
+          mappedTable = "TrainingInstitute";
+          const registrationNum = application.registrationNumber ?? `TRN-AUTO-${Date.now()}`;
+          
+          let trn = await tx.trainingInstitute.findUnique({
+            where: { registrationNumber: registrationNum }
           });
-        } catch (e) {
-          console.log("[DEBUG] Email send failed (Auditor), but proceeding.", e);
-        }
-      } else if (application.applicationType === "TRAINING_INSTITUTE") {
-        mappedTable = "TrainingInstitute";
-        const trnData = {
-          instituteName: application.company ?? application.fullName,
-          registrationNumber: application.registrationNumber ?? `TRN-AUTO-${Date.now()}`,
-          country: application.country ?? "N/A",
-          countryCode: application.countryCode,
-          phoneCode: application.phoneCode,
-          state: application.state,
-          city: application.city,
-          postalCode: application.postalCode,
-          addressLine1: application.addressLine1,
-          addressLine2: application.addressLine2,
-          address: application.address ?? "N/A", // Fixed from country to address
-          email: application.email,
-          phone: application.phone ?? "N/A",
-          website: application.website ?? null,
-          status: "ACTIVE" as const,
-        };
-        console.log(`[DEBUG] Mapped table: ${mappedTable}`);
-        console.log(`[DEBUG] Data before insertion:`, trnData);
 
-        insertedRecord = await prisma.trainingInstitute.create({ data: trnData });
-        insertedId = insertedRecord.id;
-        console.log(`[DEBUG] Prisma create response:`, insertedRecord);
+          if (!trn) {
+            const trnData = {
+              instituteName: application.company ?? application.fullName,
+              registrationNumber: registrationNum,
+              country: application.country ?? "N/A",
+              countryCode: application.countryCode,
+              phoneCode: application.phoneCode,
+              state: application.state,
+              city: application.city,
+              postalCode: application.postalCode,
+              addressLine1: application.addressLine1,
+              addressLine2: application.addressLine2,
+              address: application.address ?? "N/A",
+              email: application.email,
+              phone: application.phone ?? "N/A",
+              website: application.website ?? null,
+              status: "ACTIVE" as const,
+            };
+            trn = await tx.trainingInstitute.create({ data: trnData });
+          }
+          
+          insertedRecord = trn;
 
-        try {
-          await EmailService.sendApprovalEmail({
+          emailType = "APPROVAL_TRAINING_INSTITUTE";
+          emailPayload = {
             to: application.email,
             applicantName: application.fullName,
             applicationType: typeLabel,
             applicationNumber: application.applicationNumber ?? undefined,
-          });
-        } catch (e) {
-          console.log("[DEBUG] Email send failed (Training Institute), but proceeding.", e);
+          };
         }
+        
+        insertedId = insertedRecord.id;
+      } catch (error: any) {
+        throw new ApiError(500, `Failed to create target record in ${mappedTable}: ${error.message}`);
       }
 
-      console.log(`[DEBUG] Database commit successful for table ${mappedTable}, Inserted ID: ${insertedId}`);
-      
-      // Verify Fetch
-      if (mappedTable === "Advisor") {
-         const fetchResult = await prisma.advisor.findUnique({ where: { id: insertedId } });
-         console.log(`[DEBUG] Fetch result from Advisor table:`, fetchResult ? "SUCCESS" : "FAILED");
-      } else if (mappedTable === "Organization") {
-         const fetchResult = await prisma.organization.findUnique({ where: { id: insertedId } });
-         console.log(`[DEBUG] Fetch result from Organization table:`, fetchResult ? "SUCCESS" : "FAILED");
-      } else if (mappedTable === "Auditor") {
-         const fetchResult = await prisma.auditor.findUnique({ where: { id: insertedId } });
-         console.log(`[DEBUG] Fetch result from Auditor table:`, fetchResult ? "SUCCESS" : "FAILED");
-      } else if (mappedTable === "TrainingInstitute") {
-         const fetchResult = await prisma.trainingInstitute.findUnique({ where: { id: insertedId } });
-         console.log(`[DEBUG] Fetch result from TrainingInstitute table:`, fetchResult ? "SUCCESS" : "FAILED");
+      const updatedApplication = await tx.application.update({
+        where: { id },
+        data: {
+          applicationStatus: "APPROVED",
+          internalNotes: body.remarks ?? application.internalNotes,
+          reviewedById: req.admin!.id,
+          reviewedAt: new Date(),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          adminId: req.admin!.id,
+          entityType: "APPLICATION",
+          entityId: application.id,
+          action: "APPROVE",
+          oldData: { applicationStatus: "PENDING" },
+          newData: { applicationStatus: "APPROVED", mappedTable, insertedId },
+          ipAddress: req.ip,
+          userAgent: req.headers["user-agent"],
+        },
+      });
+
+      return { updatedApplication, insertedRecord, mappedTable };
+    });
+
+    // NOW send email outside of the transaction block
+    if (emailType && emailPayload) {
+      try {
+        if (emailType === "WELCOME_ADVISORY" || emailType === "WELCOME_AUDITOR") {
+          await EmailService.sendWelcomeEmail(emailPayload);
+        } else if (emailType === "APPROVAL_ACCREDITATION" || emailType === "APPROVAL_TRAINING_INSTITUTE") {
+          await EmailService.sendApprovalEmail(emailPayload);
+        }
+      } catch (e) {
+        console.error(`[DEBUG] Email send failed for type ${emailType}, but proceeding.`, e);
       }
-
-    } catch (error: any) {
-      console.error(`[DEBUG] INSERTION FAILING! Exact reason:`, error);
-      throw new ApiError(500, `Failed to create target record in ${mappedTable}: ${error.message}`);
     }
-
-    // Now update application status since insertion succeeded
-    const updatedApplication = await prisma.application.update({
-      where: { id },
-      data: {
-        applicationStatus: "APPROVED",
-        internalNotes: body.remarks ?? application.internalNotes,
-        reviewedById: req.admin.id,
-        reviewedAt: new Date(),
-      },
-    });
-
-    // Audit log
-    await prisma.auditLog.create({
-      data: {
-        adminId: req.admin.id,
-        entityType: "APPLICATION",
-        entityId: application.id,
-        action: "APPROVE",
-        oldData: { applicationStatus: "PENDING" },
-        newData: { applicationStatus: "APPROVED", mappedTable, insertedId },
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
-      },
-    });
-
-    const orgName = application.company || application.fullName;
-    let notifyMessage = `Application ${application.applicationNumber} has been approved.`;
-    if (application.applicationType === "ACCREDITATION") {
-      notifyMessage = `Organization application for ${orgName} has been approved.`;
-    } else if (application.applicationType === "AUDITOR") {
-      notifyMessage = `Auditor ${application.fullName} has been approved.`;
-    } else if (application.applicationType === "TRAINING_INSTITUTE") {
-      notifyMessage = `Training Institute ${orgName} has been approved.`;
-    } else if (application.applicationType === "ADVISORY") {
-      notifyMessage = `Advisory Board application for ${application.fullName} has been approved.`;
-    }
-
 
     res.status(200).json(
-      new ApiResponse(200, { application: updatedApplication, insertedRecord, mappedTable }, "Application approved successfully"),
+      new ApiResponse(200, { application: result.updatedApplication, insertedRecord: result.insertedRecord, mappedTable: result.mappedTable }, "Application approved successfully"),
     );
   });
 

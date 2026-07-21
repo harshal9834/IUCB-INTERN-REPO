@@ -24,7 +24,8 @@ import {
   DataGrid,
   StatusPanel,
   QuickActionsPanel,
-  ActivityLogPanel
+  ActivityLogPanel,
+  LocationSection
 } from "../components/admin-details";
 
 export const Route = createFileRoute("/admin/advisory_/$id")({
@@ -229,18 +230,14 @@ function AdvisoryBoardDetailsComponent() {
                   </div>
                 </div>
               ) : (
-                <DataGrid>
-                  <DataField label="Full Name" value={advisor.fullName} />
-                  <DataField label="Email" value={email} />
-                  <DataField label="Phone" value={phone} />
-                  <DataField label="Country" value={fb(advisor.country)} />
-                  <DataField label="State / Province" value={fb(advisor.state)} />
-                  <DataField label="City" value={fb(advisor.city)} />
-                  <DataField label="Postal Code" value={fb(advisor.postalCode)} />
-                  <DataField label="ISO Code" value={fb(advisor.countryCode)} />
-                  <DataField label="Phone Code" value={fb(advisor.phoneCode)} />
-                  <DataField label="Full Address" fullWidth value={fb(address)} />
-                </DataGrid>
+                <>
+                  <DataGrid>
+                    <DataField label="Full Name" value={advisor.fullName} />
+                    <DataField label="Email" value={email} />
+                    <DataField label="Phone" value={phone} />
+                  </DataGrid>
+                  <LocationSection location={advisor} />
+                </>
               )}
             </SectionCard>
 

@@ -4,3 +4,4 @@ export * from './SectionCard';
 export * from './StatusPanel';
 export * from './QuickActionsPanel';
 export * from './ActivityLogPanel';
+export * from './LocationSection';
